@@ -1,4 +1,5 @@
-/// <reference types="vite/client" />
+// FIX: Removed the reference to "vite/client" to resolve a type definition error.
+// The project's custom `process.env` types are defined below.
 
 declare namespace NodeJS {
   interface ProcessEnv {

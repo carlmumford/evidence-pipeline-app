@@ -1,4 +1,5 @@
 
+
 import { GoogleGenAI, Type } from "@google/genai";
 import type { Document, ExtractedInfo, DiscoveredResearch } from '../types';
 
@@ -176,8 +177,8 @@ export const findRecentResearch = async (): Promise<DiscoveredResearch[]> => {
         You are an expert research assistant. Find the 5 most recent and relevant research articles about the 'school-to-prison pipeline' from popular academic and research websites (like JSTOR, Google Scholar, university sites, research institutes).
         For each article, provide the title, a direct URL to the article page or PDF, the authors as a comma-separated string, a concise one-paragraph summary, and a confidence score (from 1 to 100) indicating how directly it relates to the school-to-prison pipeline.
         The summary for each article should be in British English.
-        Return your findings as a valid JSON array of objects. Each object should have keys: "title", "url", "authors", "summary", "confidenceScore".
-        Do not include any text before or after the JSON array.
+        Your entire response MUST be a single, valid JSON array of objects. Each object in the array should represent one research article and have the keys "title", "url", "authors", "summary", and "confidenceScore".
+        Do not include any introductory text, closing text, or markdown formatting like \`\`\`json. Your response must start with '[' and end with ']'.
     `;
 
     try {
@@ -193,23 +194,40 @@ export const findRecentResearch = async (): Promise<DiscoveredResearch[]> => {
             throw new Error("AI response was empty.");
         }
 
-        // Clean and parse the JSON response from the text
         let researchList: DiscoveredResearch[];
         try {
-            // Find the start of the JSON array and parse it
-            const jsonString = response.text.substring(response.text.indexOf('['));
+            let jsonString = response.text.trim();
+            
+            // Handle markdown code blocks just in case
+            const markdownMatch = jsonString.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+            if (markdownMatch && markdownMatch[1]) {
+                jsonString = markdownMatch[1].trim();
+            }
+
+            // The model is instructed to return only JSON. If it doesn't, try to recover.
+            if (!jsonString.startsWith('[') || !jsonString.endsWith(']')) {
+                console.warn("AI response was not a clean JSON array. Attempting to recover.");
+                const startIndex = jsonString.indexOf('[');
+                const endIndex = jsonString.lastIndexOf(']');
+
+                if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+                    jsonString = jsonString.substring(startIndex, endIndex + 1);
+                } else {
+                    throw new Error("Could not find a valid JSON array in the response.");
+                }
+            }
+            
             researchList = JSON.parse(jsonString);
+
         } catch (e) {
-            console.error("Failed to parse JSON from AI response:", response.text);
+            console.error("Failed to parse JSON from AI response. Raw text:", response.text, "Error:", e);
             throw new Error("AI returned a malformed response.");
         }
         
-        // Extract and attach grounding metadata as per guidelines
         const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
         const sources = groundingChunks?.map(chunk => chunk.web).filter(Boolean) as { uri: string; title: string }[] || [];
 
-        // Attach all found sources to the first research item for display
-        if (researchList.length > 0) {
+        if (researchList.length > 0 && sources.length > 0) {
             researchList[0].sources = sources;
         }
 
