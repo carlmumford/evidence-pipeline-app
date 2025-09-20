@@ -1,9 +1,10 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import type { Document, ExtractedInfo } from '../types';
 
-// Fix: Use process.env.API_KEY and initialize GoogleGenAI directly as per guidelines.
-// The API key is read from environment variables. Assume it is always available.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// The API key is read from environment variables, which Vite exposes via import.meta.env.
+// For client-side code, environment variables must be prefixed with VITE_.
+const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
 
 export const getSearchSuggestions = async (query: string, existingDocuments: Document[]): Promise<string[]> => {
     const documentTitles = existingDocuments.map(doc => doc.title).join(', ');
@@ -95,12 +96,20 @@ export const extractInfoFromDocument = async (fileData: { mimeType: string; data
         const jsonText = response.text.trim();
         const parsedJson = JSON.parse(jsonText);
         
-        // This validation correctly handles cases where the AI returns empty strings for required fields.
-        if (parsedJson && parsedJson.title && parsedJson.authors && parsedJson.summary) {
+        // This validation is now more robust. It checks for the correct data types,
+        // allowing empty strings and 0 as valid values from the AI.
+        if (
+            parsedJson &&
+            typeof parsedJson.title === 'string' &&
+            typeof parsedJson.authors === 'string' &&
+            typeof parsedJson.summary === 'string' &&
+            typeof parsedJson.year === 'number'
+        ) {
             return parsedJson as ExtractedInfo;
         } else {
-            // If essential info is missing, we throw an error to be caught by the UI.
-            throw new Error("AI response did not contain the required fields.");
+            // This error now only triggers if the AI returns a malformed JSON object,
+            // not just one with empty values.
+            throw new Error("AI response did not match the expected format.");
         }
 
     } catch (error) {

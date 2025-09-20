@@ -8,7 +8,7 @@ import { DataVisualizations } from './components/DataVisualizations';
 import { getSearchSuggestions } from './services/geminiService';
 import { getDocuments, addDocument as saveDocument } from './services/documentService';
 import type { Document } from './types';
-import { UploadIcon, LoadingSpinner } from './constants';
+import { UploadIcon, LoadingSpinner, CheckCircleIcon, CloseIcon } from './constants';
 
 const App: React.FC = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -19,6 +19,7 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState<boolean>(false);
   const [hasSearched, setHasSearched] = useState<boolean>(false);
+  const [confirmationMessage, setConfirmationMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const loadDocuments = async () => {
@@ -73,8 +74,15 @@ const App: React.FC = () => {
   }, [documents]);
 
   const handleAddDocument = async (newDocument: Omit<Document, 'id' | 'createdAt'>) => {
-    const docWithId = await saveDocument(newDocument);
-    setDocuments((prevDocs) => [docWithId, ...prevDocs]);
+    try {
+      const docWithId = await saveDocument(newDocument);
+      setDocuments((prevDocs) => [docWithId, ...prevDocs]);
+      setConfirmationMessage(`"${docWithId.title}" was successfully added.`);
+      setTimeout(() => setConfirmationMessage(null), 5000); // Auto-hide after 5 seconds
+    } catch (err) {
+      console.error("Failed to add document:", err);
+      setError("Could not add the new document. Please try again later.");
+    }
   };
 
   if (isDocsLoading) {
@@ -91,6 +99,27 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-base-200 dark:bg-dark-base-200 text-slate-800 dark:text-slate-200 font-sans transition-colors duration-300">
+      {confirmationMessage && (
+        <div 
+            className="fixed top-24 right-4 md:right-8 bg-green-100 border border-green-400 text-green-700 dark:bg-green-800/50 dark:border-green-600 dark:text-green-200 px-4 py-3 rounded-lg shadow-lg z-50 flex items-center max-w-md animate-fade-in" 
+            role="alert"
+            aria-live="polite"
+        >
+            <CheckCircleIcon className="h-6 w-6 text-green-500 dark:text-green-400 mr-3 flex-shrink-0" />
+            <div className="flex-grow">
+                <strong className="font-bold">Success!</strong>
+                <span className="block text-sm">{confirmationMessage}</span>
+            </div>
+            <button 
+                onClick={() => setConfirmationMessage(null)} 
+                className="ml-4 -mr-1 p-1 rounded-full hover:bg-green-200 dark:hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400"
+                aria-label="Close notification"
+            >
+                <CloseIcon className="h-5 w-5" />
+            </button>
+        </div>
+      )}
+
       <Header />
       <main className="container mx-auto p-4 md:p-8">
         <div className="max-w-4xl mx-auto">

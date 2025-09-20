@@ -20,7 +20,6 @@ const DOCUMENTS_COLLECTION = 'documents';
  * This is a one-time operation.
  */
 const seedDatabase = async () => {
-    console.log("Seeding database with initial documents...");
     const batch = writeBatch(db);
     const documentsCollectionRef = collection(db, DOCUMENTS_COLLECTION);
 
@@ -36,7 +35,6 @@ const seedDatabase = async () => {
     });
 
     await batch.commit();
-    console.log("Database seeded successfully.");
 };
 
 
