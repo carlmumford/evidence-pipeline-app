@@ -1,19 +1,21 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import type { Document, ExtractedInfo } from '../types';
 
-// FIX: Use process.env.API_KEY as per the coding guidelines. This also resolves the TypeScript error.
+// FIX: Switched from `import.meta.env.VITE_API_KEY` to `process.env.API_KEY` to align with coding guidelines and resolve a TypeScript error.
+// Access the API key from the environment variable.
+// This variable is assumed to be pre-configured and accessible.
 const API_KEY = process.env.API_KEY;
 
 if (!API_KEY) {
-    // FIX: Updated warning message to reflect the change to process.env.API_KEY.
-    console.warn("API_KEY environment variable not set. AI features will be disabled.");
+    console.warn("API_KEY environment variable not set. AI features will be disabled. Ensure it's configured in your hosting provider (e.g., Vercel) or a local .env file.");
 }
 
-const ai = new GoogleGenAI({ apiKey: API_KEY! });
+// Conditionally initialize the AI client only if the API key is available.
+const ai = API_KEY ? new GoogleGenAI({ apiKey: API_KEY }) : null;
 
 export const getSearchSuggestions = async (query: string, existingDocuments: Document[]): Promise<string[]> => {
-    if (!API_KEY) {
-        // Return empty array or mock data if API key is not available
+    // If the 'ai' client wasn't initialized, return early.
+    if (!ai) {
         return Promise.resolve([]);
     }
 
@@ -64,9 +66,9 @@ export const getSearchSuggestions = async (query: string, existingDocuments: Doc
 };
 
 export const extractInfoFromDocument = async (fileData: { mimeType: string; data: string }): Promise<ExtractedInfo> => {
-    if (!API_KEY) {
-        // FIX: Updated error message to reflect the change to process.env.API_KEY.
-        throw new Error("API_KEY environment variable not set.");
+    if (!ai) {
+        // FIX: Updated error message to correspond with the API key handling change.
+        throw new Error("AI Service is not available. API_KEY environment variable not set.");
     }
 
     const prompt = `
@@ -125,7 +127,7 @@ export const extractInfoFromDocument = async (fileData: { mimeType: string; data
 };
 
 export const simplifySummary = async (summary: string): Promise<string> => {
-    if (!API_KEY) {
+    if (!ai) {
         // Return original summary if AI is disabled
         return Promise.resolve(summary);
     }
