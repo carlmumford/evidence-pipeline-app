@@ -144,7 +144,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
 
   const renderContent = () => {
     if (isExtracting) {
-        return <AnalyzingIndicator duration={35} />;
+        return <AnalyzingIndicator />;
     }
 
     if (!isExtracted) {

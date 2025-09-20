@@ -1,8 +1,8 @@
-
 import React from 'react';
 import type { Document } from '../types';
 import { ResultCard, ResultCardSkeleton } from './ResultCard';
 import { Pagination } from './Pagination';
+import { SearchIcon } from '../constants';
 
 interface ResultsListProps {
   results: Document[];
@@ -43,31 +43,31 @@ export const ResultsList: React.FC<ResultsListProps> = ({
 }) => {
   if (isLoading && results.length === 0) {
     return (
-      <div>
-        <h3 className="text-2xl font-semibold mb-4 text-slate-700 dark:text-slate-300">Search Results</h3>
-        <div className="space-y-4">
-          <ResultCardSkeleton />
-          <ResultCardSkeleton />
-          <ResultCardSkeleton />
-        </div>
+      <div className="border-t border-gray-200 dark:border-gray-800">
+        <ResultCardSkeleton />
+        <ResultCardSkeleton />
+        <ResultCardSkeleton />
+        <ResultCardSkeleton />
+        <ResultCardSkeleton />
       </div>
     );
   }
 
   if (!hasSearched) {
     return (
-      <div className="text-center py-10 px-6 bg-base-100 dark:bg-dark-base-300 rounded-lg">
-        <h3 className="text-xl font-semibold text-slate-700 dark:text-slate-300">Ready to start your research?</h3>
-        <p className="text-slate-500 dark:text-slate-400 mt-2">Enter a term in the search bar above to find relevant documents.</p>
+      <div className="text-center py-20 px-6">
+        <SearchIcon className="h-12 w-12 text-gray-300 dark:text-gray-700 mx-auto mb-4"/>
+        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Ready for discovery?</h3>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">Enter a search term above to find relevant documents.</p>
       </div>
     );
   }
 
   if (results.length === 0) {
     return (
-      <div className="text-center py-10 px-6 bg-base-100 dark:bg-dark-base-300 rounded-lg">
-        <h3 className="text-xl font-semibold text-slate-700 dark:text-slate-300">No Results Found</h3>
-        <p className="text-slate-500 dark:text-slate-400 mt-2">We couldn't find any documents matching your search. Try adjusting your filters or using a different term.</p>
+      <div className="text-center py-20 px-6">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">No Results Found</h3>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">We couldn't find any documents matching your search. Try a different term.</p>
       </div>
     );
   }
@@ -76,10 +76,10 @@ export const ResultsList: React.FC<ResultsListProps> = ({
 
   return (
     <div>
-      <h3 className="text-2xl font-semibold mb-4 text-slate-700 dark:text-slate-300">
-        {`Search Results (${totalResults})`}
-      </h3>
-      <div className="space-y-4">
+        <div className="px-4 py-2 border-y border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{`Showing ${results.length} of ${totalResults} results`}</p>
+        </div>
+      <div className="border-b border-gray-200 dark:border-gray-800">
         {results.map((doc) => (
           <ResultCard 
             key={doc.id} 

@@ -12,9 +12,9 @@ import { getSearchSuggestions } from '../services/geminiService';
 import { getDocuments, addDocument as saveDocument } from '../services/documentService';
 import { listService } from '../services/listService';
 import type { Document } from '../types';
-import { UploadIcon, LoadingSpinner, CheckCircleIcon, CloseIcon, ListIcon, ChartBarIcon } from '../constants';
+import { LoadingSpinner, CheckCircleIcon, CloseIcon, ExclamationTriangleIcon } from '../constants';
 
-const RESULTS_PER_PAGE = 5;
+const RESULTS_PER_PAGE = 10;
 
 const MainApp: React.FC = () => {
   // Core Data State
@@ -29,7 +29,7 @@ const MainApp: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [hasSearched, setHasSearched] = useState<boolean>(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState<boolean>(false);
-  const [confirmationMessage, setConfirmationMessage] = useState<string | null>(null);
+  const [notification, setNotification] = useState<{type: 'success' | 'error', message: string} | null>(null);
   
   // View State
   const [view, setView] = useState<'search' | 'list' | 'data'>('search');
@@ -106,14 +106,14 @@ const MainApp: React.FC = () => {
   }, [filteredResults, currentPage]);
   
   const filterOptions = useMemo(() => {
-      const resourceTypes = [...new Set(searchResults.map(d => d.resourceType).filter(Boolean) as string[])];
-      const subjects = [...new Set(searchResults.flatMap(d => d.subjects).filter(Boolean) as string[])];
-      const interventions = [...new Set(searchResults.flatMap(d => d.interventions).filter(Boolean) as string[])];
-      const keyPopulations = [...new Set(searchResults.flatMap(d => d.keyPopulations).filter(Boolean) as string[])];
-      const riskFactors = [...new Set(searchResults.flatMap(d => d.riskFactors).filter(Boolean) as string[])];
-      const keyOrganizations = [...new Set(searchResults.flatMap(d => d.keyOrganizations).filter(Boolean) as string[])];
+      const resourceTypes = [...new Set(documents.map(d => d.resourceType).filter(Boolean) as string[])];
+      const subjects = [...new Set(documents.flatMap(d => d.subjects).filter(Boolean) as string[])];
+      const interventions = [...new Set(documents.flatMap(d => d.interventions).filter(Boolean) as string[])];
+      const keyPopulations = [...new Set(documents.flatMap(d => d.keyPopulations).filter(Boolean) as string[])];
+      const riskFactors = [...new Set(documents.flatMap(d => d.riskFactors).filter(Boolean) as string[])];
+      const keyOrganizations = [...new Set(documents.flatMap(d => d.keyOrganizations).filter(Boolean) as string[])];
       return { resourceTypes, subjects, interventions, keyPopulations, riskFactors, keyOrganizations };
-  }, [searchResults]);
+  }, [documents]);
 
   const performSearch = useCallback((query: string, searchDocuments: Document[]) => {
     const lowerCaseQuery = query.toLowerCase();
@@ -147,7 +147,8 @@ const MainApp: React.FC = () => {
     setHasSearched(true);
     setAiSuggestions([]);
     setCurrentPage(1); 
-    setFilters({ startYear: '', endYear: '', resourceTypes: [], subjects: [], interventions: [], keyPopulations: [], riskFactors: [], keyOrganizations: [] }); 
+    // Do not reset filters on search to allow iterative searching
+    // setFilters({ startYear: '', endYear: '', resourceTypes: [], subjects: [], interventions: [], keyPopulations: [], riskFactors: [], keyOrganizations: [] }); 
 
     const filtered = performSearch(query, documents);
     setSearchResults(filtered);
@@ -185,11 +186,19 @@ const MainApp: React.FC = () => {
   };
 
   const handleAddDocument = async (newDocument: Omit<Document, 'id' | 'createdAt'>) => {
+    // Duplicate check
+    const isDuplicate = documents.some(doc => doc.title.trim().toLowerCase() === newDocument.title.trim().toLowerCase());
+    if (isDuplicate) {
+        setNotification({ type: 'error', message: `A document with the title "${newDocument.title}" already exists.` });
+        setTimeout(() => setNotification(null), 5000);
+        return;
+    }
+    
     try {
       await saveDocument(newDocument);
       await fetchDocuments(); 
-      setConfirmationMessage(`"${newDocument.title}" was successfully added.`);
-      setTimeout(() => setConfirmationMessage(null), 5000);
+      setNotification({type: 'success', message: `"${newDocument.title}" was successfully added.`});
+      setTimeout(() => setNotification(null), 5000);
     } catch (err) {
       console.error("Failed to add document:", err);
       setError("Could not add the new document.");
@@ -207,12 +216,19 @@ const MainApp: React.FC = () => {
         setCurrentPage(1);
     }
   }, [filters, currentPage, paginatedResults, filteredResults]);
+  
+  useEffect(() => {
+    // If there is no search query, show all documents by default, otherwise show search results
+    if (!searchQuery.trim()) {
+        setSearchResults(documents);
+    }
+  }, [documents, searchQuery]);
+
 
   if (isDocsLoading) {
     return (
       <div className="flex flex-col justify-center items-center h-[calc(100vh-200px)]">
-        <LoadingSpinner className="h-12 w-12 text-brand-primary dark:text-brand-accent" />
-        <p className="mt-4 text-lg">Loading evidence library...</p>
+        <LoadingSpinner className="h-10 w-10 text-gray-400" />
       </div>
     );
   }
@@ -221,7 +237,7 @@ const MainApp: React.FC = () => {
     switch(view) {
         case 'list':
             return (
-                 <div className="mt-12 max-w-4xl mx-auto">
+                 <div className="w-full">
                     <SavedList
                         savedDocuments={savedDocuments}
                         onToggleSave={handleToggleSave}
@@ -235,7 +251,7 @@ const MainApp: React.FC = () => {
             );
         case 'data':
             return (
-                <div className="mt-12 max-w-6xl mx-auto">
+                <div className="w-full">
                     <DataPage
                         documents={documents}
                         onSearch={handleSearch}
@@ -246,22 +262,17 @@ const MainApp: React.FC = () => {
         case 'search':
         default:
              return (
-                <div className="mt-12 grid grid-cols-1 lg:grid-cols-12 gap-12">
-                    <aside className={`lg:col-span-3 ${hasSearched ? 'block' : 'hidden'} lg:block`}>
-                    <RefineResultsPanel
-                        options={filterOptions}
-                        filters={filters}
-                        onFilterChange={setFilters}
-                        disabled={!hasSearched || searchResults.length === 0}
-                    />
-                    </aside>
-
-                    <div className="lg:col-span-9">
-                    <AISuggestions suggestions={aiSuggestions} onSuggestionClick={handleSearch} isLoading={isLoading} />
+                <div className="w-full">
+                    <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+                        <SearchBar onSearch={handleSearch} isLoading={isLoading} initialQuery={searchQuery} />
+                    </div>
+                    
+                    {searchQuery && <AISuggestions suggestions={aiSuggestions} onSuggestionClick={handleSearch} isLoading={isLoading} />}
+                    
                     <ResultsList
                         results={paginatedResults}
                         isLoading={isLoading}
-                        hasSearched={hasSearched}
+                        hasSearched={hasSearched || !!searchQuery}
                         savedDocIds={savedDocIds}
                         onToggleSave={handleToggleSave}
                         onCite={setCitationModalDoc}
@@ -273,57 +284,56 @@ const MainApp: React.FC = () => {
                         resultsPerPage={RESULTS_PER_PAGE}
                         onPageChange={setCurrentPage}
                     />
-                    </div>
                 </div>
             );
     }
   };
 
+  const notificationStyles = {
+    success: {
+        container: "bg-green-100 border-green-400 text-green-700 dark:bg-green-800/50 dark:border-green-600 dark:text-green-200",
+        icon: "text-green-500 dark:text-green-400",
+        button: "hover:bg-green-200 dark:hover:bg-green-700 focus:ring-green-400",
+    },
+    error: {
+        container: "bg-red-100 border-red-400 text-red-700 dark:bg-red-800/50 dark:border-red-600 dark:text-red-200",
+        icon: "text-red-500 dark:text-red-400",
+        button: "hover:bg-red-200 dark:hover:bg-red-700 focus:ring-red-400",
+    }
+  }
+
   return (
     <>
-      {confirmationMessage && (
-        <div className="fixed top-24 right-4 md:right-8 bg-green-100 border border-green-400 text-green-700 dark:bg-green-800/50 dark:border-green-600 dark:text-green-200 px-4 py-3 rounded-lg shadow-lg z-50 flex items-center max-w-md animate-fade-in" role="alert">
-          <CheckCircleIcon className="h-6 w-6 text-green-500 dark:text-green-400 mr-3 shrink-0" />
+      {notification && (
+        <div className={`fixed top-20 right-4 md:right-8 border px-4 py-3 rounded-lg shadow-lg z-50 flex items-center max-w-md animate-fade-in ${notificationStyles[notification.type].container}`} role="alert">
+          {notification.type === 'success' ? <CheckCircleIcon className={`h-6 w-6 mr-3 shrink-0 ${notificationStyles.success.icon}`} /> : <ExclamationTriangleIcon className={`h-6 w-6 mr-3 shrink-0 ${notificationStyles.error.icon}`} />}
           <div className="flex-grow">
-            <strong className="font-bold">Success!</strong>
-            <span className="block text-sm">{confirmationMessage}</span>
+            <strong className="font-bold">{notification.type === 'success' ? 'Success!' : 'Error'}</strong>
+            <span className="block text-sm">{notification.message}</span>
           </div>
-          <button onClick={() => setConfirmationMessage(null)} className="ml-4 -mr-1 p-1 rounded-full hover:bg-green-200 dark:hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400" aria-label="Close">
+          <button onClick={() => setNotification(null)} className={`ml-4 -mr-1 p-1 rounded-full focus:outline-none focus:ring-2 ${notificationStyles[notification.type].button}`} aria-label="Close">
             <CloseIcon className="h-5 w-5" />
           </button>
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tighter mb-4">Evidence Hub</h2>
-          <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">Search our AI-powered repository of research on the school-to-prison pipeline.</p>
-        </div>
+      <div className="flex">
+        <aside className="w-64 flex-shrink-0 border-r border-gray-200 dark:border-gray-800 h-[calc(100vh-4rem)] sticky top-16">
+            <RefineResultsPanel
+                options={filterOptions}
+                filters={filters}
+                onFilterChange={setFilters}
+                onSetView={setView}
+                onOpenUpload={() => setIsUploadModalOpen(true)}
+                savedDocCount={savedDocIds.length}
+                currentView={view}
+            />
+        </aside>
 
-        <div className="flex flex-wrap justify-center items-center gap-4 mb-12">
-          <button onClick={() => setIsUploadModalOpen(true)} className="flex items-center gap-2 px-6 py-3 bg-brand-primary text-white font-semibold rounded-lg shadow-lg shadow-brand-primary/20 hover:bg-brand-secondary focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 dark:focus:ring-offset-dark-base-300 transition-transform transform hover:scale-105">
-            <UploadIcon />
-            Upload Evidence
-          </button>
-           <button onClick={() => setView('data')} className="flex items-center gap-2 px-6 py-3 bg-base-100 dark:bg-dark-base-200 text-slate-700 dark:text-slate-200 font-semibold rounded-lg shadow-md hover:bg-base-200 dark:hover:bg-dark-base-100 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 dark:focus:ring-offset-dark-base-300 transition-transform transform hover:scale-105">
-            <ChartBarIcon />
-            Data & Insights
-          </button>
-          <button onClick={() => setView('list')} className="flex items-center gap-2 px-6 py-3 bg-base-100 dark:bg-dark-base-200 text-slate-700 dark:text-slate-200 font-semibold rounded-lg shadow-md hover:bg-base-200 dark:hover:bg-dark-base-100 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 dark:focus:ring-offset-dark-base-300 transition-transform transform hover:scale-105">
-            <ListIcon />
-            My List ({savedDocIds.length})
-          </button>
+        <div className="flex-grow min-w-0">
+             {error && <p className="text-center text-red-500 p-4">{error}</p>}
+             {renderCurrentView()}
         </div>
-
-        {view === 'search' && (
-            <div className="max-w-4xl mx-auto">
-                <SearchBar onSearch={handleSearch} isLoading={isLoading} initialQuery={searchQuery} />
-            </div>
-        )}
-        
-        {error && <p className="text-center text-red-500 mt-4">{error}</p>}
-        
-        {renderCurrentView()}
       </div>
 
       <UploadModal isOpen={isUploadModalOpen} onClose={() => setIsUploadModalOpen(false)} onAddDocument={handleAddDocument} />

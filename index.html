@@ -10,22 +10,32 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
-        darkMode: 'class', // or 'media'
+        darkMode: 'class',
         theme: {
           extend: {
             fontFamily: {
               sans: ['Inter', 'sans-serif'],
             },
             colors: {
-              'brand-primary': '#4338CA',
-              'brand-secondary': '#3730A3',
-              'brand-accent': '#6D28D9',
-              'base-100': '#FFFFFF',
-              'base-200': '#F3F4F6',
-              'base-300': '#E5E7EB',
-              'dark-base-100': '#374151',
-              'dark-base-200': '#1F2937',
-              'dark-base-300': '#111827',
+              // Mobbin-inspired neutral palette
+              gray: {
+                50: '#fafafa',
+                100: '#f5f5f5',
+                200: '#e5e5e5',
+                300: '#d4d4d4',
+                400: '#a3a3a3',
+                500: '#737373',
+                600: '#525252',
+                700: '#404040',
+                800: '#262626',
+                900: '#171717',
+              },
+              // Accent color
+              accent: {
+                DEFAULT: '#3b82f6', // blue-500
+                hover: '#2563eb', // blue-600
+                light: '#eff6ff', // blue-50
+              },
             },
             keyframes: {
               'fade-in': {
@@ -54,7 +64,7 @@
 }
 </script>
 </head>
-  <body class="bg-base-200 dark:bg-dark-base-300 font-sans">
+  <body class="bg-white dark:bg-gray-900 font-sans">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

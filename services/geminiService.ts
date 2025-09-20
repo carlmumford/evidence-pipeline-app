@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import type { Document, ExtractedInfo } from '../types';
+import type { Document, ExtractedInfo, DiscoveredResearch } from '../types';
 
 // The API key is read from environment variables.
 // Per Gemini API guidelines, it must be accessed via process.env.API_KEY.
@@ -179,5 +179,54 @@ export const simplifySummary = async (summary: string): Promise<string> => {
     } catch (error) {
         console.error("Error simplifying summary with Gemini API:", error);
         return summary;
+    }
+};
+
+
+export const findRecentResearch = async (): Promise<DiscoveredResearch[]> => {
+    const prompt = `
+        You are an expert research assistant. Find the 5 most recent and relevant research articles about the 'school-to-prison pipeline' from popular academic and research websites (like JSTOR, Google Scholar, university sites, research institutes).
+        For each article, provide the title, a direct URL to the article page or PDF, the authors as a comma-separated string, a concise one-paragraph summary, and a confidence score (from 1 to 100) indicating how directly it relates to the school-to-prison pipeline.
+        Return your findings as a valid JSON array of objects. Each object should have keys: "title", "url", "authors", "summary", "confidenceScore".
+        Do not include any text before or after the JSON array.
+    `;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+            config: {
+                tools: [{ googleSearch: {} }],
+            },
+        });
+
+        if (!response.text) {
+            throw new Error("AI response was empty.");
+        }
+
+        // Clean and parse the JSON response from the text
+        let researchList: DiscoveredResearch[];
+        try {
+            // Find the start of the JSON array
+            const jsonString = response.text.substring(response.text.indexOf('['));
+            researchList = JSON.parse(jsonString);
+        } catch (e) {
+            console.error("Failed to parse JSON from AI response:", response.text);
+            throw new Error("AI returned a malformed response.");
+        }
+        
+        // As per guidelines, extract and attach grounding metadata
+        const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
+        const sources = groundingChunks?.map(chunk => chunk.web).filter(Boolean) as { uri: string; title: string }[] || [];
+
+        // Attach all found sources to the first research item for display
+        if (researchList.length > 0) {
+            researchList[0].sources = sources;
+        }
+
+        return researchList;
+    } catch (error) {
+        console.error("Error finding recent research with Gemini API:", error);
+        throw new Error("Could not find recent research.");
     }
 };

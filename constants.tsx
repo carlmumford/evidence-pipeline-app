@@ -83,17 +83,15 @@ export const MOCK_DOCUMENTS: Omit<Document, 'id' | 'createdAt'>[] = [
 ];
 
 export const Logo: React.FC<{ className?: string }> = ({ className }) => (
-    <div className={`flex items-center gap-3 ${className}`}>
-        <div className="w-10 h-10 flex-shrink-0">
-            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path className="fill-brand-primary dark:fill-white" d="M81.2,59.3c0-9.8-12.8-17.8-28.5-17.8s-28.5,8-28.5,17.8c0,2.1,0.6,4.1,1.7,6h53.6C80.6,63.4,81.2,61.4,81.2,59.3z M52.7,4.8C42.4,4.8,34,13.2,34,23.5s8.4,18.7,18.7,18.7s18.7-8.4,18.7-18.7S63,4.8,52.7,4.8z M52.7,60.5 c-20.9,0-37.8,12-37.8,26.8v10.5h75.6V87.3C90.5,72.5,73.6,60.5,52.7,60.5z" />
-                <rect x="44" y="10" width="5" height="70" className="fill-base-100 dark:fill-dark-base-300" />
-                <rect x="52" y="10" width="5" height="70" className="fill-base-100 dark:fill-dark-base-300" />
-                <rect x="60" y="10" width="5" height="70" className="fill-base-100 dark:fill-dark-base-300" />
+    <div className={`flex items-center gap-2 ${className}`}>
+        <div className="w-8 h-8 flex-shrink-0">
+            <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M14 2.33331C7.54833 2.33331 2.33333 7.54831 2.33333 14C2.33333 20.4516 7.54833 25.6666 14 25.6666C20.4517 25.6666 25.6667 20.4516 25.6667 14C25.6667 7.54831 20.4517 2.33331 14 2.33331ZM14 23.3333C8.84 23.3333 4.66667 19.16 4.66667 14C4.66667 8.84 8.84 4.66665 14 4.66665C19.16 4.66665 23.3333 8.84 23.3333 14C23.3333 19.16 19.16 23.3333 14 23.3333Z" fill="currentColor"/>
+                <path d="M15.1667 12.8333L18.6667 9.33331L17.5 8.16665L14 11.6666L10.5 8.16665L9.33333 9.33331L12.8333 12.8333L9.33333 16.3333L10.5 17.5L14 14L17.5 17.5L18.6667 16.3333L15.1667 12.8333Z" fill="currentColor"/>
             </svg>
         </div>
-        <span className="hidden sm:inline text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100 whitespace-nowrap">
-            School-to-Prison Pipeline Evidence Project
+        <span className="text-lg font-semibold tracking-tight text-gray-800 dark:text-gray-100 whitespace-nowrap">
+            Evidence Project
         </span>
     </div>
 );
@@ -231,5 +229,17 @@ export const EyeIcon: React.FC<{className?: string}> = ({ className = "h-5 w-5" 
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.432 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
         <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+    </svg>
+);
+
+export const SparklesIcon: React.FC<{className?: string}> = ({ className = "h-5 w-5" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z" />
+    </svg>
+);
+
+export const PlusCircleIcon: React.FC<{className?: string}> = ({ className = "h-5 w-5" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
     </svg>
 );

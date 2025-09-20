@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface AISuggestionsProps {
@@ -15,13 +14,13 @@ export const AISuggestions: React.FC<AISuggestionsProps> = ({ suggestions, onSug
   }
   
   return (
-    <div className="mb-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-      <h3 className="text-lg font-semibold text-brand-primary dark:text-brand-accent mb-3">AI Suggestions</h3>
+    <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+      <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">AI Suggestions</h3>
       {isLoading && suggestions.length === 0 ? (
         <div className="flex flex-wrap gap-2 animate-pulse">
-          <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded-full w-32"></div>
-          <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded-full w-40"></div>
-          <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded-full w-28"></div>
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded-full w-32"></div>
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded-full w-40"></div>
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded-full w-28"></div>
         </div>
       ) : (
         <div className="flex flex-wrap gap-2">
@@ -29,7 +28,7 @@ export const AISuggestions: React.FC<AISuggestionsProps> = ({ suggestions, onSug
             <button
               key={index}
               onClick={() => onSuggestionClick(suggestion)}
-              className="px-4 py-2 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 text-sm font-medium rounded-full hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors duration-200"
+              className="px-3 py-1.5 bg-white text-accent dark:bg-gray-900 dark:text-accent-light text-sm font-medium rounded-full border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
             >
               {suggestion}
             </button>

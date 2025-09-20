@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { authService } from '../services/authService';
-import { getDocuments, deleteDocument } from '../services/documentService';
-import type { Document, User } from '../types';
-import { LoadingSpinner, TrashIcon, UserGroupIcon } from '../constants';
+import { getDocuments, deleteDocument, addDocument } from '../services/documentService';
+import { findRecentResearch } from '../services/geminiService';
+import type { Document, User, DiscoveredResearch } from '../types';
+import { LoadingSpinner, TrashIcon, UserGroupIcon, SparklesIcon, PlusCircleIcon, LinkIcon, CheckCircleIcon } from '../constants';
 
 const AdminPanel: React.FC = () => {
   // Password Change State
@@ -22,6 +23,13 @@ const AdminPanel: React.FC = () => {
   const [newUserPassword, setNewUserPassword] = useState('');
   const [newUserRole, setNewUserRole] = useState<'admin' | 'editor'>('editor');
   const [userMessage, setUserMessage] = useState({ type: '', text: '' });
+
+  // AI Discovery State
+  const [discoveredResearch, setDiscoveredResearch] = useState<DiscoveredResearch[]>([]);
+  const [isDiscovering, setIsDiscovering] = useState(false);
+  const [discoveryError, setDiscoveryError] = useState<string | null>(null);
+  const [addedDocUrls, setAddedDocUrls] = useState<Set<string>>(new Set());
+  const [discoveryMessage, setDiscoveryMessage] = useState({ type: '', text: '' });
 
   const fetchAdminData = useCallback(async () => {
     setIsLoadingDocs(true);
@@ -113,6 +121,67 @@ const AdminPanel: React.FC = () => {
         }
     }
   };
+  
+  const handleFindResearch = async () => {
+      setIsDiscovering(true);
+      setDiscoveryError(null);
+      setDiscoveredResearch([]);
+      setDiscoveryMessage({ type: '', text: '' });
+      try {
+          const results = await findRecentResearch();
+          setDiscoveredResearch(results);
+      } catch (err) {
+          setDiscoveryError('Failed to retrieve research. The AI may be busy or an error occurred.');
+          console.error(err);
+      } finally {
+          setIsDiscovering(false);
+      }
+  };
+
+  const handleAddDiscoveredResearch = async (research: DiscoveredResearch) => {
+      const isDuplicate = documents.some(doc => doc.title.trim().toLowerCase() === research.title.trim().toLowerCase());
+      if (isDuplicate) {
+          setDiscoveryMessage({ type: 'error', text: `"${research.title}" already exists in the library.`});
+          setTimeout(() => setDiscoveryMessage({ type: '', text: ''}), 5000);
+          return;
+      }
+
+      const newDoc: Omit<Document, 'id' | 'createdAt'> = {
+          title: research.title,
+          authors: research.authors.split(',').map(a => a.trim()).filter(Boolean),
+          summary: research.summary,
+          pdfUrl: research.url,
+          // AI doesn't provide these, so we leave them blank for manual entry later if needed
+          resourceType: 'Discovered Article',
+          year: new Date().getFullYear(), // Assume current year for recency
+          subjects: ['newly discovered'],
+          simplifiedSummary: '',
+          interventions: [],
+          keyPopulations: [],
+          riskFactors: [],
+          keyStats: [],
+          keyOrganizations: [],
+          publicationTitle: ''
+      };
+
+      try {
+          await addDocument(newDoc);
+          setAddedDocUrls(prev => new Set(prev).add(research.url));
+          setDiscoveryMessage({ type: 'success', text: `Successfully added "${research.title}".`});
+          fetchAdminData(); // Refresh the main documents list
+          setTimeout(() => setDiscoveryMessage({ type: '', text: ''}), 5000);
+      } catch (error) {
+          setDiscoveryMessage({ type: 'error', text: 'Failed to add the document to the database.'});
+          console.error(error);
+          setTimeout(() => setDiscoveryMessage({ type: '', text: ''}), 5000);
+      }
+  };
+
+  const getConfidenceColor = (score: number) => {
+    if (score > 85) return 'text-green-500';
+    if (score > 60) return 'text-yellow-500';
+    return 'text-red-500';
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-12">
@@ -122,6 +191,83 @@ const AdminPanel: React.FC = () => {
           Manage application settings and content.
         </p>
       </div>
+
+      {/* AI Research Discovery Section */}
+      <section className="bg-base-100 dark:bg-dark-base-300 p-6 rounded-lg shadow-md border border-base-300 dark:border-slate-700">
+        <h3 className="text-xl font-semibold mb-4 text-slate-800 dark:text-slate-200 flex items-center gap-2">
+            <SparklesIcon /> AI Research Discovery
+        </h3>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+            Use AI to search the web for the latest research on the school-to-prison pipeline from reputable sources.
+        </p>
+        <button 
+            onClick={handleFindResearch} 
+            disabled={isDiscovering}
+            className="flex items-center justify-center px-4 py-2 bg-brand-primary text-white font-semibold rounded-lg shadow-sm hover:bg-brand-secondary disabled:bg-slate-400 disabled:cursor-wait"
+        >
+            {isDiscovering ? <LoadingSpinner /> : <SparklesIcon />}
+            <span className="ml-2">{isDiscovering ? 'Searching...' : 'Find Recent Research'}</span>
+        </button>
+
+        {discoveryMessage.text && (
+            <div className={`mt-4 p-3 rounded-md text-sm ${discoveryMessage.type === 'success' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'}`}>
+                {discoveryMessage.text}
+            </div>
+        )}
+
+        {isDiscovering && (
+            <div className="mt-4 text-center">
+                <p className="text-slate-500">AI is searching the internet. This may take a moment...</p>
+            </div>
+        )}
+
+        {discoveryError && <p className="mt-4 text-red-500">{discoveryError}</p>}
+        
+        {discoveredResearch.length > 0 && (
+            <div className="mt-6 space-y-4">
+                {discoveredResearch.map((item, index) => (
+                    <div key={index} className="p-4 border border-base-300 dark:border-slate-700 rounded-lg bg-base-200/50 dark:bg-dark-base-200/50">
+                        <div className="flex justify-between items-start">
+                           <div>
+                             <h4 className="font-bold text-brand-primary dark:text-brand-accent">{item.title}</h4>
+                             <p className="text-xs font-mono text-slate-500">{item.authors}</p>
+                           </div>
+                           <div className="text-center ml-4 flex-shrink-0">
+                                <p className={`text-2xl font-bold ${getConfidenceColor(item.confidenceScore)}`}>{item.confidenceScore}</p>
+                                <p className="text-xs text-slate-500">Confidence</p>
+                           </div>
+                        </div>
+                        <p className="text-sm my-3 text-slate-600 dark:text-slate-400">{item.summary}</p>
+                        
+                        {item.sources && item.sources.length > 0 && (
+                           <div className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                                <h5 className="font-semibold">Sources found by AI:</h5>
+                                <ul className="list-disc list-inside">
+                                    {item.sources.map(source => (
+                                        <li key={source.uri}><a href={source.uri} target="_blank" rel="noopener noreferrer" className="hover:underline text-brand-primary">{source.title || source.uri}</a></li>
+                                    ))}
+                                </ul>
+                           </div>
+                        )}
+                        
+                        <div className="flex justify-between items-center">
+                            <a href={item.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-brand-primary hover:underline">
+                                <LinkIcon className="h-4 w-4" /> View Source
+                            </a>
+                            <button
+                                onClick={() => handleAddDiscoveredResearch(item)}
+                                disabled={addedDocUrls.has(item.url)}
+                                className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold rounded-lg transition-colors bg-green-500 text-white hover:bg-green-600 disabled:bg-slate-400 disabled:cursor-not-allowed"
+                            >
+                                {addedDocUrls.has(item.url) ? <CheckCircleIcon className="h-5 w-5" /> : <PlusCircleIcon className="h-5 w-5" />}
+                                {addedDocUrls.has(item.url) ? 'Added' : 'Add to Database'}
+                            </button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        )}
+      </section>
 
       {/* User Management Section */}
       <section className="bg-base-100 dark:bg-dark-base-300 p-6 rounded-lg shadow-md border border-base-300 dark:border-slate-700">

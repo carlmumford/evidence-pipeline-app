@@ -44,3 +44,13 @@ export interface User {
     password?: string; // Optional because we don't always expose it
     role: 'admin' | 'editor';
 }
+
+// Added for the AI Research Discovery feature
+export interface DiscoveredResearch {
+  title: string;
+  url: string;
+  authors: string; // AI will provide this as a comma-separated string
+  summary: string;
+  confidenceScore: number; // A score from 1-100
+  sources?: { uri: string; title: string }[]; // From grounding chunks
+}

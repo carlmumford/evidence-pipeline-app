@@ -32,8 +32,8 @@ const App: React.FC = () => {
 
   if (isInitializing) {
       return (
-        <div className="min-h-screen bg-base-200 dark:bg-dark-base-300 flex justify-center items-center">
-            <LoadingSpinner className="h-12 w-12 text-brand-primary dark:text-brand-accent"/>
+        <div className="min-h-screen bg-white dark:bg-gray-900 flex justify-center items-center">
+            <LoadingSpinner className="h-10 w-10 text-gray-400"/>
         </div>
       );
   }
@@ -43,15 +43,15 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-base-200 dark:bg-dark-base-300 text-slate-800 dark:text-slate-200 font-sans transition-colors duration-300">
+    <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans">
       <Header 
         isLoggedIn={isLoggedIn} 
         onLogout={handleLogout} 
         view={view}
         setView={setView}
       />
-      <main className="container mx-auto p-4 md:p-8">
-        {view === 'admin' ? <AdminPanel /> : <MainApp />}
+      <main>
+        {view === 'admin' ? <div className="container mx-auto p-4 md:p-8"><AdminPanel /></div> : <MainApp />}
       </main>
     </div>
   );
