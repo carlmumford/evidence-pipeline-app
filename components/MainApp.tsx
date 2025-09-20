@@ -272,7 +272,7 @@ const MainApp: React.FC = () => {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-5">
-      <aside className="hidden lg:block lg:col-span-1 xl:col-span-1 bg-gray-50 dark:bg-gray-900/50 border-r border-gray-200 dark:border-gray-800 h-screen sticky top-16">
+      <aside className="hidden lg:block lg:col-span-1 xl:col-span-1 bg-gray-50 dark:bg-gray-900/50 border-r border-gray-200 dark:border-gray-800 h-[calc(100vh-4rem)] sticky top-16">
         <RefineResultsPanel 
             options={filterOptions}
             filters={filters}
