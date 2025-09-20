@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { Document } from '../types';
-import { BookmarkIcon, CiteIcon, DownloadIcon, LinkIcon, EyeIcon, ChevronDownIcon } from '../constants';
+import { BookmarkIcon, CiteIcon, DownloadIcon, ChevronDownIcon } from '../constants';
 
 interface ResultCardProps {
   document: Document;
