@@ -13,7 +13,6 @@ interface ResultCardProps {
 }
 
 const IconButton: React.FC<{
-  // FIX: Updated onClick type to allow passing the mouse event for stopPropagation.
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   href?: string;
   disabled?: boolean;
@@ -59,10 +58,10 @@ export const ResultCard: React.FC<ResultCardProps> = ({ document, isSaved, onTog
   const [isExpanded, setIsExpanded] = useState(false);
 
   const allTags = [
-    ...(document.subjects || []),
-    ...(document.riskFactors || []),
-    ...(document.interventions || []),
-    ...(document.keyPopulations || []),
+    ...document.subjects,
+    ...document.riskFactors,
+    ...document.interventions,
+    ...document.keyPopulations,
   ].slice(0, 4); // Limit tags for cleaner UI
 
   return (
@@ -70,12 +69,15 @@ export const ResultCard: React.FC<ResultCardProps> = ({ document, isSaved, onTog
         <div 
             className="flex items-center gap-4 p-4 cursor-pointer"
             onClick={() => setIsExpanded(!isExpanded)}
+            role="button"
+            aria-expanded={isExpanded}
+            aria-controls={`details-${document.id}`}
         >
             <div className="flex-grow">
                 <h4 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-1">{document.title}</h4>
                 <div className="text-sm text-gray-500 dark:text-gray-400">
                     <span>
-                        {(document.authors || []).map((author, index) => (
+                        {document.authors.map((author, index) => (
                             <React.Fragment key={author}>
                                 <button 
                                     onClick={(e) => { e.stopPropagation(); onAuthorClick(author); }} 
@@ -83,7 +85,7 @@ export const ResultCard: React.FC<ResultCardProps> = ({ document, isSaved, onTog
                                 >
                                     {author}
                                 </button>
-                                {index < (document.authors || []).length - 1 && ', '}
+                                {index < document.authors.length - 1 && ', '}
                             </React.Fragment>
                         ))}
                     </span>
@@ -127,12 +129,12 @@ export const ResultCard: React.FC<ResultCardProps> = ({ document, isSaved, onTog
         </div>
       
         {isExpanded && (
-            <div className="px-4 pb-4 animate-fade-in">
+            <div id={`details-${document.id}`} className="px-4 pb-4 animate-fade-in">
                 <div className="pl-4 border-l-2 border-gray-200 dark:border-gray-700">
                     <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-4 text-sm">
                         {document.simplifiedSummary || document.summary}
                     </p>
-                    {document.keyStats && document.keyStats.length > 0 && (
+                    {document.keyStats.length > 0 && (
                         <div>
                         <h5 className="font-semibold text-gray-800 dark:text-gray-200 mb-2 text-sm">Key Statistics</h5>
                         <ul className="list-disc list-inside space-y-1 text-sm text-gray-600 dark:text-gray-400">

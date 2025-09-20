@@ -11,7 +11,6 @@ type DataItem = {
   count: number;
 };
 
-// Helper to format phrases nicely for display
 const formatPhrase = (phrase: string) => {
     return phrase.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 };

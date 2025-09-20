@@ -5,20 +5,18 @@ export interface Document {
   title: string;
   authors: string[];
   summary: string;
-  simplifiedSummary?: string;
+  simplifiedSummary: string;
   year?: number;
   createdAt: Timestamp;
-  // Existing fields
-  resourceType?: string;
-  subjects?: string[];
-  publicationTitle?: string;
-  pdfUrl?: string;
-  // New fields for professional features
-  interventions?: string[];
-  keyPopulations?: string[];
-  riskFactors?: string[];
-  keyStats?: string[];
-  keyOrganisations?: string[];
+  resourceType: string;
+  subjects: string[];
+  publicationTitle: string;
+  pdfUrl: string;
+  interventions: string[];
+  keyPopulations: string[];
+  riskFactors: string[];
+  keyStats: string[];
+  keyOrganisations: string[];
 }
 
 export interface ExtractedInfo {
@@ -26,11 +24,9 @@ export interface ExtractedInfo {
   authors: string;
   summary: string;
   year: number;
-  // Existing fields
   resourceType: string;
   subjects: string; // AI will extract as a comma-separated string
   publicationTitle: string;
-  // New fields for AI extraction
   interventions: string; // AI will extract as a comma-separated string
   keyPopulations: string; // AI will extract as a comma-separated string
   riskFactors: string; // AI will extract as a comma-separated string
@@ -38,14 +34,12 @@ export interface ExtractedInfo {
   keyOrganisations: string; // AI will extract as a comma-separated string
 }
 
-// Added for multi-user management
 export interface User {
     username: string;
     password?: string; // Optional because we don't always expose it
     role: 'admin' | 'editor';
 }
 
-// Added for the AI Research Discovery feature
 export interface DiscoveredResearch {
   title: string;
   url: string;

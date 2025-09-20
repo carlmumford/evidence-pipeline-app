@@ -4,8 +4,6 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current working directory.
-  // This makes all VITE_ variables available in `process.env` for the config file.
-  // FIX: Replaced `process.cwd()` with `''`. An empty string resolves to the current working directory and fixes the TypeScript type error.
   const env = loadEnv(mode, '', '');
   
   return {
@@ -14,8 +12,7 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [react()],
     // As per Gemini API guidelines, the API key must be sourced from process.env.API_KEY.
-    // This injects the value from the VITE_API_KEY environment variable at build time.
-    // We also define the Firebase keys here to work around the import.meta.env issue.
+    // This injects environment variables at build time.
     define: {
       'process.env.API_KEY': JSON.stringify(env.VITE_API_KEY),
       'process.env.VITE_FIREBASE_API_KEY': JSON.stringify(env.VITE_FIREBASE_API_KEY),

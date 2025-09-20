@@ -8,18 +8,12 @@ interface ResultsListProps {
   results: Document[];
   isLoading: boolean;
   hasSearched: boolean;
-  // For saving to list
   savedDocIds: string[];
   onToggleSave: (doc: Document) => void;
-  // For citation
   onCite: (doc: Document) => void;
-  // For finding related documents
   onFindRelated: (doc: Document) => void;
-  // For viewing PDF
   onViewPdf: (doc: Document) => void;
-  // For clickable authors
   onAuthorClick: (author: string) => void;
-  // For pagination
   currentPage: number;
   totalResults: number;
   resultsPerPage: number;
@@ -41,14 +35,10 @@ export const ResultsList: React.FC<ResultsListProps> = ({
   resultsPerPage,
   onPageChange
 }) => {
-  if (isLoading && results.length === 0) {
+  if (isLoading && results.length === 0 && hasSearched) {
     return (
       <div className="border-t border-gray-200 dark:border-gray-800">
-        <ResultCardSkeleton />
-        <ResultCardSkeleton />
-        <ResultCardSkeleton />
-        <ResultCardSkeleton />
-        <ResultCardSkeleton />
+        {[...Array(5)].map((_, i) => <ResultCardSkeleton key={i} />)}
       </div>
     );
   }
@@ -67,7 +57,7 @@ export const ResultsList: React.FC<ResultsListProps> = ({
     return (
       <div className="text-center py-20 px-6">
         <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">No Results Found</h3>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">We couldn't find any documents matching your search. Try a different term.</p>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">We couldn't find any documents matching your search. Try a different term or adjust your filters.</p>
       </div>
     );
   }

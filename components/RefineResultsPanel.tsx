@@ -94,7 +94,7 @@ export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ options,
   };
 
   const handleCheckboxChange = (category: keyof Omit<Filters, 'startYear' | 'endYear'>, value: string) => {
-    const currentValues = filters[category] as string[];
+    const currentValues = filters[category];
     const newValues = currentValues.includes(value)
       ? currentValues.filter(item => item !== value)
       : [...currentValues, value];
@@ -103,14 +103,7 @@ export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ options,
   };
 
   const hasActiveFilters = 
-    filters.startYear ||
-    filters.endYear ||
-    filters.resourceTypes.length > 0 ||
-    filters.subjects.length > 0 ||
-    filters.interventions.length > 0 ||
-    filters.keyPopulations.length > 0 ||
-    filters.riskFactors.length > 0 ||
-    filters.keyOrganisations.length > 0;
+    Object.values(filters).some(value => Array.isArray(value) ? value.length > 0 : !!value);
 
   const clearFilters = () => {
     onFilterChange({
@@ -175,7 +168,7 @@ export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ options,
                 </FilterSection>}
             </div>
         </div>
-       <style>{`.input-style { display: block; width: 100%; border-radius: 0.375rem; border: 1px solid #d4d4d4; padding: 0.5rem 0.75rem; background-color: #fafafa; } .dark .input-style { background-color: #262626; border-color: #404040; }`}</style>
+       <style>{`.input-style { display: block; width: 100%; border-radius: 0.375rem; border: 1px solid #d4d4d4; padding: 0.5rem 0.75rem; background-color: #fafafa; } .dark .input-style { background-color: #262626; border-color: #404040; color: #f5f5f5 }`}</style>
     </div>
   );
 };

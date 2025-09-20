@@ -3,8 +3,6 @@ import { GoogleGenAI, Type } from "@google/genai";
 import type { Document, ExtractedInfo, DiscoveredResearch } from '../types';
 
 // The API key is read from environment variables.
-// Per Gemini API guidelines, it must be accessed via process.env.API_KEY.
-// Vite is configured to replace this with the actual key at build time.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const getSearchSuggestions = async (query: string, existingDocuments: Document[]): Promise<string[]> => {
@@ -121,20 +119,13 @@ export const extractInfoFromDocument = async (fileData: { mimeType: string; data
 
         const parsedJson = JSON.parse(response.text.trim());
         
+        // Basic type-checking to ensure the AI response is in the expected format
         if (
             parsedJson &&
             typeof parsedJson.title === 'string' &&
             typeof parsedJson.authors === 'string' &&
             typeof parsedJson.summary === 'string' &&
-            typeof parsedJson.year === 'number' &&
-            typeof parsedJson.publicationTitle === 'string' &&
-            typeof parsedJson.resourceType === 'string' &&
-            typeof parsedJson.subjects === 'string' &&
-            typeof parsedJson.riskFactors === 'string' &&
-            typeof parsedJson.keyPopulations === 'string' &&
-            typeof parsedJson.interventions === 'string' &&
-            typeof parsedJson.keyStats === 'string' &&
-            typeof parsedJson.keyOrganisations === 'string'
+            typeof parsedJson.year === 'number'
         ) {
             return parsedJson as ExtractedInfo;
         } else {
@@ -170,12 +161,7 @@ export const simplifySummary = async (summary: string): Promise<string> => {
             contents: prompt,
         });
         
-        if (!response.text) {
-            return summary;
-        }
-        
-        const simplifiedText = response.text.trim();
-        
+        const simplifiedText = response.text?.trim();
         return simplifiedText || summary;
 
     } catch (error) {
@@ -210,7 +196,7 @@ export const findRecentResearch = async (): Promise<DiscoveredResearch[]> => {
         // Clean and parse the JSON response from the text
         let researchList: DiscoveredResearch[];
         try {
-            // Find the start of the JSON array
+            // Find the start of the JSON array and parse it
             const jsonString = response.text.substring(response.text.indexOf('['));
             researchList = JSON.parse(jsonString);
         } catch (e) {
@@ -218,7 +204,7 @@ export const findRecentResearch = async (): Promise<DiscoveredResearch[]> => {
             throw new Error("AI returned a malformed response.");
         }
         
-        // As per guidelines, extract and attach grounding metadata
+        // Extract and attach grounding metadata as per guidelines
         const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
         const sources = groundingChunks?.map(chunk => chunk.web).filter(Boolean) as { uri: string; title: string }[] || [];
 

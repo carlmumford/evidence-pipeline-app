@@ -11,26 +11,55 @@ import {
     writeBatch,
     Timestamp,
     doc,
-    deleteDoc
+    deleteDoc,
+    type DocumentData,
 } from "firebase/firestore";
 
 const DOCUMENTS_COLLECTION = 'documents';
 
 /**
+ * A robust function to transform raw Firestore data into a clean, type-safe Document object.
+ * This prevents runtime errors by ensuring all expected fields exist and have the correct type.
+ * @param id - The Firestore document ID.
+ * @param data - The raw data from doc.data().
+ * @returns A sanitized Document object with safe defaults.
+ */
+const hydrateDocument = (id: string, data: DocumentData): Document => {
+  const cleanArray = (arr: unknown): string[] => {
+    if (!Array.isArray(arr)) return [];
+    // Ensure all items in the array are non-empty strings
+    return arr.filter((item): item is string => typeof item === 'string' && item.length > 0);
+  };
+
+  return {
+    id,
+    title: typeof data.title === 'string' ? data.title : '',
+    authors: cleanArray(data.authors),
+    summary: typeof data.summary === 'string' ? data.summary : '',
+    simplifiedSummary: typeof data.simplifiedSummary === 'string' ? data.simplifiedSummary : '',
+    year: typeof data.year === 'number' ? data.year : undefined,
+    createdAt: data.createdAt instanceof Timestamp ? data.createdAt : Timestamp.now(),
+    resourceType: typeof data.resourceType === 'string' ? data.resourceType : '',
+    subjects: cleanArray(data.subjects),
+    publicationTitle: typeof data.publicationTitle === 'string' ? data.publicationTitle : '',
+    pdfUrl: typeof data.pdfUrl === 'string' ? data.pdfUrl : '',
+    interventions: cleanArray(data.interventions),
+    keyPopulations: cleanArray(data.keyPopulations),
+    riskFactors: cleanArray(data.riskFactors),
+    keyStats: cleanArray(data.keyStats),
+    keyOrganisations: cleanArray(data.keyOrganisations),
+  };
+};
+
+/**
  * Seeds the Firestore database with initial mock documents if the collection is empty.
- * This is a one-time operation.
  */
 const seedDatabase = async () => {
     const batch = writeBatch(db);
     const documentsCollectionRef = collection(db, DOCUMENTS_COLLECTION);
 
     MOCK_DOCUMENTS.forEach(mockDoc => {
-        const docWithTimestamp = {
-            ...mockDoc,
-            authors: mockDoc.authors,
-            createdAt: serverTimestamp()
-        };
-        // Create a new document reference with an auto-generated ID for use in the batch
+        const docWithTimestamp = { ...mockDoc, createdAt: serverTimestamp() };
         const newDocRef = doc(documentsCollectionRef);
         batch.set(newDocRef, docWithTimestamp);
     });
@@ -39,23 +68,9 @@ const seedDatabase = async () => {
 };
 
 /**
- * A helper function to sanitize array data from Firestore.
- * It ensures the value is an array and filters out any non-string or empty values.
- * @param arr - The value from Firestore, which could be anything.
- * @returns A clean array of strings.
- */
-const cleanArray = (arr: any): string[] => {
-    if (!Array.isArray(arr)) return [];
-    // FIX: The filter predicate with a type guard must return a boolean. The original `&& item` could return a string.
-    // Using `Boolean(item)` explicitly converts the truthy/falsy check to a boolean value.
-    return arr.filter((item): item is string => typeof item === 'string' && Boolean(item));
-};
-
-
-/**
  * Retrieves documents from Firestore, ordered by creation date.
  * If the collection is empty, it seeds the database with mock data.
- * @returns A Promise that resolves to an array of documents.
+ * @returns A Promise that resolves to an array of sanitized documents.
  */
 export const getDocuments = async (): Promise<Document[]> => {
   try {
@@ -66,42 +81,13 @@ export const getDocuments = async (): Promise<Document[]> => {
 
     // If the database is empty, seed it and refetch
     if (querySnapshot.empty) {
+        console.log("Database is empty. Seeding with mock documents...");
         await seedDatabase();
         querySnapshot = await getDocs(q);
     }
     
-    const documents = querySnapshot.docs.map(doc => {
-        const data = doc.data();
-        // Defensively sanitize all fields, especially arrays, to prevent
-        // crashes from malformed data in Firestore.
-        const finalDoc = {
-            id: doc.id,
-            title: data.title || '',
-            authors: cleanArray(data.authors),
-            summary: data.summary || '',
-            simplifiedSummary: data.simplifiedSummary || '',
-            year: data.year,
-            createdAt: data.createdAt as Timestamp,
-            resourceType: data.resourceType || '',
-            subjects: cleanArray(data.subjects),
-            publicationTitle: data.publicationTitle || '',
-            pdfUrl: data.pdfUrl || '',
-            interventions: cleanArray(data.interventions),
-            keyPopulations: cleanArray(data.keyPopulations),
-            riskFactors: cleanArray(data.riskFactors),
-            keyStats: cleanArray(data.keyStats),
-            keyOrganisations: cleanArray(data.keyOrganisations),
-        } as Document;
-
-        // --- START: Added for Debugging ---
-        // This log helps inspect the raw data from Firestore vs. the cleaned data.
-        // If the error persists, check the console for a document where an expected
-        // array field (like 'subjects' or 'authors') is missing or not an array in the 'raw' object.
-        console.log(`[DEBUG] Processing Doc ID: ${doc.id}`, { raw: data, cleaned: finalDoc });
-        // --- END: Added for Debugging ---
-
-        return finalDoc;
-    });
+    // Use the hydrateDocument function to ensure all data is clean and safe
+    const documents = querySnapshot.docs.map(doc => hydrateDocument(doc.id, doc.data()));
 
     return documents;
 
@@ -118,20 +104,14 @@ export const getDocuments = async (): Promise<Document[]> => {
  */
 export const addDocument = async (newDocument: Omit<Document, 'id' | 'createdAt'>): Promise<Document> => {
   try {
-    const docWithTimestamp = {
-        ...newDocument,
-        createdAt: serverTimestamp()
-    };
+    const docWithTimestamp = { ...newDocument, createdAt: serverTimestamp() };
     const docRef = await addDoc(collection(db, DOCUMENTS_COLLECTION), docWithTimestamp);
     
-    // Return the newly created document with a client-side timestamp for immediate UI update.
-    // The server will have the authoritative timestamp.
     return {
         ...newDocument,
         id: docRef.id,
         createdAt: Timestamp.now()
     };
-
   } catch (error) {
     console.error("Could not add document to Firestore:", error);
     throw new Error("Failed to save the new document.");

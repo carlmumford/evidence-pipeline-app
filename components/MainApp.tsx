@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { getDocuments, addDocument } from '../services/documentService';
 import { getSearchSuggestions } from '../services/geminiService';
@@ -61,6 +60,7 @@ const MainApp: React.FC = () => {
         setError(null);
         const docs = await getDocuments();
         setAllDocuments(docs);
+        setFilteredDocuments(docs); // Initially, all documents are shown
       } catch (err) {
         setError('Failed to load documents. Please try refreshing the page.');
         console.error(err);
@@ -99,25 +99,20 @@ const MainApp: React.FC = () => {
   
   // Filtering logic
   const applyFilters = useCallback(() => {
-    if (!hasSearched && !Object.values(filters).flat().length) {
-        setFilteredDocuments(allDocuments);
-        return;
-    }
-
     let docs = [...allDocuments];
-    const query = searchQuery.toLowerCase();
+    const query = searchQuery.toLowerCase().trim();
 
-    // Text search
-    if (query) {
+    // Text search (only if a search has been performed)
+    if (hasSearched && query) {
       docs = docs.filter(doc => 
         doc.title.toLowerCase().includes(query) ||
         doc.summary.toLowerCase().includes(query) ||
-        (doc.simplifiedSummary && doc.simplifiedSummary.toLowerCase().includes(query)) ||
-        (doc.authors || []).some(author => author.toLowerCase().includes(query)) ||
-        (doc.subjects || []).some(subject => subject.toLowerCase().includes(query)) ||
-        (doc.riskFactors || []).some(rf => rf.toLowerCase().includes(query)) ||
-        (doc.interventions || []).some(i => i.toLowerCase().includes(query)) ||
-        (doc.keyPopulations || []).some(kp => kp.toLowerCase().includes(query))
+        doc.simplifiedSummary.toLowerCase().includes(query) ||
+        doc.authors.some(author => author.toLowerCase().includes(query)) ||
+        doc.subjects.some(subject => subject.toLowerCase().includes(query)) ||
+        doc.riskFactors.some(rf => rf.toLowerCase().includes(query)) ||
+        doc.interventions.some(i => i.toLowerCase().includes(query)) ||
+        doc.keyPopulations.some(kp => kp.toLowerCase().includes(query))
       );
     }
 
@@ -130,13 +125,13 @@ const MainApp: React.FC = () => {
     }
 
     // Filter by checkbox categories
-    const checkboxFilterKeys: (keyof Document)[] = ['resourceType', 'subjects', 'interventions', 'keyPopulations', 'riskFactors', 'keyOrganisations'];
+    const checkboxFilterKeys: (keyof Omit<typeof filters, 'startYear'|'endYear'>)[] = ['resourceTypes', 'subjects', 'interventions', 'keyPopulations', 'riskFactors', 'keyOrganisations'];
     
     checkboxFilterKeys.forEach(key => {
-        const filterValues = filters[key as keyof typeof filters] as string[];
+        const filterValues = filters[key];
         if (filterValues.length > 0) {
             docs = docs.filter(doc => {
-                const docValues = (doc as any)[key];
+                const docValues = doc[key as keyof Document];
                 if (Array.isArray(docValues)) {
                     return filterValues.every(val => docValues.includes(val));
                 }
@@ -181,7 +176,7 @@ const MainApp: React.FC = () => {
   // Memoized values for performance
   const filterOptions = useMemo(() => {
     const getUniqueValues = (key: keyof Document) => {
-        const allValues = allDocuments.flatMap(doc => (doc as any)[key] || []);
+        const allValues = allDocuments.flatMap(doc => doc[key] || []);
         return [...new Set(allValues.filter(Boolean))].sort() as string[];
     };
     return {
@@ -204,7 +199,7 @@ const MainApp: React.FC = () => {
   }, [filteredDocuments, currentPage]);
 
 
-  if (isLoading) {
+  if (isLoading && allDocuments.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <LoadingSpinner className="h-10 w-10 text-gray-400" />
@@ -224,7 +219,7 @@ const MainApp: React.FC = () => {
                 onToggleSave={handleToggleSave}
                 onCite={setCitationDoc}
                 onReturn={() => setView('search')}
-                onFindRelated={(doc) => handleSearch((doc.subjects || []).join(' '))}
+                onFindRelated={(doc) => handleSearch((doc.subjects).join(' '))}
                 onViewPdf={setPdfDoc}
                 onAuthorClick={(author) => handleSearch(author)}
             />;
@@ -257,7 +252,7 @@ const MainApp: React.FC = () => {
                         savedDocIds={savedDocIds}
                         onToggleSave={handleToggleSave}
                         onCite={setCitationDoc}
-                        onFindRelated={(doc) => handleSearch((doc.subjects || []).join(' '))}
+                        onFindRelated={(doc) => handleSearch((doc.subjects).join(' '))}
                         onViewPdf={setPdfDoc}
                         onAuthorClick={(author) => handleSearch(author)}
                         currentPage={currentPage}

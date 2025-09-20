@@ -13,7 +13,7 @@ const PageButton: React.FC<{
   children: React.ReactNode;
 }> = ({ onClick, disabled, isActive, children }) => {
   const baseClasses = 'px-3 py-1.5 text-sm font-medium rounded-md disabled:opacity-50 transition-colors';
-  const activeClasses = 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100';
+  const activeClasses = 'bg-accent text-white dark:bg-accent-hover';
   const defaultClasses = 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800';
   
   return (
@@ -30,7 +30,7 @@ const PageButton: React.FC<{
 
 export const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPageChange }) => {
   const getPageNumbers = () => {
-    const pageNumbers = [];
+    const pageNumbers: (number | string)[] = [];
     if (totalPages <= 7) {
       for (let i = 1; i <= totalPages; i++) {
         pageNumbers.push(i);

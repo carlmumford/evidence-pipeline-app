@@ -29,7 +29,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     }, 500);
   };
 
-  const inputClasses = "w-full px-4 py-3 bg-accent-light dark:bg-accent/20 text-gray-900 dark:text-gray-100 rounded-lg border border-transparent focus:outline-none focus:ring-2 focus:ring-accent";
+  const inputClasses = "w-full px-4 py-3 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg border border-transparent focus:outline-none focus:ring-2 focus:ring-accent";
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">

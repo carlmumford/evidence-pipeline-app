@@ -10,17 +10,16 @@ interface YearData {
   count: number;
 }
 
-// A simple line chart component using SVG
 const LineChart: React.FC<{ data: YearData[]; color: string; title: string }> = ({ data, color, title }) => {
     if (data.length < 2) {
-        return <div className="text-center p-4 text-gray-500">Not enough data to display trend.</div>;
+        return <div className="text-center p-4 text-gray-500">Not enough data to display trend for {title}.</div>;
     }
     
     const sortedData = useMemo(() => data.sort((a, b) => a.year - b.year), [data]);
 
     const minYear = sortedData[0].year;
     const maxYear = sortedData[sortedData.length - 1].year;
-    const maxCount = Math.max(...sortedData.map(d => d.count), 0);
+    const maxCount = Math.max(...sortedData.map(d => d.count), 1);
 
     const width = 500;
     const height = 200;
@@ -59,7 +58,7 @@ export const TrendCharts: React.FC<TrendChartsProps> = ({ documents }) => {
     const publicationsByYear = useMemo(() => {
         const counts: { [year: number]: number } = {};
         documents.forEach(doc => {
-            if (doc.year) {
+            if (doc.year && doc.year > 1900) { // Basic data validation
                 counts[doc.year] = (counts[doc.year] || 0) + 1;
             }
         });
@@ -76,8 +75,8 @@ export const TrendCharts: React.FC<TrendChartsProps> = ({ documents }) => {
         Object.entries(topics).forEach(([topicName, keywords]) => {
             const counts: { [year: number]: number } = {};
             documents.forEach(doc => {
-                if (doc.year) {
-                    const docContent = `${(doc.subjects || []).join(' ')} ${(doc.keyPopulations || []).join(' ')}`.toLowerCase();
+                if (doc.year && doc.year > 1900) {
+                    const docContent = `${doc.subjects.join(' ')} ${doc.keyPopulations.join(' ')}`.toLowerCase();
                     if (keywords.some(kw => docContent.includes(kw))) {
                         counts[doc.year] = (counts[doc.year] || 0) + 1;
                     }
@@ -89,17 +88,12 @@ export const TrendCharts: React.FC<TrendChartsProps> = ({ documents }) => {
         return trendData;
     }, [documents]);
 
-    const hasPubData = publicationsByYear.length > 1;
-    const hasTopicData = Object.values(topicTrends).some(d => d.length > 1);
-
-    if (!hasPubData && !hasTopicData) return null;
-
     return (
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-gray-200 dark:border-gray-700">
              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {hasPubData && <LineChart data={publicationsByYear} color="#42A5F5" title="Publications by Year" />}
-                {topicTrends["Racial Disparity"].length > 1 && <LineChart data={topicTrends["Racial Disparity"]} color="#EF5350" title="Focus on Racial Disparity" />}
-                {topicTrends["Disability"].length > 1 && <LineChart data={topicTrends["Disability"]} color="#66BB6A" title="Focus on Disability" />}
+                <LineChart data={publicationsByYear} color="#42A5F5" title="Publications by Year" />
+                <LineChart data={topicTrends["Racial Disparity"]} color="#EF5350" title="Focus on Racial Disparity" />
+                <LineChart data={topicTrends["Disability"]} color="#66BB6A" title="Focus on Disability" />
              </div>
         </div>
     );

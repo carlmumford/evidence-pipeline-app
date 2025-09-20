@@ -25,29 +25,34 @@ interface EvidenceMapProps {
 
 const colors = ['#42A5F5', '#66BB6A', '#9575CD', '#FF7043', '#FFEE58'];
 
-const getDocumentTags = (doc: Document): string[] => {
-    return [
-        ...(doc.subjects || []),
-        ...(doc.riskFactors || []),
-        ...(doc.keyPopulations || []),
-        ...(doc.interventions || []),
-    ];
-};
+const getDocumentTags = (doc: Document): string[] => [
+    ...doc.subjects,
+    ...doc.riskFactors,
+    ...doc.keyPopulations,
+    ...doc.interventions,
+];
 
 export const EvidenceMap: React.FC<EvidenceMapProps> = ({ documents, onNodeClick }) => {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [links, setLinks] = useState<Link[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hoveredNode, setHoveredNode] = useState<Node | null>(null);
+  const [dimensions, setDimensions] = useState({ width: 800, height: 500 });
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const { width, height } = useMemo(() => {
-    return { width: containerRef.current?.clientWidth || 800, height: 500 };
-  }, [containerRef.current]);
+  useEffect(() => {
+    if (containerRef.current) {
+        setDimensions({
+            width: containerRef.current.clientWidth,
+            height: 500
+        });
+    }
+  }, []);
 
   useEffect(() => {
     setIsLoading(true);
+    const { width, height } = dimensions;
 
     const initialNodes: Node[] = documents.map((doc) => ({
       id: doc.id,
@@ -79,7 +84,6 @@ export const EvidenceMap: React.FC<EvidenceMapProps> = ({ documents, onNodeClick
     setNodes(initialNodes);
     setLinks(newLinks);
 
-    // Simple force-directed layout simulation
     let simulationFrame: number;
     const iterations = 150;
     let currentIteration = 0;
@@ -91,7 +95,8 @@ export const EvidenceMap: React.FC<EvidenceMapProps> = ({ documents, onNodeClick
         }
 
         setNodes(currentNodes => {
-            const updatedNodes = currentNodes.map(node => ({ ...node, fx: 0, fy: 0 }));
+            const nodeMap = new Map(currentNodes.map(n => [n.id, n]));
+            let updatedNodes = JSON.parse(JSON.stringify(currentNodes));
 
             // Repulsion force
             for (const nodeA of updatedNodes) {
@@ -99,23 +104,22 @@ export const EvidenceMap: React.FC<EvidenceMapProps> = ({ documents, onNodeClick
                     if (nodeA.id === nodeB.id) continue;
                     const dx = nodeA.x - nodeB.x;
                     const dy = nodeA.y - nodeB.y;
-                    let distance = Math.sqrt(dx * dx + dy * dy);
-                    if (distance < 1) distance = 1;
+                    let distance = Math.sqrt(dx * dx + dy * dy) || 1;
                     const force = -20 / (distance * distance);
                     nodeA.vx += (dx / distance) * force;
                     nodeA.vy += (dy / distance) * force;
                 }
             }
 
-            // Link force (spring)
+            // Link force
             for (const link of newLinks) {
-                const source = updatedNodes.find(n => n.id === link.source);
-                const target = updatedNodes.find(n => n.id === link.target);
+                const source = updatedNodes.find((n: Node) => n.id === link.source);
+                const target = updatedNodes.find((n: Node) => n.id === link.target);
                 if (!source || !target) continue;
                 
                 const dx = target.x - source.x;
                 const dy = target.y - source.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
+                const distance = Math.sqrt(dx * dx + dy * dy) || 1;
                 const force = 0.03 * (distance - (100 / link.strength));
                 
                 source.vx += (dx / distance) * force;
@@ -124,23 +128,15 @@ export const EvidenceMap: React.FC<EvidenceMapProps> = ({ documents, onNodeClick
                 target.vy -= (dy / distance) * force;
             }
             
-            // Apply forces and gravity
-            return updatedNodes.map(node => {
-                // Gravity towards center
+            return updatedNodes.map((node: Node) => {
                 node.vx += (width / 2 - node.x) * 0.005;
                 node.vy += (height / 2 - node.y) * 0.005;
-                
-                // Damping
                 node.vx *= 0.9;
                 node.vy *= 0.9;
-                
                 node.x += node.vx;
                 node.y += node.vy;
-
-                // Boundary collision
                 node.x = Math.max(node.radius, Math.min(width - node.radius, node.x));
                 node.y = Math.max(node.radius, Math.min(height - node.radius, node.y));
-                
                 return node;
             });
         });
@@ -152,7 +148,7 @@ export const EvidenceMap: React.FC<EvidenceMapProps> = ({ documents, onNodeClick
     simulationFrame = requestAnimationFrame(simulate);
 
     return () => cancelAnimationFrame(simulationFrame);
-  }, [documents, width, height]);
+  }, [documents, dimensions]);
 
   const nodeMap = useMemo(() => new Map(nodes.map(n => [n.id, n])), [nodes]);
 
@@ -164,13 +160,7 @@ export const EvidenceMap: React.FC<EvidenceMapProps> = ({ documents, onNodeClick
           <p className="mt-2 text-gray-500">Building evidence map...</p>
         </div>
       )}
-      <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`}>
-        <defs>
-            <marker id="arrowhead" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            </marker>
-        </defs>
-        
-        {/* Links */}
+      <svg width="100%" height={dimensions.height} viewBox={`0 0 ${dimensions.width} ${dimensions.height}`}>
         {links.map((link) => {
           const source = nodeMap.get(link.source);
           const target = nodeMap.get(link.target);
@@ -178,22 +168,18 @@ export const EvidenceMap: React.FC<EvidenceMapProps> = ({ documents, onNodeClick
           return (
             <line
               key={`${link.source}-${link.target}`}
-              x1={source.x}
-              y1={source.y}
-              x2={target.x}
-              y2={target.y}
+              x1={source.x} y1={source.y}
+              x2={target.x} y2={target.y}
               strokeOpacity={0.2 + link.strength * 0.1}
               className="stroke-gray-400 dark:stroke-gray-600 transition-all"
             />
           );
         })}
 
-        {/* Nodes */}
         {nodes.map((node) => (
           <circle
             key={node.id}
-            cx={node.x}
-            cy={node.y}
+            cx={node.x} cy={node.y}
             r={node.radius}
             fill={colors[Number(node.id.replace(/\D/g,'')) % colors.length]}
             onClick={() => onNodeClick(`"${node.title}"`)}
@@ -203,11 +189,10 @@ export const EvidenceMap: React.FC<EvidenceMapProps> = ({ documents, onNodeClick
           />
         ))}
 
-        {/* Hover Tooltip */}
         {hoveredNode && (
             <g transform={`translate(${hoveredNode.x + 10}, ${hoveredNode.y})`} style={{ pointerEvents: 'none' }}>
-                <rect x="0" y="-12" width={hoveredNode.title.length * 6 + 10} height="24" fill="rgba(0,0,0,0.7)" rx="4"/>
-                <text x="5" y="5" fill="#fff" fontSize="10">{hoveredNode.title}</text>
+                <rect x="0" y="-12" width={hoveredNode.title.length * 6 + 10} height="24" fill="rgba(17,17,17,0.8)" rx="4"/>
+                <text x="5" y="4" fill="#fff" fontSize="10px">{hoveredNode.title}</text>
             </g>
         )}
       </svg>

@@ -24,6 +24,7 @@ export const CitationModal: React.FC<CitationModalProps> = ({ isOpen, onClose, d
   useEffect(() => {
     if (document) {
       setCitation(generateAPA(document));
+      setIsCopied(false);
     }
   }, [document]);
   
@@ -62,7 +63,7 @@ export const CitationModal: React.FC<CitationModalProps> = ({ isOpen, onClose, d
         <div className="flex justify-end">
             <button
                 onClick={handleCopy}
-                className="flex items-center justify-center px-4 py-2 text-white bg-accent rounded-md hover:bg-accent-hover transition-colors font-semibold"
+                className="flex items-center justify-center px-4 py-2 text-white bg-accent rounded-md hover:bg-accent-hover transition-colors font-semibold w-40"
             >
                 {isCopied ? <CheckCircleIcon className="h-5 w-5 mr-2" /> : null}
                 {isCopied ? 'Copied!' : 'Copy to Clipboard'}

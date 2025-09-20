@@ -27,13 +27,13 @@ export const SavedList: React.FC<SavedListProps> = ({ savedDocuments, onToggleSa
       
       return [
         escapeCsvField(doc.title),
-        escapeCsvField((doc.authors || []).join(', ')),
+        escapeCsvField(doc.authors.join(', ')),
         doc.year || 'N/A',
         escapeCsvField(doc.summary),
-        escapeCsvField((doc.subjects || []).join(', ')),
-        escapeCsvField((doc.riskFactors || []).join(', ')),
-        escapeCsvField((doc.interventions || []).join(', ')),
-        escapeCsvField((doc.keyPopulations || []).join(', ')),
+        escapeCsvField(doc.subjects.join(', ')),
+        escapeCsvField(doc.riskFactors.join(', ')),
+        escapeCsvField(doc.interventions.join(', ')),
+        escapeCsvField(doc.keyPopulations.join(', ')),
         escapeCsvField(doc.pdfUrl)
       ].join(',');
     });
@@ -89,7 +89,7 @@ export const SavedList: React.FC<SavedListProps> = ({ savedDocuments, onToggleSa
         <div className="text-center py-20 px-6 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Your List is Empty</h3>
           <p className="text-gray-500 dark:text-gray-400 mt-2">
-            Click the "Add to List" button on a search result to save it here.
+            Click the bookmark icon on a search result to save it here.
           </p>
         </div>
       )}

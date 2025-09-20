@@ -11,7 +11,6 @@ interface UploadModalProps {
 }
 
 export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAddDocument }) => {
-  // Form state
   const [title, setTitle] = useState('');
   const [authors, setAuthors] = useState('');
   const [summary, setSummary] = useState('');
@@ -24,9 +23,9 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
   const [interventions, setInterventions] = useState('');
   const [keyPopulations, setKeyPopulations] = useState('');
   const [riskFactors, setRiskFactors] = useState('');
+  const [keyStats, setKeyStats] = useState('');
   const [keyOrganisations, setKeyOrganisations] = useState('');
 
-  // Control state
   const [file, setFile] = useState<File | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
   const [extractionError, setExtractionError] = useState<string | null>(null);
@@ -45,6 +44,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
     setInterventions('');
     setKeyPopulations('');
     setRiskFactors('');
+    setKeyStats('');
     setKeyOrganisations('');
     setFile(null);
     setIsExtracting(false);
@@ -99,6 +99,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
       setInterventions(extractedData.interventions || '');
       setKeyPopulations(extractedData.keyPopulations || '');
       setRiskFactors(extractedData.riskFactors || '');
+      setKeyStats(extractedData.keyStats || '');
       setKeyOrganisations(extractedData.keyOrganisations || '');
       
       if (originalSummary) {
@@ -123,7 +124,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
     }
     const newDoc = {
       title,
-      authors: authors.split(',').map(a => a.trim()),
+      authors: authors.split(',').map(a => a.trim()).filter(Boolean),
       summary,
       simplifiedSummary: simplifiedSummary || summary,
       year: year ? parseInt(year, 10) : undefined,
@@ -133,6 +134,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
       interventions: interventions.split(',').map(s => s.trim()).filter(Boolean),
       keyPopulations: keyPopulations.split(',').map(s => s.trim()).filter(Boolean),
       riskFactors: riskFactors.split(',').map(s => s.trim()).filter(Boolean),
+      keyStats: keyStats.split(',').map(s => s.trim()).filter(Boolean),
       keyOrganisations: keyOrganisations.split(',').map(s => s.trim()).filter(Boolean),
       pdfUrl,
     };
@@ -245,6 +247,10 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
             <div>
                 <label htmlFor="interventions" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Interventions (comma-separated)</label>
                 <input type="text" id="interventions" value={interventions} onChange={e => setInterventions(e.target.value)} className={inputClasses} placeholder="e.g., policy reform"/>
+            </div>
+             <div>
+                <label htmlFor="keyStats" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Key Stats (comma-separated)</label>
+                <input type="text" id="keyStats" value={keyStats} onChange={e => setKeyStats(e.target.value)} className={inputClasses} placeholder="e.g., Suspension rates drop by 40%"/>
             </div>
             <div>
                 <label htmlFor="pdfUrl" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">PDF URL</label>

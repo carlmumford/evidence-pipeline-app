@@ -13,23 +13,23 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({ isOpen, onClose,
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-center items-center"
+      className="fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-center items-center animate-fade-in"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="pdf-viewer-title"
     >
       <div
-        className="bg-base-100 dark:bg-dark-base-300 rounded-lg shadow-2xl w-[95%] h-[95%] flex flex-col"
+        className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl w-[95%] h-[95%] flex flex-col"
         onClick={e => e.stopPropagation()}
       >
-        <header className="flex justify-between items-center p-4 border-b border-base-300 dark:border-slate-700 flex-shrink-0">
-          <h2 id="pdf-viewer-title" className="text-lg font-bold text-brand-primary dark:text-brand-accent truncate pr-4">
+        <header className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+          <h2 id="pdf-viewer-title" className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate pr-4">
             {document.title}
           </h2>
           <button
             onClick={onClose}
-            className="text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
+            className="text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
             aria-label="Close PDF viewer"
           >
             <CloseIcon />
@@ -44,7 +44,7 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({ isOpen, onClose,
             />
           ) : (
             <div className="flex items-center justify-center h-full">
-                <p className="text-slate-500">No PDF available for this document.</p>
+                <p className="text-gray-500">No PDF available for this document.</p>
             </div>
           )}
         </div>
