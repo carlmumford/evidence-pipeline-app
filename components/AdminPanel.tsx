@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { authService } from '../services/authService';
 import { getDocuments, deleteDocument } from '../services/documentService';
 import type { Document } from '../types';
-import { LoadingSpinner, TrashIcon, CheckCircleIcon, CloseIcon } from '../constants';
+import { LoadingSpinner, TrashIcon } from '../constants';
 
 const AdminPanel: React.FC = () => {
   // Password Change State
