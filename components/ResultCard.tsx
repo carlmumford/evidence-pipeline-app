@@ -75,7 +75,7 @@ export const ResultCard: React.FC<ResultCardProps> = ({ document, isSaved, onTog
                 <h4 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-1">{document.title}</h4>
                 <div className="text-sm text-gray-500 dark:text-gray-400">
                     <span>
-                        {document.authors.map((author, index) => (
+                        {(document.authors || []).map((author, index) => (
                             <React.Fragment key={author}>
                                 <button 
                                     onClick={(e) => { e.stopPropagation(); onAuthorClick(author); }} 
@@ -83,7 +83,7 @@ export const ResultCard: React.FC<ResultCardProps> = ({ document, isSaved, onTog
                                 >
                                     {author}
                                 </button>
-                                {index < document.authors.length - 1 && ', '}
+                                {index < (document.authors || []).length - 1 && ', '}
                             </React.Fragment>
                         ))}
                     </span>

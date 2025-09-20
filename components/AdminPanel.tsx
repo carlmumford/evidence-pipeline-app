@@ -398,7 +398,7 @@ const AdminPanel: React.FC = () => {
                 {documents.map(doc => (
                   <tr key={doc.id}>
                     <td className="px-4 py-4 whitespace-nowrap font-medium text-gray-800 dark:text-gray-200 max-w-xs truncate">{doc.title}</td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate">{doc.authors.join(', ')}</td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate">{(doc.authors || []).join(', ')}</td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm">{doc.year || 'N/A'}</td>
                     <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button 

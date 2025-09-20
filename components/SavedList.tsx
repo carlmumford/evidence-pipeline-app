@@ -27,7 +27,7 @@ export const SavedList: React.FC<SavedListProps> = ({ savedDocuments, onToggleSa
       
       return [
         escapeCsvField(doc.title),
-        escapeCsvField(doc.authors.join(', ')),
+        escapeCsvField((doc.authors || []).join(', ')),
         doc.year || 'N/A',
         escapeCsvField(doc.summary),
         escapeCsvField((doc.subjects || []).join(', ')),
