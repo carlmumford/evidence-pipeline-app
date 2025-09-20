@@ -182,42 +182,44 @@ const AdminPanel: React.FC = () => {
     if (score > 60) return 'text-yellow-500';
     return 'text-red-500';
   };
+  
+  const inputClasses = "block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 shadow-sm focus:border-accent focus:ring focus:ring-accent focus:ring-opacity-50 text-sm";
 
   return (
     <div className="max-w-4xl mx-auto space-y-12">
       <div className="text-center">
-        <h2 className="text-3xl md:text-4xl font-bold text-brand-primary dark:text-brand-accent mb-2">Administrator Panel</h2>
-        <p className="text-lg text-slate-600 dark:text-slate-400">
+        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">Administrator Panel</h2>
+        <p className="text-lg text-gray-600 dark:text-gray-400">
           Manage application settings and content.
         </p>
       </div>
 
       {/* AI Research Discovery Section */}
-      <section className="bg-base-100 dark:bg-dark-base-300 p-6 rounded-lg shadow-md border border-base-300 dark:border-slate-700">
-        <h3 className="text-xl font-semibold mb-4 text-slate-800 dark:text-slate-200 flex items-center gap-2">
+      <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+        <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200 flex items-center gap-2">
             <SparklesIcon /> AI Research Discovery
         </h3>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
             Use AI to search the web for the latest research on the school-to-prison pipeline from reputable sources.
         </p>
         <button 
             onClick={handleFindResearch} 
             disabled={isDiscovering}
-            className="flex items-center justify-center px-4 py-2 bg-brand-primary text-white font-semibold rounded-lg shadow-sm hover:bg-brand-secondary disabled:bg-slate-400 disabled:cursor-wait"
+            className="flex items-center justify-center px-4 py-2 bg-accent text-white font-semibold rounded-lg shadow-sm hover:bg-accent-hover disabled:bg-gray-400 disabled:cursor-wait"
         >
             {isDiscovering ? <LoadingSpinner /> : <SparklesIcon />}
             <span className="ml-2">{isDiscovering ? 'Searching...' : 'Find Recent Research'}</span>
         </button>
 
         {discoveryMessage.text && (
-            <div className={`mt-4 p-3 rounded-md text-sm ${discoveryMessage.type === 'success' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'}`}>
+            <div className={`mt-4 p-3 rounded-md text-sm ${discoveryMessage.type === 'success' ? 'bg-green-100 text-green-800 dark:bg-green-800/50 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-800/50 dark:text-red-200'}`}>
                 {discoveryMessage.text}
             </div>
         )}
 
         {isDiscovering && (
             <div className="mt-4 text-center">
-                <p className="text-slate-500">AI is searching the internet. This may take a moment...</p>
+                <p className="text-gray-500">AI is searching the internet. This may take a moment...</p>
             </div>
         )}
 
@@ -226,38 +228,38 @@ const AdminPanel: React.FC = () => {
         {discoveredResearch.length > 0 && (
             <div className="mt-6 space-y-4">
                 {discoveredResearch.map((item, index) => (
-                    <div key={index} className="p-4 border border-base-300 dark:border-slate-700 rounded-lg bg-base-200/50 dark:bg-dark-base-200/50">
+                    <div key={index} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50/50 dark:bg-gray-900/50">
                         <div className="flex justify-between items-start">
                            <div>
-                             <h4 className="font-bold text-brand-primary dark:text-brand-accent">{item.title}</h4>
-                             <p className="text-xs font-mono text-slate-500">{item.authors}</p>
+                             <h4 className="font-bold text-accent">{item.title}</h4>
+                             <p className="text-xs font-mono text-gray-500">{item.authors}</p>
                            </div>
                            <div className="text-center ml-4 flex-shrink-0">
                                 <p className={`text-2xl font-bold ${getConfidenceColor(item.confidenceScore)}`}>{item.confidenceScore}</p>
-                                <p className="text-xs text-slate-500">Confidence</p>
+                                <p className="text-xs text-gray-500">Confidence</p>
                            </div>
                         </div>
-                        <p className="text-sm my-3 text-slate-600 dark:text-slate-400">{item.summary}</p>
+                        <p className="text-sm my-3 text-gray-600 dark:text-gray-400">{item.summary}</p>
                         
                         {item.sources && item.sources.length > 0 && (
-                           <div className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                           <div className="text-xs text-gray-500 dark:text-gray-400 mb-3">
                                 <h5 className="font-semibold">Sources found by AI:</h5>
                                 <ul className="list-disc list-inside">
                                     {item.sources.map(source => (
-                                        <li key={source.uri}><a href={source.uri} target="_blank" rel="noopener noreferrer" className="hover:underline text-brand-primary">{source.title || source.uri}</a></li>
+                                        <li key={source.uri}><a href={source.uri} target="_blank" rel="noopener noreferrer" className="hover:underline text-accent">{source.title || source.uri}</a></li>
                                     ))}
                                 </ul>
                            </div>
                         )}
                         
                         <div className="flex justify-between items-center">
-                            <a href={item.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-brand-primary hover:underline">
+                            <a href={item.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-accent hover:underline">
                                 <LinkIcon className="h-4 w-4" /> View Source
                             </a>
                             <button
                                 onClick={() => handleAddDiscoveredResearch(item)}
                                 disabled={addedDocUrls.has(item.url)}
-                                className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold rounded-lg transition-colors bg-green-500 text-white hover:bg-green-600 disabled:bg-slate-400 disabled:cursor-not-allowed"
+                                className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold rounded-lg transition-colors bg-green-500 text-white hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
                             >
                                 {addedDocUrls.has(item.url) ? <CheckCircleIcon className="h-5 w-5" /> : <PlusCircleIcon className="h-5 w-5" />}
                                 {addedDocUrls.has(item.url) ? 'Added' : 'Add to Database'}
@@ -270,8 +272,8 @@ const AdminPanel: React.FC = () => {
       </section>
 
       {/* User Management Section */}
-      <section className="bg-base-100 dark:bg-dark-base-300 p-6 rounded-lg shadow-md border border-base-300 dark:border-slate-700">
-        <h3 className="text-xl font-semibold mb-4 text-slate-800 dark:text-slate-200 flex items-center gap-2">
+      <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+        <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200 flex items-center gap-2">
           <UserGroupIcon /> User Management
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -281,26 +283,26 @@ const AdminPanel: React.FC = () => {
                 <form onSubmit={handleAddUser} className="space-y-4">
                      <div>
                         <label className="block text-sm font-medium mb-1" htmlFor="new-username">Username</label>
-                        <input type="text" id="new-username" value={newUsername} onChange={e => setNewUsername(e.target.value)} required className="w-full input-style" />
+                        <input type="text" id="new-username" value={newUsername} onChange={e => setNewUsername(e.target.value)} required className={inputClasses} />
                     </div>
                     <div>
                         <label className="block text-sm font-medium mb-1" htmlFor="new-user-password">Password</label>
-                        <input type="password" id="new-user-password" value={newUserPassword} onChange={e => setNewUserPassword(e.target.value)} required className="w-full input-style" />
+                        <input type="password" id="new-user-password" value={newUserPassword} onChange={e => setNewUserPassword(e.target.value)} required className={inputClasses} />
                     </div>
                      <div>
                         <label className="block text-sm font-medium mb-1" htmlFor="new-user-role">Role</label>
-                        <select id="new-user-role" value={newUserRole} onChange={e => setNewUserRole(e.target.value as 'admin' | 'editor')} className="w-full input-style">
+                        <select id="new-user-role" value={newUserRole} onChange={e => setNewUserRole(e.target.value as 'admin' | 'editor')} className={inputClasses}>
                             <option value="editor">Editor</option>
                             <option value="admin">Admin</option>
                         </select>
                     </div>
                      {userMessage.text && (
-                        <div className={`p-3 rounded-md text-sm ${userMessage.type === 'success' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'}`}>
+                        <div className={`p-3 rounded-md text-sm ${userMessage.type === 'success' ? 'bg-green-100 text-green-800 dark:bg-green-800/50 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-800/50 dark:text-red-200'}`}>
                             {userMessage.text}
                         </div>
                     )}
                     <div className="text-right">
-                        <button type="submit" className="px-4 py-2 bg-brand-primary text-white font-semibold rounded-lg shadow-sm hover:bg-brand-secondary">
+                        <button type="submit" className="px-4 py-2 bg-accent text-white font-semibold rounded-lg shadow-sm hover:bg-accent-hover">
                         Add User
                         </button>
                     </div>
@@ -310,19 +312,19 @@ const AdminPanel: React.FC = () => {
             <div>
                  <h4 className="font-semibold mb-3">Existing Users</h4>
                  <div className="overflow-x-auto max-h-72">
-                    <table className="min-w-full divide-y divide-base-300 dark:divide-slate-700">
-                    <thead className="bg-base-200 dark:bg-dark-base-200 sticky top-0">
+                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead className="bg-gray-50 dark:bg-gray-700 sticky top-0">
                         <tr>
                         <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider">Username</th>
                         <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider">Role</th>
                         <th className="relative px-4 py-2"><span className="sr-only">Actions</span></th>
                         </tr>
                     </thead>
-                    <tbody className="bg-base-100 dark:bg-dark-base-300 divide-y divide-base-200 dark:divide-slate-800">
+                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700/50">
                         {users.map(user => (
                         <tr key={user.username}>
-                            <td className="px-4 py-3 whitespace-nowrap font-medium text-slate-800 dark:text-slate-200">{user.username}</td>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400 capitalize">{user.role}</td>
+                            <td className="px-4 py-3 whitespace-nowrap font-medium text-gray-800 dark:text-gray-200">{user.username}</td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 capitalize">{user.role}</td>
                             <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
                             <button 
                                 onClick={() => handleDeleteUser(user.username)}
@@ -343,28 +345,28 @@ const AdminPanel: React.FC = () => {
       </section>
 
       {/* Change Password Section */}
-      <section className="bg-base-100 dark:bg-dark-base-300 p-6 rounded-lg shadow-md border border-base-300 dark:border-slate-700">
-        <h3 className="text-xl font-semibold mb-4 text-slate-800 dark:text-slate-200">Change Your Password</h3>
+      <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+        <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Change Your Password</h3>
         <form onSubmit={handlePasswordChange} className="space-y-4 max-w-md">
           <div>
             <label className="block text-sm font-medium mb-1" htmlFor="current-password">Current Password</label>
-            <input type="password" id="current-password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} required className="w-full input-style" />
+            <input type="password" id="current-password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} required className={inputClasses} />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1" htmlFor="new-password">New Password</label>
-            <input type="password" id="new-password" value={newPassword} onChange={e => setNewPassword(e.target.value)} required className="w-full input-style" />
+            <input type="password" id="new-password" value={newPassword} onChange={e => setNewPassword(e.target.value)} required className={inputClasses} />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1" htmlFor="confirm-password">Confirm New Password</label>
-            <input type="password" id="confirm-password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required className="w-full input-style" />
+            <input type="password" id="confirm-password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required className={inputClasses} />
           </div>
           {passwordMessage.text && (
-            <div className={`p-3 rounded-md text-sm ${passwordMessage.type === 'success' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'}`}>
+            <div className={`p-3 rounded-md text-sm ${passwordMessage.type === 'success' ? 'bg-green-100 text-green-800 dark:bg-green-800/50 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-800/50 dark:text-red-200'}`}>
               {passwordMessage.text}
             </div>
           )}
           <div className="text-right">
-            <button type="submit" className="px-4 py-2 bg-brand-primary text-white font-semibold rounded-lg shadow-sm hover:bg-brand-secondary">
+            <button type="submit" className="px-4 py-2 bg-accent text-white font-semibold rounded-lg shadow-sm hover:bg-accent-hover">
               Update Password
             </button>
           </div>
@@ -372,19 +374,19 @@ const AdminPanel: React.FC = () => {
       </section>
 
       {/* Document Management Section */}
-      <section className="bg-base-100 dark:bg-dark-base-300 p-6 rounded-lg shadow-md border border-base-300 dark:border-slate-700">
-        <h3 className="text-xl font-semibold mb-4 text-slate-800 dark:text-slate-200">Manage Documents</h3>
+      <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+        <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Manage Documents</h3>
         {isLoadingDocs ? (
           <div className="flex justify-center items-center p-8">
-            <LoadingSpinner className="h-8 w-8 text-brand-primary" />
+            <LoadingSpinner className="h-8 w-8 text-accent" />
             <span className="ml-3">Loading documents...</span>
           </div>
         ) : docError ? (
           <p className="text-red-500 text-center">{docError}</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-base-300 dark:divide-slate-700">
-              <thead className="bg-base-200 dark:bg-dark-base-200">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Title</th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Authors</th>
@@ -392,11 +394,11 @@ const AdminPanel: React.FC = () => {
                   <th className="relative px-4 py-3"><span className="sr-only">Actions</span></th>
                 </tr>
               </thead>
-              <tbody className="bg-base-100 dark:bg-dark-base-300 divide-y divide-base-200 dark:divide-slate-800">
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700/50">
                 {documents.map(doc => (
                   <tr key={doc.id}>
-                    <td className="px-4 py-4 whitespace-nowrap font-medium text-slate-800 dark:text-slate-200 max-w-xs truncate">{doc.title}</td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400 max-w-xs truncate">{doc.authors.join(', ')}</td>
+                    <td className="px-4 py-4 whitespace-nowrap font-medium text-gray-800 dark:text-gray-200 max-w-xs truncate">{doc.title}</td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate">{doc.authors.join(', ')}</td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm">{doc.year || 'N/A'}</td>
                     <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button 
@@ -414,7 +416,6 @@ const AdminPanel: React.FC = () => {
           </div>
         )}
       </section>
-      <style>{`.input-style { background-color: #F5F5F5; border: 1px solid #E0E0E0; border-radius: 0.375rem; padding: 0.5rem 0.75rem; } .dark .input-style { background-color: #1E1E1E; border-color: #2C2C2C; }`}</style>
     </div>
   );
 };

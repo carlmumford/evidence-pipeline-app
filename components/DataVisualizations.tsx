@@ -38,7 +38,7 @@ const Chart: React.FC<{ title: string; data: DataItem[]; color: string; onTermCl
 
     return (
         <div role="group" aria-labelledby={`chart-title-${title.replace(/\s+/g, '-')}`}>
-            <h3 id={`chart-title-${title.replace(/\s+/g, '-')}`} className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4">
+            <h3 id={`chart-title-${title.replace(/\s+/g, '-')}`} className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
                 Top {title}
             </h3>
             <div className="space-y-3">
@@ -49,7 +49,7 @@ const Chart: React.FC<{ title: string; data: DataItem[]; color: string; onTermCl
                         className="w-full grid grid-cols-12 items-center gap-2 group text-left"
                         aria-label={`${formatPhrase(name)}, mentioned in ${count} document${count > 1 ? 's' : ''}. Click to search for this term.`}
                     >
-                        <span className="col-span-5 md:col-span-4 text-sm font-medium text-slate-600 dark:text-slate-400 text-right truncate group-hover:text-brand-primary dark:group-hover:text-brand-accent" title={formatPhrase(name)}>
+                        <span className="col-span-5 md:col-span-4 text-sm font-medium text-gray-600 dark:text-gray-400 text-right truncate group-hover:text-accent" title={formatPhrase(name)}>
                             {formatPhrase(name)}
                         </span>
                         <div className="col-span-7 md:col-span-8 flex items-center">
@@ -58,7 +58,7 @@ const Chart: React.FC<{ title: string; data: DataItem[]; color: string; onTermCl
                                 style={{ width: `${maxCount > 0 ? (count / maxCount) * 100 : 0}%` }}
                                 role="presentation"
                             />
-                            <span className="ml-2 text-sm font-bold text-brand-primary dark:text-brand-accent">
+                            <span className="ml-2 text-sm font-bold text-accent">
                                 {count}
                             </span>
                         </div>
@@ -78,20 +78,20 @@ export const TopicBreakdownCharts: React.FC<TopicBreakdownChartsProps> = ({ docu
 
   if (!hasData) {
     return (
-        <div className="bg-base-100 dark:bg-dark-base-300 rounded-xl shadow-md p-6 border border-base-300 dark:border-slate-700 text-center">
-            <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Evidence Dashboard</h3>
-            <p className="text-slate-500 dark:text-slate-400 mt-2">Upload more documents with tagged risk factors, populations, and interventions to see an overview here.</p>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-gray-200 dark:border-gray-700 text-center">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Evidence Dashboard</h3>
+            <p className="text-gray-500 dark:text-gray-400 mt-2">Upload more documents with tagged risk factors, populations, and interventions to see an overview here.</p>
         </div>
     );
   }
 
   return (
     <div 
-        className="bg-base-100 dark:bg-dark-base-300 rounded-xl shadow-md p-6 border border-base-300 dark:border-slate-700"
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-gray-200 dark:border-gray-700"
         role="figure"
         aria-labelledby="viz-title"
     >
-        <h2 id="viz-title" className="text-xl font-bold text-center text-brand-primary dark:text-brand-accent mb-6">Evidence Dashboard</h2>
+        <h2 id="viz-title" className="text-xl font-bold text-center text-gray-900 dark:text-gray-100 mb-6">Evidence Dashboard</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <Chart title="Risk Factors" data={topRiskFactors} color="bg-purple-500" onTermClick={onTermClick} />
             <Chart title="Key Populations" data={topPopulations} color="bg-blue-500" onTermClick={onTermClick} />

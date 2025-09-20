@@ -157,11 +157,11 @@ export const EvidenceMap: React.FC<EvidenceMapProps> = ({ documents, onNodeClick
   const nodeMap = useMemo(() => new Map(nodes.map(n => [n.id, n])), [nodes]);
 
   return (
-    <div ref={containerRef} className="bg-base-100 dark:bg-dark-base-300 rounded-xl shadow-md p-4 border border-base-300 dark:border-slate-700 relative min-h-[500px]">
+    <div ref={containerRef} className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 border border-gray-200 dark:border-gray-700 relative min-h-[500px]">
       {isLoading && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-base-100/80 dark:bg-dark-base-300/80 z-10">
-          <LoadingSpinner className="w-8 h-8 text-brand-primary" />
-          <p className="mt-2 text-slate-500">Building evidence map...</p>
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-gray-800/80 z-10">
+          <LoadingSpinner className="w-8 h-8 text-accent" />
+          <p className="mt-2 text-gray-500">Building evidence map...</p>
         </div>
       )}
       <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`}>
@@ -183,7 +183,7 @@ export const EvidenceMap: React.FC<EvidenceMapProps> = ({ documents, onNodeClick
               x2={target.x}
               y2={target.y}
               strokeOpacity={0.2 + link.strength * 0.1}
-              className="stroke-slate-400 dark:stroke-slate-600 transition-all"
+              className="stroke-gray-400 dark:stroke-gray-600 transition-all"
             />
           );
         })}
@@ -199,7 +199,7 @@ export const EvidenceMap: React.FC<EvidenceMapProps> = ({ documents, onNodeClick
             onClick={() => onNodeClick(`"${node.title}"`)}
             onMouseEnter={() => setHoveredNode(node)}
             onMouseLeave={() => setHoveredNode(null)}
-            className="cursor-pointer transition-all hover:stroke-2 hover:stroke-brand-accent"
+            className="cursor-pointer transition-all hover:stroke-2 hover:stroke-accent"
           />
         ))}
 

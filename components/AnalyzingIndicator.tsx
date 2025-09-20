@@ -35,17 +35,17 @@ export const AnalyzingIndicator: React.FC = () => {
   const progressPercentage = ((currentStepIndex + 1) / analysisSteps.length) * 100;
 
   return (
-    <div className="flex flex-col items-center justify-center p-8 transition-opacity duration-300 animate-fade-in w-full">
+    <div className="flex flex-col items-center justify-center p-8 w-full">
       <div className="w-full max-w-sm text-center">
-        <h3 className="text-xl font-bold text-brand-primary dark:text-brand-accent mb-2">Analyzing Document</h3>
-        <p className="text-slate-500 dark:text-slate-400 mb-6">
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Analyzing Document</h3>
+        <p className="text-gray-500 dark:text-gray-400 mb-6">
           Please keep this window open. This process may take up to a minute.
         </p>
 
         {/* Progress Bar */}
-        <div className="w-full bg-base-200 dark:bg-dark-base-200 rounded-full h-2.5 mb-2">
+        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mb-2">
             <div 
-                className="bg-brand-primary h-2.5 rounded-full transition-all duration-1000 ease-out" 
+                className="bg-accent h-2.5 rounded-full transition-all duration-1000 ease-out" 
                 style={{ width: `${progressPercentage}%` }}
                 role="progressbar"
                 aria-valuenow={progressPercentage}
@@ -56,7 +56,7 @@ export const AnalyzingIndicator: React.FC = () => {
         </div>
 
         {/* Current Step Text */}
-        <p className="text-sm font-medium text-slate-600 dark:text-slate-300 h-10 flex items-center justify-center">
+        <p className="text-sm font-medium text-gray-600 dark:text-gray-400 h-10 flex items-center justify-center">
           {analysisSteps[currentStepIndex]}
         </p>
       </div>

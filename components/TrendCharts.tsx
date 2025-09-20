@@ -13,7 +13,7 @@ interface YearData {
 // A simple line chart component using SVG
 const LineChart: React.FC<{ data: YearData[]; color: string; title: string }> = ({ data, color, title }) => {
     if (data.length < 2) {
-        return <div className="text-center p-4 text-slate-500">Not enough data to display trend.</div>;
+        return <div className="text-center p-4 text-gray-500">Not enough data to display trend.</div>;
     }
     
     const sortedData = useMemo(() => data.sort((a, b) => a.year - b.year), [data]);
@@ -34,10 +34,10 @@ const LineChart: React.FC<{ data: YearData[]; color: string; title: string }> = 
     
     return (
         <div>
-            <h4 className="text-lg font-semibold text-center text-slate-700 dark:text-slate-300 mb-2">{title}</h4>
+            <h4 className="text-lg font-semibold text-center text-gray-700 dark:text-gray-300 mb-2">{title}</h4>
             <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={title}>
-                <line x1={padding} y1={height - padding} x2={width-padding} y2={height - padding} stroke="currentColor" className="text-slate-300 dark:text-slate-700" />
-                <line x1={padding} y1={padding} x2={padding} y2={height - padding} stroke="currentColor" className="text-slate-300 dark:text-slate-700"/>
+                <line x1={padding} y1={height - padding} x2={width-padding} y2={height - padding} stroke="currentColor" className="text-gray-300 dark:text-gray-700" />
+                <line x1={padding} y1={padding} x2={padding} y2={height - padding} stroke="currentColor" className="text-gray-300 dark:text-gray-700"/>
                 
                 <polyline fill="none" stroke={color} strokeWidth="2" points={points} />
                 
@@ -47,9 +47,9 @@ const LineChart: React.FC<{ data: YearData[]; color: string; title: string }> = 
                     </circle>
                 ))}
 
-                <text x={padding} y={height - padding + 15} fontSize="10" fill="currentColor" className="text-slate-500">{minYear}</text>
-                <text x={width - padding} y={height - padding + 15} fontSize="10" textAnchor="end" fill="currentColor" className="text-slate-500">{maxYear}</text>
-                <text x={padding - 5} y={padding} fontSize="10" textAnchor="end" fill="currentColor" className="text-slate-500">{maxCount}</text>
+                <text x={padding} y={height - padding + 15} fontSize="10" fill="currentColor" className="text-gray-500">{minYear}</text>
+                <text x={width - padding} y={height - padding + 15} fontSize="10" textAnchor="end" fill="currentColor" className="text-gray-500">{maxYear}</text>
+                <text x={padding - 5} y={padding} fontSize="10" textAnchor="end" fill="currentColor" className="text-gray-500">{maxCount}</text>
             </svg>
         </div>
     )
@@ -95,7 +95,7 @@ export const TrendCharts: React.FC<TrendChartsProps> = ({ documents }) => {
     if (!hasPubData && !hasTopicData) return null;
 
     return (
-        <div className="bg-base-100 dark:bg-dark-base-300 rounded-xl shadow-md p-6 border border-base-300 dark:border-slate-700">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-gray-200 dark:border-gray-700">
              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {hasPubData && <LineChart data={publicationsByYear} color="#42A5F5" title="Publications by Year" />}
                 {topicTrends["Racial Disparity"].length > 1 && <LineChart data={topicTrends["Racial Disparity"]} color="#EF5350" title="Focus on Racial Disparity" />}

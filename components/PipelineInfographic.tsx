@@ -21,16 +21,16 @@ const PipelineStage: React.FC<PipelineStageProps> = ({ icon, title, searchTerm, 
         className="flex flex-col items-center text-center group w-48"
         aria-label={`Search for evidence related to ${title}`}
     >
-        <div className={`flex items-center justify-center w-20 h-20 rounded-full bg-base-200 dark:bg-dark-base-200 border-4 ${color} transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg`}>
+        <div className={`flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-800 border-4 ${color} transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg`}>
             {icon}
         </div>
-        <h4 className="mt-3 font-semibold text-slate-700 dark:text-slate-200 group-hover:text-brand-primary dark:group-hover:text-brand-accent">{title}</h4>
+        <h4 className="mt-3 font-semibold text-gray-700 dark:text-gray-200 group-hover:text-accent">{title}</h4>
     </button>
 );
 
 const Connector: React.FC = () => (
     <div className="flex-1 flex items-center justify-center -mx-4">
-        <ArrowRightIcon className="h-8 w-8 text-slate-300 dark:text-slate-600" />
+        <ArrowRightIcon className="h-8 w-8 text-gray-300 dark:text-gray-600" />
     </div>
 );
 
@@ -56,15 +56,15 @@ export const PipelineInfographic: React.FC<{ onStageClick: (term: string) => voi
       color: 'border-red-500'
     },
     {
-      icon: <BuildingLibraryIcon className="h-10 w-10 text-slate-500"/>,
+      icon: <BuildingLibraryIcon className="h-10 w-10 text-gray-500"/>,
       title: 'Incarceration',
       searchTerm: 'incarceration prison',
-      color: 'border-slate-500'
+      color: 'border-gray-500'
     }
   ];
 
   return (
-    <div className="bg-base-100 dark:bg-dark-base-300 rounded-xl shadow-md p-8 border border-base-300 dark:border-slate-700">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-8 border border-gray-200 dark:border-gray-700">
         <div className="flex flex-col md:flex-row items-center justify-around gap-y-8">
             {stages.map((stage, index) => (
                 <React.Fragment key={stage.title}>

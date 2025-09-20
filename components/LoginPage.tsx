@@ -29,16 +29,18 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     }, 500);
   };
 
+  const inputClasses = "w-full px-4 py-3 bg-accent-light dark:bg-accent/20 text-gray-900 dark:text-gray-100 rounded-lg border border-transparent focus:outline-none focus:ring-2 focus:ring-accent";
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-base-200 dark:bg-dark-base-300 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <div className="w-full max-w-md">
         <Logo className="justify-center mb-8" />
-        <div className="bg-base-100 dark:bg-dark-base-200 rounded-2xl shadow-2xl p-8 md:p-10 border border-base-300 dark:border-dark-base-100">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 md:p-10 border border-gray-200 dark:border-gray-700">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
               Administrator Login
             </h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-2">
+            <p className="text-gray-500 dark:text-gray-400 mt-2">
               Access the project management panel.
             </p>
           </div>
@@ -47,7 +49,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             <div>
               <label 
                 htmlFor="username" 
-                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Username
               </label>
@@ -56,7 +58,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 id="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-3 border border-base-300 dark:border-slate-700 rounded-lg shadow-sm focus:ring-brand-primary focus:border-brand-primary bg-base-200 dark:bg-dark-base-100"
+                className={inputClasses}
                 required
                 autoCapitalize="none"
               />
@@ -64,7 +66,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             <div>
               <label 
                 htmlFor="password" 
-                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Password
               </label>
@@ -73,7 +75,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-base-300 dark:border-slate-700 rounded-lg shadow-sm focus:ring-brand-primary focus:border-brand-primary bg-base-200 dark:bg-dark-base-100"
+                className={inputClasses}
                 required
               />
             </div>
@@ -85,7 +87,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             <div>
               <button
                 type="submit"
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-brand-primary hover:bg-brand-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary disabled:bg-slate-400"
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-accent hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent disabled:bg-gray-400"
                 disabled={isLoading}
               >
                 {isLoading ? 'Signing In...' : 'Sign In'}
@@ -93,7 +95,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             </div>
           </form>
         </div>
-        <p className="text-center text-xs text-slate-500 mt-6">
+        <p className="text-center text-xs text-gray-500 mt-6">
             Default credentials are admin / admin
         </p>
       </div>

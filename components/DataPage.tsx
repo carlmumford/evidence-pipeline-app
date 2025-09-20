@@ -14,8 +14,8 @@ interface DataPageProps {
 const Section: React.FC<{title: string; description: string; children: React.ReactNode;}> = ({ title, description, children }) => (
     <section className="mb-12">
         <div className="text-center mb-6">
-            <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-200">{title}</h3>
-            <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">{description}</p>
+            <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{title}</h3>
+            <p className="text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">{description}</p>
         </div>
         {children}
     </section>
@@ -24,12 +24,12 @@ const Section: React.FC<{title: string; description: string; children: React.Rea
 
 export const DataPage: React.FC<DataPageProps> = ({ documents, onSearch, onReturn }) => {
     return (
-        <div className="animate-fade-in">
+        <div className="animate-fade-in p-4 md:p-8">
              <div className="flex justify-between items-center mb-8">
-                <h2 className="text-3xl font-bold text-brand-primary dark:text-brand-accent">Data & Insights</h2>
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Data & Insights</h2>
                 <button 
                     onClick={onReturn}
-                    className="px-4 py-2 text-sm bg-base-200 dark:bg-dark-base-100 text-slate-700 dark:text-slate-200 font-semibold rounded-lg hover:bg-base-300 dark:hover:bg-dark-base-200 focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-opacity-75 transition-colors"
+                    className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-semibold rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-opacity-75 transition-colors"
                 >
                 &larr; Back to Search
                 </button>

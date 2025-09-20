@@ -49,21 +49,21 @@ export const SavedList: React.FC<SavedListProps> = ({ savedDocuments, onToggleSa
   };
   
   return (
-    <div>
+    <div className="p-4 md:p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold text-slate-700 dark:text-slate-300">My Saved List ({savedDocuments.length})</h2>
+        <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">My Saved List ({savedDocuments.length})</h2>
         <div className="flex items-center gap-2">
             <button 
                 onClick={handleExportToCSV}
                 disabled={savedDocuments.length === 0}
-                className="flex items-center gap-2 px-3 py-2 text-sm bg-brand-primary text-white font-semibold rounded-lg shadow-sm hover:bg-brand-secondary focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-opacity-75 transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-3 py-2 text-sm bg-accent text-white font-semibold rounded-lg shadow-sm hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent focus:ring-opacity-75 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               <DownloadIcon />
               Download CSV
             </button>
             <button 
                 onClick={onReturn}
-                className="px-4 py-2 text-sm bg-base-200 dark:bg-dark-base-100 text-slate-700 dark:text-slate-200 font-semibold rounded-lg hover:bg-base-300 dark:hover:bg-dark-base-200 focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-opacity-75 transition-colors"
+                className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-semibold rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-opacity-75 transition-colors"
             >
               &larr; Back to Search
             </button>
@@ -71,7 +71,7 @@ export const SavedList: React.FC<SavedListProps> = ({ savedDocuments, onToggleSa
       </div>
 
       {savedDocuments.length > 0 ? (
-        <div className="space-y-4">
+        <div className="border border-gray-200 dark:border-gray-800 rounded-lg">
           {savedDocuments.map(doc => (
             <ResultCard
               key={doc.id}
@@ -86,9 +86,9 @@ export const SavedList: React.FC<SavedListProps> = ({ savedDocuments, onToggleSa
           ))}
         </div>
       ) : (
-        <div className="text-center py-10 px-6 bg-base-100 dark:bg-dark-base-300 rounded-lg">
-          <h3 className="text-xl font-semibold text-slate-700 dark:text-slate-300">Your List is Empty</h3>
-          <p className="text-slate-500 dark:text-slate-400 mt-2">
+        <div className="text-center py-20 px-6 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Your List is Empty</h3>
+          <p className="text-gray-500 dark:text-gray-400 mt-2">
             Click the "Add to List" button on a search result to save it here.
           </p>
         </div>
