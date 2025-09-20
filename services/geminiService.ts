@@ -1,24 +1,11 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import type { Document, ExtractedInfo } from '../types';
 
-// FIX: Switched from `import.meta.env.VITE_API_KEY` to `process.env.API_KEY` to align with coding guidelines and resolve a TypeScript error.
-// Access the API key from the environment variable.
-// This variable is assumed to be pre-configured and accessible.
-const API_KEY = process.env.API_KEY;
-
-if (!API_KEY) {
-    console.warn("API_KEY environment variable not set. AI features will be disabled. Ensure it's configured in your hosting provider (e.g., Vercel) or a local .env file.");
-}
-
-// Conditionally initialize the AI client only if the API key is available.
-const ai = API_KEY ? new GoogleGenAI({ apiKey: API_KEY }) : null;
+// Fix: Use process.env.API_KEY and initialize GoogleGenAI directly as per guidelines.
+// The API key is read from environment variables. Assume it is always available.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const getSearchSuggestions = async (query: string, existingDocuments: Document[]): Promise<string[]> => {
-    // If the 'ai' client wasn't initialized, return early.
-    if (!ai) {
-        return Promise.resolve([]);
-    }
-
     const documentTitles = existingDocuments.map(doc => doc.title).join(', ');
 
     const prompt = `
@@ -66,11 +53,6 @@ export const getSearchSuggestions = async (query: string, existingDocuments: Doc
 };
 
 export const extractInfoFromDocument = async (fileData: { mimeType: string; data: string }): Promise<ExtractedInfo> => {
-    if (!ai) {
-        // FIX: Updated error message to correspond with the API key handling change.
-        throw new Error("AI Service is not available. API_KEY environment variable not set.");
-    }
-
     const prompt = `
         You are an AI assistant designed to analyze academic papers and research documents.
         From the provided document, please extract the following information:
@@ -127,11 +109,6 @@ export const extractInfoFromDocument = async (fileData: { mimeType: string; data
 };
 
 export const simplifySummary = async (summary: string): Promise<string> => {
-    if (!ai) {
-        // Return original summary if AI is disabled
-        return Promise.resolve(summary);
-    }
-
     const prompt = `
         You are an AI assistant skilled at making complex information accessible.
         The following text is an abstract or summary from a research paper about the school-to-prison pipeline.
