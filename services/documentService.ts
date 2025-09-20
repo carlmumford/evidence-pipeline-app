@@ -38,6 +38,19 @@ const seedDatabase = async () => {
     await batch.commit();
 };
 
+/**
+ * A helper function to sanitize array data from Firestore.
+ * It ensures the value is an array and filters out any non-string or empty values.
+ * @param arr - The value from Firestore, which could be anything.
+ * @returns A clean array of strings.
+ */
+const cleanArray = (arr: any): string[] => {
+    if (!Array.isArray(arr)) return [];
+    // FIX: The filter predicate with a type guard must return a boolean. The original `&& item` could return a string.
+    // Using `Boolean(item)` explicitly converts the truthy/falsy check to a boolean value.
+    return arr.filter((item): item is string => typeof item === 'string' && Boolean(item));
+};
+
 
 /**
  * Retrieves documents from Firestore, ordered by creation date.
@@ -59,26 +72,35 @@ export const getDocuments = async (): Promise<Document[]> => {
     
     const documents = querySnapshot.docs.map(doc => {
         const data = doc.data();
-        // Defensively ensure all array/string fields have default values.
-        // This prevents crashes if data in Firestore is missing expected fields.
-        return {
+        // Defensively sanitize all fields, especially arrays, to prevent
+        // crashes from malformed data in Firestore.
+        const finalDoc = {
             id: doc.id,
             title: data.title || '',
-            authors: data.authors || [],
+            authors: cleanArray(data.authors),
             summary: data.summary || '',
             simplifiedSummary: data.simplifiedSummary || '',
             year: data.year,
             createdAt: data.createdAt as Timestamp,
             resourceType: data.resourceType || '',
-            subjects: data.subjects || [],
+            subjects: cleanArray(data.subjects),
             publicationTitle: data.publicationTitle || '',
             pdfUrl: data.pdfUrl || '',
-            interventions: data.interventions || [],
-            keyPopulations: data.keyPopulations || [],
-            riskFactors: data.riskFactors || [],
-            keyStats: data.keyStats || [],
-            keyOrganisations: data.keyOrganisations || [],
+            interventions: cleanArray(data.interventions),
+            keyPopulations: cleanArray(data.keyPopulations),
+            riskFactors: cleanArray(data.riskFactors),
+            keyStats: cleanArray(data.keyStats),
+            keyOrganisations: cleanArray(data.keyOrganisations),
         } as Document;
+
+        // --- START: Added for Debugging ---
+        // This log helps inspect the raw data from Firestore vs. the cleaned data.
+        // If the error persists, check the console for a document where an expected
+        // array field (like 'subjects' or 'authors') is missing or not an array in the 'raw' object.
+        console.log(`[DEBUG] Processing Doc ID: ${doc.id}`, { raw: data, cleaned: finalDoc });
+        // --- END: Added for Debugging ---
+
+        return finalDoc;
     });
 
     return documents;
