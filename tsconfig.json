@@ -16,5 +16,6 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": ["components", "services", "*.ts", "*.tsx", "vite-env.d.ts"],
+  "exclude": ["vite.config.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
