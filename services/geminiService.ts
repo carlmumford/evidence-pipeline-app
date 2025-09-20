@@ -39,8 +39,12 @@ export const getSearchSuggestions = async (query: string, existingDocuments: Doc
             }
         });
         
-        const jsonText = response.text.trim();
-        const parsedJson = JSON.parse(jsonText);
+        if (!response.text) {
+            console.warn("Gemini API response was empty for search suggestions.");
+            return [];
+        }
+        
+        const parsedJson = JSON.parse(response.text.trim());
 
         if (parsedJson && Array.isArray(parsedJson.suggestions)) {
             return parsedJson.suggestions;
@@ -94,8 +98,11 @@ export const extractInfoFromDocument = async (fileData: { mimeType: string; data
             }
         });
 
-        const jsonText = response.text.trim();
-        const parsedJson = JSON.parse(jsonText);
+        if (!response.text) {
+            throw new Error("AI response was empty and contained no text.");
+        }
+
+        const parsedJson = JSON.parse(response.text.trim());
         
         // This validation is now more robust. It checks for the correct data types,
         // allowing empty strings and 0 as valid values from the AI.
@@ -141,7 +148,14 @@ export const simplifySummary = async (summary: string): Promise<string> => {
             contents: prompt,
         });
         
+        // Explicitly check for response.text to satisfy TypeScript's strict null checks.
+        if (!response.text) {
+            return summary;
+        }
+        
         const simplifiedText = response.text.trim();
+        
+        // If the AI returns an empty or whitespace-only string, fallback to the original summary.
         return simplifiedText || summary;
 
     } catch (error) {

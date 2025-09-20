@@ -15,9 +15,12 @@ interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
 
-// Type definition for process.env.API_KEY, which is injected by Vite.
-declare const process: {
-  env: {
+// FIX: Type definition for process.env.API_KEY, which is injected by Vite.
+// Instead of redeclaring `process`, which conflicts with global Node.js types,
+// we augment the existing `NodeJS.ProcessEnv` interface. This adds the
+// `API_KEY` property to `process.env` without causing a type conflict.
+declare namespace NodeJS {
+  interface ProcessEnv {
     API_KEY: string;
   }
-};
+}
