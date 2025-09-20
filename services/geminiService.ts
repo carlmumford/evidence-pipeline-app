@@ -56,10 +56,10 @@ export const extractInfoFromDocument = async (fileData: { mimeType: string; data
     const prompt = `
         You are an AI assistant designed to analyze academic papers and research documents.
         From the provided document, please extract the following information:
-        1.  **Title**: The main title of the document.
-        2.  **Authors**: A single string of all authors, separated by commas.
-        3.  **Year**: The publication year as a number. If the year is not found, please return 0.
-        4.  **Summary**: The abstract or a concise summary of the document.
+        1.  **Title**: The main title of the document. If not found, return an empty string.
+        2.  **Authors**: A single string of all authors, separated by commas. If not found, return an empty string.
+        3.  **Year**: The publication year as a number. If not found, return 0.
+        4.  **Summary**: The abstract or a concise summary of the document. If not found, return an empty string.
 
         Provide the output in a clean JSON format. Do not include any explanatory text before or after the JSON object.
     `;
@@ -87,8 +87,7 @@ export const extractInfoFromDocument = async (fileData: { mimeType: string; data
                         authors: { type: Type.STRING, description: "A single string of all authors, separated by commas." },
                         year: { type: Type.NUMBER, description: "The publication year as a number. 0 if not found." },
                         summary: { type: Type.STRING, description: "The abstract or a concise summary of the document." }
-                    },
-                    required: ['title', 'authors', 'year', 'summary']
+                    }
                 }
             }
         });
@@ -96,9 +95,11 @@ export const extractInfoFromDocument = async (fileData: { mimeType: string; data
         const jsonText = response.text.trim();
         const parsedJson = JSON.parse(jsonText);
         
+        // This validation correctly handles cases where the AI returns empty strings for required fields.
         if (parsedJson && parsedJson.title && parsedJson.authors && parsedJson.summary) {
             return parsedJson as ExtractedInfo;
         } else {
+            // If essential info is missing, we throw an error to be caught by the UI.
             throw new Error("AI response did not contain the required fields.");
         }
 
