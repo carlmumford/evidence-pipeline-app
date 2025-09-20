@@ -16,6 +16,11 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
   const [summary, setSummary] = useState('');
   const [simplifiedSummary, setSimplifiedSummary] = useState('');
   const [year, setYear] = useState('');
+  const [publicationTitle, setPublicationTitle] = useState('');
+  const [resourceType, setResourceType] = useState('');
+  const [subjects, setSubjects] = useState('');
+  const [pdfUrl, setPdfUrl] = useState('');
+
 
   const [file, setFile] = useState<File | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
@@ -28,6 +33,10 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
     setSummary('');
     setSimplifiedSummary('');
     setYear('');
+    setPublicationTitle('');
+    setResourceType('');
+    setSubjects('');
+    setPdfUrl('');
     setFile(null);
     setIsExtracting(false);
     setExtractionError(null);
@@ -75,6 +84,9 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
       const originalSummary = extractedData.summary || '';
       setSummary(originalSummary);
       setYear(extractedData.year ? String(extractedData.year) : '');
+      setPublicationTitle(extractedData.publicationTitle || '');
+      setResourceType(extractedData.resourceType || '');
+      setSubjects(extractedData.subjects || '');
       
       if (originalSummary) {
           const simpleSummary = await simplifySummary(originalSummary);
@@ -101,7 +113,11 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
       authors: authors.split(',').map(a => a.trim()),
       summary,
       simplifiedSummary: simplifiedSummary || summary,
-      year: year ? parseInt(year, 10) : undefined
+      year: year ? parseInt(year, 10) : undefined,
+      publicationTitle,
+      resourceType,
+      subjects: subjects.split(',').map(s => s.trim()).filter(Boolean),
+      pdfUrl,
     };
     onAddDocument(newDoc);
     handleClose();
@@ -111,7 +127,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
 
   const renderContent = () => {
     if (isExtracting) {
-        return <AnalyzingIndicator duration={15} />;
+        return <AnalyzingIndicator duration={25} />;
     }
 
     if (!isExtracted) {
@@ -153,7 +169,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
     }
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
         {extractionError && (
           <div className="p-3 bg-red-100 border border-red-400 text-red-700 dark:bg-red-900/30 dark:border-red-800 dark:text-red-300 rounded-md">
             <p>{extractionError}</p>
@@ -166,49 +182,40 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
         )}
         <div>
           <label htmlFor="title" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Title *</label>
-          <input 
-            type="text" 
-            id="title"
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-            className="w-full px-3 py-2 border border-base-300 dark:border-slate-600 rounded-md shadow-sm focus:ring-brand-accent focus:border-brand-accent bg-base-200 dark:bg-dark-base-100"
-            required
-          />
+          <input type="text" id="title" value={title} onChange={e => setTitle(e.target.value)} className="input-style" required />
         </div>
         <div>
           <label htmlFor="authors" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Authors (comma-separated) *</label>
-          <input 
-            type="text" 
-            id="authors"
-            value={authors}
-            onChange={e => setAuthors(e.target.value)}
-            className="w-full px-3 py-2 border border-base-300 dark:border-slate-600 rounded-md shadow-sm focus:ring-brand-accent focus:border-brand-accent bg-base-200 dark:bg-dark-base-100"
-            required
-          />
+          <input type="text" id="authors" value={authors} onChange={e => setAuthors(e.target.value)} className="input-style" required />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="year" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Year</label>
+              <input type="number" id="year" value={year} onChange={e => setYear(e.target.value)} className="input-style" />
+            </div>
+            <div>
+              <label htmlFor="resourceType" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Resource Type</label>
+              <input type="text" id="resourceType" value={resourceType} onChange={e => setResourceType(e.target.value)} className="input-style" placeholder="e.g., Journal Article"/>
+            </div>
+        </div>
+         <div>
+          <label htmlFor="publicationTitle" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Publication Title</label>
+          <input type="text" id="publicationTitle" value={publicationTitle} onChange={e => setPublicationTitle(e.target.value)} className="input-style" placeholder="e.g., The Journal of Law & Equity"/>
         </div>
         <div>
-          <label htmlFor="year" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Year</label>
-          <input 
-            type="number" 
-            id="year"
-            value={year}
-            onChange={e => setYear(e.target.value)}
-            className="w-full px-3 py-2 border border-base-300 dark:border-slate-600 rounded-md shadow-sm focus:ring-brand-accent focus:border-brand-accent bg-base-200 dark:bg-dark-base-100"
-          />
+          <label htmlFor="subjects" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Subjects (comma-separated)</label>
+          <input type="text" id="subjects" value={subjects} onChange={e => setSubjects(e.target.value)} className="input-style" placeholder="e.g., zero tolerance, restorative justice"/>
+        </div>
+        <div>
+          <label htmlFor="pdfUrl" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">PDF URL</label>
+          <input type="url" id="pdfUrl" value={pdfUrl} onChange={e => setPdfUrl(e.target.value)} className="input-style" placeholder="https://example.com/document.pdf"/>
         </div>
         <div>
           <label htmlFor="summary" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Summary / Abstract *</label>
-          <textarea 
-            id="summary"
-            rows={4}
-            value={summary}
-            onChange={e => setSummary(e.target.value)}
-            className="w-full px-3 py-2 border border-base-300 dark:border-slate-600 rounded-md shadow-sm focus:ring-brand-accent focus:border-brand-accent bg-base-200 dark:bg-dark-base-100"
-            required
-          ></textarea>
+          <textarea id="summary" rows={4} value={summary} onChange={e => setSummary(e.target.value)} className="input-style" required></textarea>
         </div>
-        <div className="flex justify-between items-center pt-4">
-            <button type="button" onClick={() => { setIsExtracted(false); setFile(null); resetForm(); }} className="px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:underline">Upload another file</button>
+        <div className="flex justify-between items-center pt-4 sticky bottom-0 bg-base-100 dark:bg-dark-base-300 py-4 -mx-2 px-2">
+            <button type="button" onClick={() => { setIsExtracted(false); setFile(null); resetForm(); }} className="px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:underline">Upload another</button>
             <div>
                 <button type="button" onClick={handleClose} className="px-4 py-2 mr-2 text-slate-700 dark:text-slate-300 bg-base-200 dark:bg-dark-base-100 rounded-md hover:bg-base-300 dark:hover:bg-slate-700 transition-colors">Cancel</button>
                 <button type="submit" className="px-6 py-2 text-white bg-brand-primary rounded-md hover:bg-brand-secondary transition-colors">Add Document</button>
@@ -227,7 +234,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
       aria-labelledby="upload-modal-title"
     >
       <div 
-        className="bg-base-100 dark:bg-dark-base-300 rounded-lg shadow-2xl p-8 w-full max-w-lg relative mx-4"
+        className="bg-base-100 dark:bg-dark-base-300 rounded-lg shadow-2xl p-8 w-full max-w-2xl relative mx-4"
         onClick={e => e.stopPropagation()}
       >
         <button 
@@ -239,6 +246,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
         </button>
         <h2 id="upload-modal-title" className="text-2xl font-bold text-brand-primary dark:text-brand-accent mb-6">Upload New Evidence</h2>
         {renderContent()}
+        <style>{`.input-style { display: block; width: 100%; border-radius: 0.375rem; border: 1px solid #E0E0E0; padding: 0.5rem 0.75rem; background-color: #F5F5F5; } .dark .input-style { background-color: #1E1E1E; border-color: #2C2C2C; }`}</style>
       </div>
     </div>
   );

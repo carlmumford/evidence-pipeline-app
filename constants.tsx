@@ -7,28 +7,43 @@ export const MOCK_DOCUMENTS: Omit<Document, 'id' | 'createdAt'>[] = [
     authors: ['Catherine Y. Kim', 'Daniel J. Losen', 'Damon T. Hewitt'],
     year: 2010,
     summary: 'An examination of the policies and practices that push students, particularly those from disadvantaged backgrounds, out of schools and into the justice system.',
-    simplifiedSummary: 'This document looks at how school rules and policies can unintentionally lead students, especially those from underprivileged backgrounds, into the criminal justice system. It discusses ways to change these legal structures to prevent this.'
+    simplifiedSummary: 'This document looks at how school rules and policies can unintentionally lead students, especially those from underprivileged backgrounds, into the criminal justice system. It discusses ways to change these legal structures to prevent this.',
+    resourceType: 'Book Chapter',
+    subjects: ['legal reform', 'policy', 'racial disparity'],
+    publicationTitle: 'Ending the School-to-Prison Pipeline',
+    pdfUrl: '#',
   },
   {
     title: 'Zero Tolerance, High Stakes, and the School-to-Prison Pipeline',
     authors: ['Russell J. Skiba'],
     year: 2012,
     summary: 'This paper explores the impact of zero tolerance policies in schools and their contribution to increased suspension, expulsion, and referral to law enforcement.',
-    simplifiedSummary: "This paper examines 'zero tolerance' rules in schools. It argues that these strict policies lead to more students being suspended, expelled, or reported to the police, effectively pushing them towards the justice system."
+    simplifiedSummary: "This paper examines 'zero tolerance' rules in schools. It argues that these strict policies lead to more students being suspended, expelled, or reported to the police, effectively pushing them towards the justice system.",
+    resourceType: 'Journal Article',
+    subjects: ['zero tolerance', 'suspension', 'expulsion'],
+    publicationTitle: 'Educational Researcher',
+    pdfUrl: '#',
   },
   {
     title: 'Race, Disability, and the School-to-Prison Pipeline',
     authors: ['Thalia N.C. Gonzalez'],
     year: 2017,
     summary: 'Analyzes the disproportionate impact of disciplinary policies on students of color and students with disabilities, highlighting the intersectionality of race and disability.',
-    simplifiedSummary: 'This research focuses on how school discipline rules unfairly affect students of color and those with disabilities. It shows that these students are more likely to be punished, which is a key part of the school-to-prison pipeline.'
+    simplifiedSummary: 'This research focuses on how school discipline rules unfairly affect students of color and those with disabilities. It shows that these students are more likely to be punished, which is a key part of the school-to-prison pipeline.',
+    resourceType: 'Journal Article',
+    subjects: ['racial disparity', 'disability', 'intersectionality'],
+    publicationTitle: 'The Journal of Law & Equity',
   },
   {
     title: 'Dismantling the School-to-Prison Pipeline: A Restorative Justice Approach',
     authors: ['The Advancement Project'],
     year: 2014,
     summary: 'Advocates for the use of restorative justice practices as an alternative to punitive disciplinary measures to build community and reduce conflict in schools.',
-    simplifiedSummary: "This report proposes using 'restorative justice' in schools instead of harsh punishments. This approach focuses on repairing harm and building community to solve conflicts, aiming to break the cycle of the school-to-prison pipeline."
+    simplifiedSummary: "This report proposes using 'restorative justice' in schools instead of harsh punishments. This approach focuses on repairing harm and building community to solve conflicts, aiming to break the cycle of the school-to-prison pipeline.",
+    resourceType: 'Report',
+    subjects: ['restorative justice', 'alternative discipline', 'community building'],
+    publicationTitle: 'Advancement Project Reports',
+    pdfUrl: '#',
   }
 ];
 
@@ -78,5 +93,29 @@ export const TrashIcon: React.FC<{className?: string}> = ({ className = "h-5 w-5
 export const AdminIcon: React.FC<{className?: string}> = ({ className = "h-5 w-5" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+    </svg>
+);
+
+export const BookmarkIcon: React.FC<{className?: string, isSaved?: boolean}> = ({ className = "h-5 w-5", isSaved }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill={isSaved ? "currentColor" : "none"} viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.5 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" />
+    </svg>
+);
+
+export const CiteIcon: React.FC<{className?: string}> = ({ className = "h-5 w-5" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.373-.03.748-.03 1.125 0 1.131.094 1.976 1.057 1.976 2.192V7.5M8.25 7.5h7.5M8.25 7.5V15M15.75 7.5V15m-7.5 0h7.5M5.25 9h.008v.008H5.25V9Zm3.75 0h.008v.008H9V9Zm3.75 0h.008v.008H12.75V9Zm3.75 0h.008v.008H16.5V9Zm-12 3.75h.008v.008H4.5v-3.75Zm3.75 0h.008v.008H8.25v-3.75Zm3.75 0h.008v.008H12v-3.75Zm3.75 0h.008v.008H15.75v-3.75Zm3.75 0h.008v.008H19.5v-3.75Z" />
+    </svg>
+);
+
+export const DownloadIcon: React.FC<{className?: string}> = ({ className = "h-5 w-5" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+    </svg>
+);
+
+export const ListIcon: React.FC<{className?: string}> = ({ className = "h-5 w-5" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
     </svg>
 );

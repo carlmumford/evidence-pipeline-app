@@ -66,6 +66,9 @@ export const extractInfoFromDocument = async (fileData: { mimeType: string; data
         2.  **Authors**: A single string of all authors, separated by commas. If not found, return an empty string.
         3.  **Year**: The publication year as a number. If not found, return 0.
         4.  **Summary**: The abstract or a concise summary of the document. If not found, return an empty string.
+        5.  **Publication Title**: The name of the journal, book, or conference where it was published. If not found, return an empty string.
+        6.  **Resource Type**: The type of document (e.g., "Journal Article", "Book Chapter", "Report", "Thesis"). If unsure, classify as "General".
+        7.  **Subjects**: A single string of 3-5 key subjects or keywords, separated by commas.
 
         Provide the output in a clean JSON format. Do not include any explanatory text before or after the JSON object.
     `;
@@ -92,7 +95,10 @@ export const extractInfoFromDocument = async (fileData: { mimeType: string; data
                         title: { type: Type.STRING, description: "The main title of the document." },
                         authors: { type: Type.STRING, description: "A single string of all authors, separated by commas." },
                         year: { type: Type.NUMBER, description: "The publication year as a number. 0 if not found." },
-                        summary: { type: Type.STRING, description: "The abstract or a concise summary of the document." }
+                        summary: { type: Type.STRING, description: "The abstract or a concise summary of the document." },
+                        publicationTitle: { type: Type.STRING, description: "The name of the journal, book, or conference." },
+                        resourceType: { type: Type.STRING, description: 'The type of document (e.g., "Journal Article", "Report").' },
+                        subjects: { type: Type.STRING, description: "A single string of key subjects, separated by commas." }
                     }
                 }
             }
@@ -104,19 +110,18 @@ export const extractInfoFromDocument = async (fileData: { mimeType: string; data
 
         const parsedJson = JSON.parse(response.text.trim());
         
-        // This validation is now more robust. It checks for the correct data types,
-        // allowing empty strings and 0 as valid values from the AI.
         if (
             parsedJson &&
             typeof parsedJson.title === 'string' &&
             typeof parsedJson.authors === 'string' &&
             typeof parsedJson.summary === 'string' &&
-            typeof parsedJson.year === 'number'
+            typeof parsedJson.year === 'number' &&
+            typeof parsedJson.publicationTitle === 'string' &&
+            typeof parsedJson.resourceType === 'string' &&
+            typeof parsedJson.subjects === 'string'
         ) {
             return parsedJson as ExtractedInfo;
         } else {
-            // This error now only triggers if the AI returns a malformed JSON object,
-            // not just one with empty values.
             throw new Error("AI response did not match the expected format.");
         }
 
@@ -148,19 +153,16 @@ export const simplifySummary = async (summary: string): Promise<string> => {
             contents: prompt,
         });
         
-        // Explicitly check for response.text to satisfy TypeScript's strict null checks.
         if (!response.text) {
             return summary;
         }
         
         const simplifiedText = response.text.trim();
         
-        // If the AI returns an empty or whitespace-only string, fallback to the original summary.
         return simplifiedText || summary;
 
     } catch (error) {
         console.error("Error simplifying summary with Gemini API:", error);
-        // Fallback to the original summary in case of an error
         return summary;
     }
 };
