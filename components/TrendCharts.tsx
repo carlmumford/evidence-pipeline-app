@@ -77,7 +77,7 @@ export const TrendCharts: React.FC<TrendChartsProps> = ({ documents }) => {
             const counts: { [year: number]: number } = {};
             documents.forEach(doc => {
                 if (doc.year) {
-                    const docContent = `${doc.subjects?.join(' ')} ${doc.keyPopulations?.join(' ')}`.toLowerCase();
+                    const docContent = `${(doc.subjects || []).join(' ')} ${(doc.keyPopulations || []).join(' ')}`.toLowerCase();
                     if (keywords.some(kw => docContent.includes(kw))) {
                         counts[doc.year] = (counts[doc.year] || 0) + 1;
                     }
