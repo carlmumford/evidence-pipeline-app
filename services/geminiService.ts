@@ -2,9 +2,10 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import type { Document, ExtractedInfo } from '../types';
 
-// The API key is read from environment variables, which Vite exposes via import.meta.env.
-// For client-side code, environment variables must be prefixed with VITE_.
-const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
+// The API key is read from environment variables.
+// Per Gemini API guidelines, it must be accessed via process.env.API_KEY.
+// Vite is configured to replace this with the actual key at build time.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const getSearchSuggestions = async (query: string, existingDocuments: Document[]): Promise<string[]> => {
     const documentTitles = existingDocuments.map(doc => doc.title).join(', ');
