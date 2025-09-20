@@ -59,10 +59,25 @@ export const getDocuments = async (): Promise<Document[]> => {
     
     const documents = querySnapshot.docs.map(doc => {
         const data = doc.data();
+        // Defensively ensure all array/string fields have default values.
+        // This prevents crashes if data in Firestore is missing expected fields.
         return {
             id: doc.id,
-            ...data,
+            title: data.title || '',
+            authors: data.authors || [],
+            summary: data.summary || '',
+            simplifiedSummary: data.simplifiedSummary || '',
+            year: data.year,
             createdAt: data.createdAt as Timestamp,
+            resourceType: data.resourceType || '',
+            subjects: data.subjects || [],
+            publicationTitle: data.publicationTitle || '',
+            pdfUrl: data.pdfUrl || '',
+            interventions: data.interventions || [],
+            keyPopulations: data.keyPopulations || [],
+            riskFactors: data.riskFactors || [],
+            keyStats: data.keyStats || [],
+            keyOrganisations: data.keyOrganisations || [],
         } as Document;
     });
 

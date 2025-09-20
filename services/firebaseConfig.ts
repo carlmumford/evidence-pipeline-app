@@ -1,4 +1,6 @@
-import { initializeApp } from "firebase/app";
+// FIX: The original named import `import { initializeApp } from "firebase/app"` was causing an error.
+// Using a namespace import is a robust way to handle potential module resolution issues with bundlers.
+import * as firebaseApp from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -11,7 +13,7 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+const app = firebaseApp.initializeApp(firebaseConfig);
 
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app);
