@@ -60,7 +60,7 @@ export const getSearchSuggestions = async (query: string, existingDocuments: Doc
 
 export const extractInfoFromDocument = async (fileData: { mimeType: string; data: string }): Promise<ExtractedInfo> => {
     const prompt = `
-        You are an AI assistant designed to analyze academic papers and research documents.
+        You are an AI assistant designed to analyze academic papers and research documents related to the school-to-prison pipeline.
         From the provided document, please extract the following information:
         1.  **Title**: The main title of the document. If not found, return an empty string.
         2.  **Authors**: A single string of all authors, separated by commas. If not found, return an empty string.
@@ -68,7 +68,10 @@ export const extractInfoFromDocument = async (fileData: { mimeType: string; data
         4.  **Summary**: The abstract or a concise summary of the document. If not found, return an empty string.
         5.  **Publication Title**: The name of the journal, book, or conference where it was published. If not found, return an empty string.
         6.  **Resource Type**: The type of document (e.g., "Journal Article", "Book Chapter", "Report", "Thesis"). If unsure, classify as "General".
-        7.  **Subjects**: A single string of 3-5 key subjects or keywords, separated by commas.
+        7.  **Subjects**: A single string of 3-5 general key subjects or keywords, separated by commas.
+        8.  **Risk Factors**: A single string of 3-5 key risk factors mentioned (e.g., poverty, neurodiversity, exclusion rates, zero tolerance policies), separated by commas.
+        9.  **Key Populations**: A single string of specific demographic or population groups discussed (e.g., students of color, students with disabilities, low-income students), separated by commas.
+        10. **Interventions**: A single string of interventions or practices discussed (e.g., restorative justice, policy reform, teacher training), separated by commas.
 
         Provide the output in a clean JSON format. Do not include any explanatory text before or after the JSON object.
     `;
@@ -98,7 +101,10 @@ export const extractInfoFromDocument = async (fileData: { mimeType: string; data
                         summary: { type: Type.STRING, description: "The abstract or a concise summary of the document." },
                         publicationTitle: { type: Type.STRING, description: "The name of the journal, book, or conference." },
                         resourceType: { type: Type.STRING, description: 'The type of document (e.g., "Journal Article", "Report").' },
-                        subjects: { type: Type.STRING, description: "A single string of key subjects, separated by commas." }
+                        subjects: { type: Type.STRING, description: "A single string of key subjects, separated by commas." },
+                        riskFactors: { type: Type.STRING, description: "Key risk factors as a comma-separated string." },
+                        keyPopulations: { type: Type.STRING, description: "Key populations as a comma-separated string." },
+                        interventions: { type: Type.STRING, description: "Interventions or practices as a comma-separated string." }
                     }
                 }
             }
@@ -118,7 +124,10 @@ export const extractInfoFromDocument = async (fileData: { mimeType: string; data
             typeof parsedJson.year === 'number' &&
             typeof parsedJson.publicationTitle === 'string' &&
             typeof parsedJson.resourceType === 'string' &&
-            typeof parsedJson.subjects === 'string'
+            typeof parsedJson.subjects === 'string' &&
+            typeof parsedJson.riskFactors === 'string' &&
+            typeof parsedJson.keyPopulations === 'string' &&
+            typeof parsedJson.interventions === 'string'
         ) {
             return parsedJson as ExtractedInfo;
         } else {

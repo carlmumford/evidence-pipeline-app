@@ -12,6 +12,9 @@ export const MOCK_DOCUMENTS: Omit<Document, 'id' | 'createdAt'>[] = [
     subjects: ['legal reform', 'policy', 'racial disparity'],
     publicationTitle: 'Ending the School-to-Prison Pipeline',
     pdfUrl: '#',
+    interventions: ['legal reform', 'policy changes'],
+    keyPopulations: ['students from disadvantaged backgrounds', 'students of color'],
+    riskFactors: ['punitive school policies', 'racial disparity'],
   },
   {
     title: 'Zero Tolerance, High Stakes, and the School-to-Prison Pipeline',
@@ -23,6 +26,9 @@ export const MOCK_DOCUMENTS: Omit<Document, 'id' | 'createdAt'>[] = [
     subjects: ['zero tolerance', 'suspension', 'expulsion'],
     publicationTitle: 'Educational Researcher',
     pdfUrl: '#',
+    interventions: ['policy analysis'],
+    keyPopulations: ['general student population'],
+    riskFactors: ['zero tolerance policies', 'suspension', 'expulsion'],
   },
   {
     title: 'Race, Disability, and the School-to-Prison Pipeline',
@@ -33,6 +39,9 @@ export const MOCK_DOCUMENTS: Omit<Document, 'id' | 'createdAt'>[] = [
     resourceType: 'Journal Article',
     subjects: ['racial disparity', 'disability', 'intersectionality'],
     publicationTitle: 'The Journal of Law & Equity',
+    interventions: ['disciplinary policy reform'],
+    keyPopulations: ['students of color', 'students with disabilities'],
+    riskFactors: ['racial disparity', 'disability discrimination', 'intersectionality'],
   },
   {
     title: 'Dismantling the School-to-Prison Pipeline: A Restorative Justice Approach',
@@ -44,6 +53,9 @@ export const MOCK_DOCUMENTS: Omit<Document, 'id' | 'createdAt'>[] = [
     subjects: ['restorative justice', 'alternative discipline', 'community building'],
     publicationTitle: 'Advancement Project Reports',
     pdfUrl: '#',
+    interventions: ['restorative justice'],
+    keyPopulations: ['school communities'],
+    riskFactors: ['punitive disciplinary measures', 'school conflict'],
   }
 ];
 
@@ -117,5 +129,17 @@ export const DownloadIcon: React.FC<{className?: string}> = ({ className = "h-5 
 export const ListIcon: React.FC<{className?: string}> = ({ className = "h-5 w-5" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+    </svg>
+);
+
+export const UserGroupIcon: React.FC<{className?: string}> = ({ className = "h-5 w-5" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.75-5.25T21 12a9 9 0 0 0-3.75-5.25m0 10.5h0_M12 15.75a3 3 0 0 1-3-3m3 3a3 3 0 0 0 3-3m-3 3V15m-3 0v-1.5m-3.75-9.75a9.094 9.094 0 0 0-3.75 5.25T3 12a9 9 0 0 0 3.75 5.25m-3.75 0h0_M3.75 6.75h0_m0 0a9.094 9.094 0 0 1 3.75-5.25T12 3a9 9 0 0 1 5.25 3.75m0 0h0" />
+    </svg>
+);
+
+export const LinkIcon: React.FC<{className?: string}> = ({ className = "h-5 w-5" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
     </svg>
 );

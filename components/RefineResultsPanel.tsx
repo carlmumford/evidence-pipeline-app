@@ -5,12 +5,18 @@ interface Filters {
   endYear: string;
   resourceTypes: string[];
   subjects: string[];
+  interventions: string[];
+  keyPopulations: string[];
+  riskFactors: string[];
 }
 
 interface RefineResultsPanelProps {
   options: {
     resourceTypes: string[];
     subjects: string[];
+    interventions: string[];
+    keyPopulations: string[];
+    riskFactors: string[];
   };
   filters: Filters;
   onFilterChange: (newFilters: Filters) => void;
@@ -24,6 +30,30 @@ const FilterSection: React.FC<{ title: string; children: React.ReactNode }> = ({
   </div>
 );
 
+const CheckboxFilterGroup: React.FC<{
+  items: string[];
+  checkedItems: string[];
+  onCheckboxChange: (value: string) => void;
+}> = ({ items, checkedItems, onCheckboxChange }) => {
+  if (items.length === 0) return null;
+  return (
+    <div className="space-y-1 max-h-40 overflow-y-auto pr-2">
+      {items.map(item => (
+        <label key={item} className="flex items-center space-x-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={checkedItems.includes(item)}
+            onChange={() => onCheckboxChange(item)}
+            className="h-4 w-4 rounded border-gray-300 text-brand-primary focus:ring-brand-accent"
+          />
+          <span className="text-sm capitalize">{item}</span>
+        </label>
+      ))}
+    </div>
+  );
+};
+
+
 export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ options, filters, onFilterChange, disabled }) => {
   
   const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'start' | 'end') => {
@@ -34,8 +64,8 @@ export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ options,
     });
   };
 
-  const handleCheckboxChange = (category: 'resourceTypes' | 'subjects', value: string) => {
-    const currentValues = filters[category];
+  const handleCheckboxChange = (category: keyof Omit<Filters, 'startYear' | 'endYear'>, value: string) => {
+    const currentValues = filters[category] as string[];
     const newValues = currentValues.includes(value)
       ? currentValues.filter(item => item !== value)
       : [...currentValues, value];
@@ -67,41 +97,26 @@ export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ options,
           </div>
         </FilterSection>
 
-        {options.resourceTypes.length > 0 && (
-          <FilterSection title="Resource Type">
-            <div className="space-y-1 max-h-40 overflow-y-auto">
-              {options.resourceTypes.map(type => (
-                <label key={type} className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={filters.resourceTypes.includes(type)}
-                    onChange={() => handleCheckboxChange('resourceTypes', type)}
-                    className="h-4 w-4 rounded border-gray-300 text-brand-primary focus:ring-brand-accent"
-                  />
-                  <span className="text-sm">{type}</span>
-                </label>
-              ))}
-            </div>
-          </FilterSection>
-        )}
+        {options.riskFactors.length > 0 && <FilterSection title="Risk Factor">
+          <CheckboxFilterGroup items={options.riskFactors} checkedItems={filters.riskFactors} onCheckboxChange={(val) => handleCheckboxChange('riskFactors', val)} />
+        </FilterSection>}
 
-        {options.subjects.length > 0 && (
-          <FilterSection title="Subject">
-            <div className="space-y-1 max-h-40 overflow-y-auto">
-              {options.subjects.map(subject => (
-                <label key={subject} className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={filters.subjects.includes(subject)}
-                    onChange={() => handleCheckboxChange('subjects', subject)}
-                    className="h-4 w-4 rounded border-gray-300 text-brand-primary focus:ring-brand-accent"
-                  />
-                  <span className="text-sm capitalize">{subject}</span>
-                </label>
-              ))}
-            </div>
-          </FilterSection>
-        )}
+        {options.interventions.length > 0 && <FilterSection title="Intervention">
+            <CheckboxFilterGroup items={options.interventions} checkedItems={filters.interventions} onCheckboxChange={(val) => handleCheckboxChange('interventions', val)} />
+        </FilterSection>}
+
+        {options.keyPopulations.length > 0 && <FilterSection title="Key Population">
+            <CheckboxFilterGroup items={options.keyPopulations} checkedItems={filters.keyPopulations} onCheckboxChange={(val) => handleCheckboxChange('keyPopulations', val)} />
+        </FilterSection>}
+        
+        {options.resourceTypes.length > 0 && <FilterSection title="Resource Type">
+            <CheckboxFilterGroup items={options.resourceTypes} checkedItems={filters.resourceTypes} onCheckboxChange={(val) => handleCheckboxChange('resourceTypes', val)} />
+        </FilterSection>}
+
+        {options.subjects.length > 0 && <FilterSection title="Subject">
+            <CheckboxFilterGroup items={options.subjects} checkedItems={filters.subjects} onCheckboxChange={(val) => handleCheckboxChange('subjects', val)} />
+        </FilterSection>}
+
       </div>
        <style>{`.input-style { background-color: #F5F5F5; border: 1px solid #E0E0E0; border-radius: 0.375rem; padding: 0.5rem 0.75rem; } .dark .input-style { background-color: #1E1E1E; border-color: #2C2C2C; }`}</style>
     </div>

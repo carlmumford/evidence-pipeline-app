@@ -8,20 +8,35 @@ export interface Document {
   simplifiedSummary?: string;
   year?: number;
   createdAt: Timestamp;
-  // New fields for advanced search
+  // Existing fields
   resourceType?: string;
   subjects?: string[];
   publicationTitle?: string;
   pdfUrl?: string;
+  // New fields for professional features
+  interventions?: string[];
+  keyPopulations?: string[];
+  riskFactors?: string[];
 }
 
 export interface ExtractedInfo {
   title: string;
   authors: string;
   summary: string;
-  year: number; // Will be 0 if not found
-  // New fields for AI extraction
+  year: number;
+  // Existing fields
   resourceType: string;
   subjects: string; // AI will extract as a comma-separated string
   publicationTitle: string;
+  // New fields for AI extraction
+  interventions: string; // AI will extract as a comma-separated string
+  keyPopulations: string; // AI will extract as a comma-separated string
+  riskFactors: string; // AI will extract as a comma-separated string
+}
+
+// Added for multi-user management
+export interface User {
+    username: string;
+    password?: string; // Optional because we don't always expose it
+    role: 'admin' | 'editor';
 }

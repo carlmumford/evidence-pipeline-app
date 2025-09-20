@@ -22,6 +22,7 @@ const MainApp: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Search & UI State
+  const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Document[]>([]);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -41,6 +42,9 @@ const MainApp: React.FC = () => {
       endYear: '',
       resourceTypes: [] as string[],
       subjects: [] as string[],
+      interventions: [] as string[],
+      keyPopulations: [] as string[],
+      riskFactors: [] as string[],
   });
 
   // Pagination State
@@ -73,7 +77,7 @@ const MainApp: React.FC = () => {
 
   const filteredResults = useMemo(() => {
     return searchResults.filter(doc => {
-      const { startYear, endYear, resourceTypes, subjects } = filters;
+      const { startYear, endYear, resourceTypes, subjects, interventions, keyPopulations, riskFactors } = filters;
       const docYear = doc.year || 0;
       const start = startYear ? parseInt(startYear, 10) : 0;
       const end = endYear ? parseInt(endYear, 10) : Infinity;
@@ -84,8 +88,11 @@ const MainApp: React.FC = () => {
       
       const resourceTypeMatch = resourceTypes.length === 0 || (doc.resourceType && resourceTypes.includes(doc.resourceType));
       const subjectMatch = subjects.length === 0 || (doc.subjects && subjects.some(s => doc.subjects?.includes(s)));
+      const interventionMatch = interventions.length === 0 || (doc.interventions && interventions.some(i => doc.interventions?.includes(i)));
+      const populationMatch = keyPopulations.length === 0 || (doc.keyPopulations && keyPopulations.some(p => doc.keyPopulations?.includes(p)));
+      const riskFactorMatch = riskFactors.length === 0 || (doc.riskFactors && riskFactors.some(r => doc.riskFactors?.includes(r)));
 
-      return yearMatch && resourceTypeMatch && subjectMatch;
+      return yearMatch && resourceTypeMatch && subjectMatch && interventionMatch && populationMatch && riskFactorMatch;
     });
   }, [searchResults, filters]);
   
@@ -97,11 +104,29 @@ const MainApp: React.FC = () => {
   const filterOptions = useMemo(() => {
       const resourceTypes = [...new Set(searchResults.map(d => d.resourceType).filter(Boolean) as string[])];
       const subjects = [...new Set(searchResults.flatMap(d => d.subjects).filter(Boolean) as string[])];
-      return { resourceTypes, subjects };
+      const interventions = [...new Set(searchResults.flatMap(d => d.interventions).filter(Boolean) as string[])];
+      const keyPopulations = [...new Set(searchResults.flatMap(d => d.keyPopulations).filter(Boolean) as string[])];
+      const riskFactors = [...new Set(searchResults.flatMap(d => d.riskFactors).filter(Boolean) as string[])];
+      return { resourceTypes, subjects, interventions, keyPopulations, riskFactors };
   }, [searchResults]);
+
+  const performSearch = useCallback((query: string, searchDocuments: Document[]) => {
+    const lowerCaseQuery = query.toLowerCase();
+    return searchDocuments.filter(doc =>
+      doc.title.toLowerCase().includes(lowerCaseQuery) ||
+      (doc.summary && doc.summary.toLowerCase().includes(lowerCaseQuery)) ||
+      (doc.simplifiedSummary && doc.simplifiedSummary.toLowerCase().includes(lowerCaseQuery)) ||
+      doc.authors.some(author => author.toLowerCase().includes(lowerCaseQuery)) ||
+      doc.subjects?.some(s => s.toLowerCase().includes(lowerCaseQuery)) ||
+      doc.interventions?.some(i => i.toLowerCase().includes(lowerCaseQuery)) ||
+      doc.keyPopulations?.some(p => p.toLowerCase().includes(lowerCaseQuery)) ||
+      doc.riskFactors?.some(r => r.toLowerCase().includes(lowerCaseQuery))
+    );
+  }, []);
 
   // Handlers
   const handleSearch = useCallback(async (query: string) => {
+    setSearchQuery(query);
     if (!query.trim()) {
       setSearchResults([]);
       setAiSuggestions([]);
@@ -113,17 +138,11 @@ const MainApp: React.FC = () => {
     setError(null);
     setHasSearched(true);
     setAiSuggestions([]);
-    setCurrentPage(1); // Reset to first page on new search
-    setFilters({ startYear: '', endYear: '', resourceTypes: [], subjects: [] }); // Reset filters
+    setCurrentPage(1); 
+    setFilters({ startYear: '', endYear: '', resourceTypes: [], subjects: [], interventions: [], keyPopulations: [], riskFactors: [] }); 
     setView('search');
 
-    const lowerCaseQuery = query.toLowerCase();
-    const filtered = documents.filter(doc =>
-      doc.title.toLowerCase().includes(lowerCaseQuery) ||
-      (doc.summary && doc.summary.toLowerCase().includes(lowerCaseQuery)) ||
-      (doc.simplifiedSummary && doc.simplifiedSummary.toLowerCase().includes(lowerCaseQuery)) ||
-      doc.authors.some(author => author.toLowerCase().includes(lowerCaseQuery))
-    );
+    const filtered = performSearch(query, documents);
     setSearchResults(filtered);
 
     try {
@@ -135,7 +154,19 @@ const MainApp: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [documents]);
+  }, [documents, performSearch]);
+  
+  const handleDashboardSearch = (term: string) => {
+    handleSearch(term);
+  };
+
+  const handleFindRelated = (doc: Document) => {
+    const relatedTags = [...(doc.subjects || []), ...(doc.riskFactors || []), ...(doc.interventions || [])];
+    if (relatedTags.length === 0) return;
+    
+    // For simplicity, we'll just search for the first tag. A more complex query could be built.
+    handleSearch(relatedTags[0]);
+  };
 
   const handleAddDocument = async (newDocument: Omit<Document, 'id' | 'createdAt'>) => {
     try {
@@ -156,10 +187,10 @@ const MainApp: React.FC = () => {
   
   useEffect(() => {
     // Reset page to 1 if filters change and make the current page invalid
-    if (currentPage > 1 && paginatedResults.length === 0) {
+    if (currentPage > 1 && paginatedResults.length === 0 && filteredResults.length > 0) {
         setCurrentPage(1);
     }
-  }, [filters, currentPage, paginatedResults]);
+  }, [filters, currentPage, paginatedResults, filteredResults]);
 
   if (isDocsLoading) {
     return (
@@ -202,6 +233,7 @@ const MainApp: React.FC = () => {
             savedDocIds={savedDocIds}
             onToggleSave={handleToggleSave}
             onCite={setCitationModalDoc}
+            onFindRelated={handleFindRelated}
             currentPage={currentPage}
             totalResults={filteredResults.length}
             resultsPerPage={RESULTS_PER_PAGE}
@@ -245,7 +277,7 @@ const MainApp: React.FC = () => {
         </div>
 
         <div className="max-w-4xl mx-auto">
-            <SearchBar onSearch={handleSearch} isLoading={isLoading} />
+            <SearchBar onSearch={handleSearch} isLoading={isLoading} initialQuery={searchQuery} />
         </div>
         
         {error && <p className="text-center text-red-500 mt-4">{error}</p>}
@@ -253,7 +285,7 @@ const MainApp: React.FC = () => {
         {view === 'search' && (
           <>
             <div className="my-8">
-              <DataVisualizations documents={documents} />
+              <DataVisualizations documents={documents} onTermClick={handleDashboardSearch} />
             </div>
             <div className="mt-12">
               {renderContent()}

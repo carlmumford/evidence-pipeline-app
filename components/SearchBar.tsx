@@ -1,13 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SearchIcon, LoadingSpinner } from '../constants';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
   isLoading: boolean;
+  initialQuery?: string;
 }
 
-export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading }) => {
-  const [query, setQuery] = useState('');
+export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, initialQuery = '' }) => {
+  const [query, setQuery] = useState(initialQuery);
+
+  useEffect(() => {
+      setQuery(initialQuery);
+  }, [initialQuery]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

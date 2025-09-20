@@ -13,6 +13,8 @@ interface ResultsListProps {
   onToggleSave: (doc: Document) => void;
   // For citation
   onCite: (doc: Document) => void;
+  // For finding related documents
+  onFindRelated: (doc: Document) => void;
   // For pagination
   currentPage: number;
   totalResults: number;
@@ -27,6 +29,7 @@ export const ResultsList: React.FC<ResultsListProps> = ({
   savedDocIds,
   onToggleSave,
   onCite,
+  onFindRelated,
   currentPage,
   totalResults,
   resultsPerPage,
@@ -78,6 +81,7 @@ export const ResultsList: React.FC<ResultsListProps> = ({
             isSaved={savedDocIds.includes(doc.id)}
             onToggleSave={() => onToggleSave(doc)}
             onCite={() => onCite(doc)}
+            onFindRelated={() => onFindRelated(doc)}
           />
         ))}
       </div>
