@@ -2,7 +2,7 @@ import React from 'react';
 import type { Document } from '../types';
 import { PipelineInfographic } from './PipelineInfographic';
 import { TrendCharts } from './TrendCharts';
-import { TopicBreakdownCharts } from './TopicBreakdownCharts';
+import { TopicBreakdownCharts } from './DataVisualizations';
 import { EvidenceMap } from './EvidenceMap';
 
 interface DataPageProps {

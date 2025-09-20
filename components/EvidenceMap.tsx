@@ -49,7 +49,7 @@ export const EvidenceMap: React.FC<EvidenceMapProps> = ({ documents, onNodeClick
   useEffect(() => {
     setIsLoading(true);
 
-    const initialNodes: Node[] = documents.map((doc, i) => ({
+    const initialNodes: Node[] = documents.map((doc) => ({
       id: doc.id,
       title: doc.title,
       radius: 4 + (getDocumentTags(doc).length / 2),
@@ -76,6 +76,7 @@ export const EvidenceMap: React.FC<EvidenceMapProps> = ({ documents, onNodeClick
       }
     }
     
+    setNodes(initialNodes);
     setLinks(newLinks);
 
     // Simple force-directed layout simulation
@@ -170,7 +171,7 @@ export const EvidenceMap: React.FC<EvidenceMapProps> = ({ documents, onNodeClick
         </defs>
         
         {/* Links */}
-        {links.map((link, i) => {
+        {links.map((link) => {
           const source = nodeMap.get(link.source);
           const target = nodeMap.get(link.target);
           if (!source || !target) return null;
@@ -188,13 +189,13 @@ export const EvidenceMap: React.FC<EvidenceMapProps> = ({ documents, onNodeClick
         })}
 
         {/* Nodes */}
-        {nodes.map((node, i) => (
+        {nodes.map((node) => (
           <circle
             key={node.id}
             cx={node.x}
             cy={node.y}
             r={node.radius}
-            fill={colors[i % colors.length]}
+            fill={colors[Number(node.id.replace(/\D/g,'')) % colors.length]}
             onClick={() => onNodeClick(`"${node.title}"`)}
             onMouseEnter={() => setHoveredNode(node)}
             onMouseLeave={() => setHoveredNode(null)}
