@@ -47,7 +47,7 @@ export const DataPage: React.FC<DataPageProps> = ({ documents, onSearch, onRetur
                 description="This experimental network graph visualizes connections between documents. Papers that share common themes are linked together. Click a node to search for that document."
             >
                 <EvidenceMap documents={documents} onNodeClick={onSearch} />
-            </section>
+            </Section>
 
             <Section
                 title="Trends Over Time"
