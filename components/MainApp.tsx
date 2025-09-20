@@ -271,8 +271,8 @@ const MainApp: React.FC = () => {
   };
 
   return (
-    <div>
-      <aside className="hidden lg:block fixed top-16 left-0 lg:w-1/4 xl:w-1/5 h-[calc(100vh-4rem)] bg-gray-50 dark:bg-gray-900/50 border-r border-gray-200 dark:border-gray-800">
+    <div className="lg:flex">
+      <aside className="hidden lg:block lg:w-1/4 xl:w-1/5 h-[calc(100vh-4rem)] sticky top-16 flex-shrink-0 bg-gray-50 dark:bg-gray-900/50 border-r border-gray-200 dark:border-gray-800">
         <RefineResultsPanel 
             options={filterOptions}
             filters={filters}
@@ -283,9 +283,9 @@ const MainApp: React.FC = () => {
             currentView={view}
         />
       </aside>
-      <div className="lg:ml-[25%] xl:ml-[20%]">
+      <main className="w-full flex-grow lg:h-[calc(100vh-4rem)] lg:overflow-y-auto">
         {renderMainContent()}
-      </div>
+      </main>
 
       <UploadModal 
         isOpen={isUploadModalOpen} 

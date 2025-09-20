@@ -171,7 +171,7 @@ export const ListIcon: React.FC<{className?: string}> = ({ className = "h-5 w-5"
 
 export const UserGroupIcon: React.FC<{className?: string}> = ({ className = "h-5 w-5" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.75-5.25T21 12a9 9 0 0 0-3.75-5.25m0 10.5h0_M12 15.75a3 3 0 0 1-3-3m3 3a3 3 0 0 0 3-3m-3 3V15m-3 0v-1.5m-3.75-9.75a9.094 9.094 0 0 0-3.75 5.25T3 12a9 9 0 0 0 3.75 5.25m-3.75 0h0_M3.75 6.75h0_m0 0a9.094 9.094 0 0 1 3.75-5.25T12 3a9 9 0 0 1 5.25 3.75m0 0h0" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.75-5.25T21 12a9 9 0 0 0-3.75-5.25m0 10.5h0 M12 15.75a3 3 0 0 1-3-3m3 3a3 3 0 0 0 3-3m-3 3V15m-3 0v-1.5m-3.75-9.75a9.094 9.094 0 0 0-3.75 5.25T3 12a9 9 0 0 0 3.75 5.25m-3.75 0h0 M3.75 6.75h0 m0 0a9.094 9.094 0 0 1 3.75-5.25T12 3a9 9 0 0 1 5.25 3.75m0 0h0" />
     </svg>
 );
 
