@@ -9,7 +9,7 @@ interface Filters {
   interventions: string[];
   keyPopulations: string[];
   riskFactors: string[];
-  keyOrganizations: string[];
+  keyOrganisations: string[];
 }
 
 interface RefineResultsPanelProps {
@@ -19,7 +19,7 @@ interface RefineResultsPanelProps {
     interventions: string[];
     keyPopulations: string[];
     riskFactors: string[];
-    keyOrganizations: string[];
+    keyOrganisations: string[];
   };
   filters: Filters;
   onFilterChange: (newFilters: Filters) => void;
@@ -47,12 +47,12 @@ const CheckboxFilterGroup: React.FC<{
   return (
     <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
       {items.map(item => (
-        <label key={item} className="flex items-center space-x-3 cursor-pointer group">
+        <label key={item} className="flex items-start space-x-3 cursor-pointer group">
           <input
             type="checkbox"
             checked={checkedItems.includes(item)}
             onChange={() => onCheckboxChange(item)}
-            className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-accent focus:ring-accent bg-gray-100 dark:bg-gray-800"
+            className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-accent focus:ring-accent bg-gray-100 dark:bg-gray-800 flex-shrink-0 mt-0.5"
           />
           <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white capitalize">{item}</span>
         </label>
@@ -110,7 +110,7 @@ export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ options,
     filters.interventions.length > 0 ||
     filters.keyPopulations.length > 0 ||
     filters.riskFactors.length > 0 ||
-    filters.keyOrganizations.length > 0;
+    filters.keyOrganisations.length > 0;
 
   const clearFilters = () => {
     onFilterChange({
@@ -121,7 +121,7 @@ export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ options,
         interventions: [],
         keyPopulations: [],
         riskFactors: [],
-        keyOrganizations: [],
+        keyOrganisations: [],
     });
   };
 
@@ -162,8 +162,8 @@ export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ options,
                     <CheckboxFilterGroup items={options.keyPopulations} checkedItems={filters.keyPopulations} onCheckboxChange={(val) => handleCheckboxChange('keyPopulations', val)} />
                 </FilterSection>}
 
-                {options.keyOrganizations.length > 0 && <FilterSection title="Key Organization">
-                    <CheckboxFilterGroup items={options.keyOrganizations} checkedItems={filters.keyOrganizations} onCheckboxChange={(val) => handleCheckboxChange('keyOrganizations', val)} />
+                {options.keyOrganisations.length > 0 && <FilterSection title="Key Organisation">
+                    <CheckboxFilterGroup items={options.keyOrganisations} checkedItems={filters.keyOrganisations} onCheckboxChange={(val) => handleCheckboxChange('keyOrganisations', val)} />
                 </FilterSection>}
                 
                 {options.resourceTypes.length > 0 && <FilterSection title="Resource Type">

@@ -16,6 +16,7 @@ export const getSearchSuggestions = async (query: string, existingDocuments: Doc
         Based on this query and the context of existing document titles in our database, suggest 3 to 5 related, more specific, or alternative search terms that could help them find relevant information.
         The existing document titles are: ${documentTitles}.
         Do not suggest terms that are too similar to the original query. Provide insightful and diverse suggestions.
+        The suggestions should be in British English.
         Return the suggestions as a JSON array of strings.
     `;
 
@@ -60,8 +61,8 @@ export const getSearchSuggestions = async (query: string, existingDocuments: Doc
 
 export const extractInfoFromDocument = async (fileData: { mimeType: string; data: string }): Promise<ExtractedInfo> => {
     const prompt = `
-        You are an AI assistant designed to analyze academic papers and research documents related to the school-to-prison pipeline.
-        From the provided document, please extract the following information:
+        You are an AI assistant designed to analyse academic papers and research documents related to the school-to-prison pipeline.
+        From the provided document, please extract the following information. Please use British English spelling (e.g., 'organisation', 'centre', 'analyse').
         1.  **Title**: The main title of the document. If not found, return an empty string.
         2.  **Authors**: A single string of all authors, separated by commas. If not found, return an empty string.
         3.  **Year**: The publication year as a number. If not found, return 0.
@@ -70,10 +71,10 @@ export const extractInfoFromDocument = async (fileData: { mimeType: string; data
         6.  **Resource Type**: The type of document (e.g., "Journal Article", "Book Chapter", "Report", "Thesis"). If unsure, classify as "General".
         7.  **Subjects**: A single string of 3-5 general key subjects or keywords, separated by commas.
         8.  **Risk Factors**: A single string of 3-5 key risk factors mentioned (e.g., poverty, neurodiversity, exclusion rates, zero tolerance policies), separated by commas.
-        9.  **Key Populations**: A single string of specific demographic or population groups discussed (e.g., students of color, students with disabilities, low-income students, ADHD), separated by commas.
+        9.  **Key Populations**: A single string of specific demographic or population groups discussed (e.g., students of colour, students with disabilities, low-income students, ADHD), separated by commas.
         10. **Interventions**: A single string of interventions or practices discussed (e.g., restorative justice, policy reform, teacher training), separated by commas.
         11. **Key Stats**: A single string of 2-3 key statistics or quantitative findings from the paper, separated by commas.
-        12. **Key Organizations**: A single string of specific schools, institutions, or organizations mentioned, separated by commas.
+        12. **Key Organisations**: A single string of specific schools, institutions, or organisations mentioned, separated by commas.
 
         Provide the output in a clean JSON format. Do not include any explanatory text before or after the JSON object.
     `;
@@ -108,7 +109,7 @@ export const extractInfoFromDocument = async (fileData: { mimeType: string; data
                         keyPopulations: { type: Type.STRING, description: "Key populations as a comma-separated string." },
                         interventions: { type: Type.STRING, description: "Interventions or practices as a comma-separated string." },
                         keyStats: { type: Type.STRING, description: "Key statistics as a comma-separated string." },
-                        keyOrganizations: { type: Type.STRING, description: "Key organizations as a comma-separated string." }
+                        keyOrganisations: { type: Type.STRING, description: "Key organisations as a comma-separated string." }
                     }
                 }
             }
@@ -133,7 +134,7 @@ export const extractInfoFromDocument = async (fileData: { mimeType: string; data
             typeof parsedJson.keyPopulations === 'string' &&
             typeof parsedJson.interventions === 'string' &&
             typeof parsedJson.keyStats === 'string' &&
-            typeof parsedJson.keyOrganizations === 'string'
+            typeof parsedJson.keyOrganisations === 'string'
         ) {
             return parsedJson as ExtractedInfo;
         } else {
@@ -155,6 +156,7 @@ export const simplifySummary = async (summary: string): Promise<string> => {
         - Be a single paragraph.
         - Avoid jargon and complex statistics.
         - Capture the main point of the original text.
+        - Use British English spelling.
 
         Original Summary:
         "${summary}"
@@ -187,6 +189,7 @@ export const findRecentResearch = async (): Promise<DiscoveredResearch[]> => {
     const prompt = `
         You are an expert research assistant. Find the 5 most recent and relevant research articles about the 'school-to-prison pipeline' from popular academic and research websites (like JSTOR, Google Scholar, university sites, research institutes).
         For each article, provide the title, a direct URL to the article page or PDF, the authors as a comma-separated string, a concise one-paragraph summary, and a confidence score (from 1 to 100) indicating how directly it relates to the school-to-prison pipeline.
+        The summary for each article should be in British English.
         Return your findings as a valid JSON array of objects. Each object should have keys: "title", "url", "authors", "summary", "confidenceScore".
         Do not include any text before or after the JSON array.
     `;

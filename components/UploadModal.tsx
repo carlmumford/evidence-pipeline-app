@@ -24,7 +24,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
   const [interventions, setInterventions] = useState('');
   const [keyPopulations, setKeyPopulations] = useState('');
   const [riskFactors, setRiskFactors] = useState('');
-  const [keyOrganizations, setKeyOrganizations] = useState('');
+  const [keyOrganisations, setKeyOrganisations] = useState('');
 
   // Control state
   const [file, setFile] = useState<File | null>(null);
@@ -45,7 +45,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
     setInterventions('');
     setKeyPopulations('');
     setRiskFactors('');
-    setKeyOrganizations('');
+    setKeyOrganisations('');
     setFile(null);
     setIsExtracting(false);
     setExtractionError(null);
@@ -99,7 +99,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
       setInterventions(extractedData.interventions || '');
       setKeyPopulations(extractedData.keyPopulations || '');
       setRiskFactors(extractedData.riskFactors || '');
-      setKeyOrganizations(extractedData.keyOrganizations || '');
+      setKeyOrganisations(extractedData.keyOrganisations || '');
       
       if (originalSummary) {
           const simpleSummary = await simplifySummary(originalSummary);
@@ -133,7 +133,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
       interventions: interventions.split(',').map(s => s.trim()).filter(Boolean),
       keyPopulations: keyPopulations.split(',').map(s => s.trim()).filter(Boolean),
       riskFactors: riskFactors.split(',').map(s => s.trim()).filter(Boolean),
-      keyOrganizations: keyOrganizations.split(',').map(s => s.trim()).filter(Boolean),
+      keyOrganisations: keyOrganisations.split(',').map(s => s.trim()).filter(Boolean),
       pdfUrl,
     };
     onAddDocument(newDoc);
@@ -225,8 +225,8 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
                 <input type="text" id="publicationTitle" value={publicationTitle} onChange={e => setPublicationTitle(e.target.value)} className={inputClasses} placeholder="e.g., The Journal of Law & Equity"/>
             </div>
              <div>
-                <label htmlFor="keyOrganizations" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Key Organizations (comma-separated)</label>
-                <input type="text" id="keyOrganizations" value={keyOrganizations} onChange={e => setKeyOrganizations(e.target.value)} className={inputClasses} placeholder="e.g., The Advancement Project"/>
+                <label htmlFor="keyOrganisations" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Key Organisations (comma-separated)</label>
+                <input type="text" id="keyOrganisations" value={keyOrganisations} onChange={e => setKeyOrganisations(e.target.value)} className={inputClasses} placeholder="e.g., The Advancement Project"/>
             </div>
             <div>
                 <label htmlFor="subjects" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Subjects (comma-separated)</label>
@@ -239,7 +239,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
                 </div>
                  <div>
                     <label htmlFor="keyPopulations" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Key Populations (comma-separated)</label>
-                    <input type="text" id="keyPopulations" value={keyPopulations} onChange={e => setKeyPopulations(e.target.value)} className={inputClasses} placeholder="e.g., students of color"/>
+                    <input type="text" id="keyPopulations" value={keyPopulations} onChange={e => setKeyPopulations(e.target.value)} className={inputClasses} placeholder="e.g., students of colour"/>
                 </div>
             </div>
             <div>

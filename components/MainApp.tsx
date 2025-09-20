@@ -46,7 +46,7 @@ const MainApp: React.FC = () => {
       interventions: [] as string[],
       keyPopulations: [] as string[],
       riskFactors: [] as string[],
-      keyOrganizations: [] as string[],
+      keyOrganisations: [] as string[],
   });
 
   // Pagination State
@@ -80,7 +80,7 @@ const MainApp: React.FC = () => {
 
   const filteredResults = useMemo(() => {
     return searchResults.filter(doc => {
-      const { startYear, endYear, resourceTypes, subjects, interventions, keyPopulations, riskFactors, keyOrganizations } = filters;
+      const { startYear, endYear, resourceTypes, subjects, interventions, keyPopulations, riskFactors, keyOrganisations } = filters;
       const docYear = doc.year || 0;
       const start = startYear ? parseInt(startYear, 10) : 0;
       const end = endYear ? parseInt(endYear, 10) : Infinity;
@@ -94,9 +94,9 @@ const MainApp: React.FC = () => {
       const interventionMatch = interventions.length === 0 || (doc.interventions && interventions.some(i => doc.interventions?.includes(i)));
       const populationMatch = keyPopulations.length === 0 || (doc.keyPopulations && keyPopulations.some(p => doc.keyPopulations?.includes(p)));
       const riskFactorMatch = riskFactors.length === 0 || (doc.riskFactors && riskFactors.some(r => doc.riskFactors?.includes(r)));
-      const organizationMatch = keyOrganizations.length === 0 || (doc.keyOrganizations && keyOrganizations.some(o => doc.keyOrganizations?.includes(o)));
+      const organisationMatch = keyOrganisations.length === 0 || (doc.keyOrganisations && keyOrganisations.some(o => doc.keyOrganisations?.includes(o)));
 
-      return yearMatch && resourceTypeMatch && subjectMatch && interventionMatch && populationMatch && riskFactorMatch && organizationMatch;
+      return yearMatch && resourceTypeMatch && subjectMatch && interventionMatch && populationMatch && riskFactorMatch && organisationMatch;
     });
   }, [searchResults, filters]);
   
@@ -111,8 +111,8 @@ const MainApp: React.FC = () => {
       const interventions = [...new Set(documents.flatMap(d => d.interventions).filter(Boolean) as string[])];
       const keyPopulations = [...new Set(documents.flatMap(d => d.keyPopulations).filter(Boolean) as string[])];
       const riskFactors = [...new Set(documents.flatMap(d => d.riskFactors).filter(Boolean) as string[])];
-      const keyOrganizations = [...new Set(documents.flatMap(d => d.keyOrganizations).filter(Boolean) as string[])];
-      return { resourceTypes, subjects, interventions, keyPopulations, riskFactors, keyOrganizations };
+      const keyOrganisations = [...new Set(documents.flatMap(d => d.keyOrganisations).filter(Boolean) as string[])];
+      return { resourceTypes, subjects, interventions, keyPopulations, riskFactors, keyOrganisations };
   }, [documents]);
 
   const performSearch = useCallback((query: string, searchDocuments: Document[]) => {
@@ -126,7 +126,7 @@ const MainApp: React.FC = () => {
       doc.interventions?.some(i => i.toLowerCase().includes(lowerCaseQuery)) ||
       doc.keyPopulations?.some(p => p.toLowerCase().includes(lowerCaseQuery)) ||
       doc.riskFactors?.some(r => r.toLowerCase().includes(lowerCaseQuery)) ||
-      doc.keyOrganizations?.some(o => o.toLowerCase().includes(lowerCaseQuery))
+      doc.keyOrganisations?.some(o => o.toLowerCase().includes(lowerCaseQuery))
     );
   }, []);
 
@@ -148,7 +148,7 @@ const MainApp: React.FC = () => {
     setAiSuggestions([]);
     setCurrentPage(1); 
     // Do not reset filters on search to allow iterative searching
-    // setFilters({ startYear: '', endYear: '', resourceTypes: [], subjects: [], interventions: [], keyPopulations: [], riskFactors: [], keyOrganizations: [] }); 
+    // setFilters({ startYear: '', endYear: '', resourceTypes: [], subjects: [], interventions: [], keyPopulations: [], riskFactors: [], keyOrganisations: [] }); 
 
     const filtered = performSearch(query, documents);
     setSearchResults(filtered);

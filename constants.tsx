@@ -14,14 +14,14 @@ export const MOCK_DOCUMENTS: Omit<Document, 'id' | 'createdAt'>[] = [
     publicationTitle: 'Ending the School-to-Prison Pipeline',
     pdfUrl: 'https://www.pacer.org/bullying/resources/info-facts/school-to-prison-pipeline.pdf',
     interventions: ['legal reform', 'policy changes'],
-    keyPopulations: ['students from disadvantaged backgrounds', 'students of color'],
+    keyPopulations: ['students from disadvantaged backgrounds', 'students of colour'],
     riskFactors: ['punitive school policies', 'racial disparity'],
     keyStats: [
-        'Students of color are 3.5 times more likely to be suspended than white students.',
+        'Students of colour are 3.5 times more likely to be suspended than white students.',
         'Schools with zero-tolerance policies have higher rates of expulsion for minor infractions.',
         'A 10% increase in graduation rates corresponds to a 9% decline in criminal arrest rates.'
     ],
-    keyOrganizations: ['Charles Hamilton Houston Institute']
+    keyOrganisations: ['Charles Hamilton Houston Institute']
   },
   {
     title: 'Zero Tolerance, High Stakes, and the School-to-Prison Pipeline',
@@ -40,26 +40,26 @@ export const MOCK_DOCUMENTS: Omit<Document, 'id' | 'createdAt'>[] = [
         'Over 95% of out-of-school suspensions are for nonviolent, minor disruptions such as tardiness or dress code violations.',
         'Schools with higher suspension rates do not have better academic outcomes.',
     ],
-    keyOrganizations: []
+    keyOrganisations: []
   },
   {
     title: 'Race, Disability, and the School-to-Prison Pipeline',
     authors: ['Thalia N.C. Gonzalez'],
     year: 2017,
     summary: 'Analyzes the disproportionate impact of disciplinary policies on students of color and students with disabilities, highlighting the intersectionality of race and disability.',
-    simplifiedSummary: 'This research focuses on how school discipline rules unfairly affect students of color and those with disabilities. It shows that these students are more likely to be punished, which is a key part of the school-to-prison pipeline.',
+    simplifiedSummary: 'This research focuses on how school discipline rules unfairly affect students of colour and those with disabilities. It shows that these students are more likely to be punished, which is a key part of the school-to-prison pipeline.',
     resourceType: 'Journal Article',
     subjects: ['racial disparity', 'disability', 'intersectionality'],
     publicationTitle: 'The Journal of Law & Equity',
     pdfUrl: 'https://advancementproject.org/wp-content/uploads/2017/02/WeCameToLearn.pdf',
     interventions: ['disciplinary policy reform'],
-    keyPopulations: ['students of color', 'students with disabilities', 'ADHD'],
+    keyPopulations: ['students of colour', 'students with disabilities', 'ADHD'],
     riskFactors: ['racial disparity', 'disability discrimination', 'intersectionality'],
     keyStats: [
-        'Black students represent 16% of student enrollment but 31% of school-related arrests.',
+        'Black students represent 16% of student enrolment but 31% of school-related arrests.',
         'Students with disabilities are twice as likely to receive an out-of-school suspension than students without disabilities.',
     ],
-    keyOrganizations: []
+    keyOrganisations: []
   },
   {
     title: 'Dismantling the School-to-Prison Pipeline: A Restorative Justice Approach',
@@ -78,7 +78,7 @@ export const MOCK_DOCUMENTS: Omit<Document, 'id' | 'createdAt'>[] = [
         'Schools using restorative justice have seen suspension rates drop by as much as 40%.',
         'Restorative practices can improve school climate and teacher-student relationships.',
     ],
-    keyOrganizations: ['The Advancement Project']
+    keyOrganisations: ['The Advancement Project']
   }
 ];
 

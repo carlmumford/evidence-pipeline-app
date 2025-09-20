@@ -160,7 +160,7 @@ const AdminPanel: React.FC = () => {
           keyPopulations: [],
           riskFactors: [],
           keyStats: [],
-          keyOrganizations: [],
+          keyOrganisations: [],
           publicationTitle: ''
       };
 

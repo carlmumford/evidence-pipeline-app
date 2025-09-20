@@ -6,10 +6,10 @@ const analysisSteps = [
   "Uploading and parsing document...",
   "Identifying document structure...",
   "Extracting metadata (title, authors, year)...",
-  "Analyzing abstract for key themes...",
+  "Analysing abstract for key themes...",
   "Scanning for statistics & risk factors...",
   "Generating simplified summary with AI...",
-  "Finalizing extracted data..."
+  "Finalising extracted data..."
 ];
 
 export const AnalyzingIndicator: React.FC = () => {
@@ -37,7 +37,7 @@ export const AnalyzingIndicator: React.FC = () => {
   return (
     <div className="flex flex-col items-center justify-center p-8 w-full">
       <div className="w-full max-w-sm text-center">
-        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Analyzing Document</h3>
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Analysing Document</h3>
         <p className="text-gray-500 dark:text-gray-400 mb-6">
           Please keep this window open. This process may take up to a minute.
         </p>

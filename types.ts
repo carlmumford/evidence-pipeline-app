@@ -18,7 +18,7 @@ export interface Document {
   keyPopulations?: string[];
   riskFactors?: string[];
   keyStats?: string[];
-  keyOrganizations?: string[];
+  keyOrganisations?: string[];
 }
 
 export interface ExtractedInfo {
@@ -35,7 +35,7 @@ export interface ExtractedInfo {
   keyPopulations: string; // AI will extract as a comma-separated string
   riskFactors: string; // AI will extract as a comma-separated string
   keyStats: string; // AI will extract as a comma-separated string
-  keyOrganizations: string; // AI will extract as a comma-separated string
+  keyOrganisations: string; // AI will extract as a comma-separated string
 }
 
 // Added for multi-user management
