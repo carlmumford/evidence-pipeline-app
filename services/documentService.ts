@@ -9,7 +9,8 @@ import {
     query,
     orderBy,
     writeBatch,
-    Timestamp
+    Timestamp,
+    doc // Import the 'doc' function
 } from "firebase/firestore";
 
 const DOCUMENTS_COLLECTION = 'documents';
@@ -21,17 +22,16 @@ const DOCUMENTS_COLLECTION = 'documents';
 const seedDatabase = async () => {
     console.log("Seeding database with initial documents...");
     const batch = writeBatch(db);
-    const documentsCollection = collection(db, DOCUMENTS_COLLECTION);
+    const documentsCollectionRef = collection(db, DOCUMENTS_COLLECTION);
 
-    MOCK_DOCUMENTS.forEach(doc => {
-        const docRef = addDoc(documentsCollection, {}); // Placeholder to generate a ref
+    MOCK_DOCUMENTS.forEach(mockDoc => {
         const docWithTimestamp = {
-            ...doc,
-            authors: doc.authors,
+            ...mockDoc,
+            authors: mockDoc.authors,
             createdAt: serverTimestamp()
         };
-        // We need to use set with a new ref for batch, not addDoc
-        const newDocRef = collection(db, DOCUMENTS_COLLECTION).doc();
+        // Create a new document reference with an auto-generated ID for use in the batch
+        const newDocRef = doc(documentsCollectionRef);
         batch.set(newDocRef, docWithTimestamp);
     });
 

@@ -1,4 +1,5 @@
-import { initializeApp } from "firebase/app";
+// Fix: Use a namespace import for firebase/app to prevent module resolution issues.
+import * as firebaseApp from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -11,7 +12,7 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+const app = firebaseApp.initializeApp(firebaseConfig);
 
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app);
