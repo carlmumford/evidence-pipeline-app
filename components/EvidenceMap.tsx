@@ -95,7 +95,6 @@ export const EvidenceMap: React.FC<EvidenceMapProps> = ({ documents, onNodeClick
         }
 
         setNodes(currentNodes => {
-            const nodeMap = new Map(currentNodes.map(n => [n.id, n]));
             let updatedNodes = JSON.parse(JSON.stringify(currentNodes));
 
             // Repulsion force
