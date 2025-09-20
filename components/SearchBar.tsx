@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { SearchIcon, LoadingSpinner } from '../constants';
 
@@ -30,7 +29,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading }) => 
         className="flex items-center justify-center px-4 md:px-6 py-3 bg-brand-primary text-white font-semibold hover:bg-brand-secondary transition-colors duration-200 disabled:bg-slate-400 disabled:cursor-not-allowed"
         disabled={isLoading}
       >
-        {isLoading ? <LoadingSpinner /> : <SearchIcon className="h-6 w-6" />}
+        {isLoading ? <LoadingSpinner className="-ml-1 mr-3 h-5 w-5" /> : <SearchIcon className="h-6 w-6" />}
         <span className="hidden md:inline ml-2">Search</span>
       </button>
     </form>

@@ -1,3 +1,5 @@
+import type { Timestamp } from 'firebase/firestore';
+
 export interface Document {
   id: string;
   title: string;
@@ -5,6 +7,7 @@ export interface Document {
   summary: string;
   simplifiedSummary?: string;
   year?: number;
+  createdAt: Timestamp;
 }
 
 export interface ExtractedInfo {

@@ -1,5 +1,4 @@
-
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Header } from './components/Header';
 import { SearchBar } from './components/SearchBar';
 import { ResultsList } from './components/ResultsList';
@@ -7,17 +6,35 @@ import { AISuggestions } from './components/AISuggestions';
 import { UploadModal } from './components/UploadModal';
 import { DataVisualizations } from './components/DataVisualizations';
 import { getSearchSuggestions } from './services/geminiService';
+import { getDocuments, addDocument as saveDocument } from './services/documentService';
 import type { Document } from './types';
-import { MOCK_DOCUMENTS, UploadIcon } from './constants';
+import { UploadIcon, LoadingSpinner } from './constants';
 
 const App: React.FC = () => {
-  const [documents, setDocuments] = useState<Document[]>(MOCK_DOCUMENTS);
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [isDocsLoading, setIsDocsLoading] = useState<boolean>(true);
   const [searchResults, setSearchResults] = useState<Document[]>([]);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState<boolean>(false);
   const [hasSearched, setHasSearched] = useState<boolean>(false);
+
+  useEffect(() => {
+    const loadDocuments = async () => {
+      try {
+        const allDocs = await getDocuments();
+        setDocuments(allDocs);
+      } catch (err) {
+        console.error("Failed to load documents:", err);
+        setError("Could not load the evidence library. Please try refreshing the page.");
+      } finally {
+        setIsDocsLoading(false);
+      }
+    };
+    loadDocuments();
+  }, []);
+
 
   const handleSearch = useCallback(async (query: string) => {
     if (!query.trim()) {
@@ -55,10 +72,22 @@ const App: React.FC = () => {
     }
   }, [documents]);
 
-  const handleAddDocument = (newDocument: Omit<Document, 'id'>) => {
-    const docWithId: Document = { ...newDocument, id: `doc-${Date.now()}` };
+  const handleAddDocument = async (newDocument: Omit<Document, 'id' | 'createdAt'>) => {
+    const docWithId = await saveDocument(newDocument);
     setDocuments((prevDocs) => [docWithId, ...prevDocs]);
   };
+
+  if (isDocsLoading) {
+    return (
+        <div className="min-h-screen bg-base-200 dark:bg-dark-base-200 text-slate-800 dark:text-slate-200 font-sans">
+            <Header />
+            <div className="flex flex-col justify-center items-center h-[calc(100vh-100px)]">
+                <LoadingSpinner className="h-12 w-12 text-brand-primary dark:text-brand-accent"/>
+                <p className="mt-4 text-lg">Loading evidence library...</p>
+            </div>
+        </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-base-200 dark:bg-dark-base-200 text-slate-800 dark:text-slate-200 font-sans transition-colors duration-300">

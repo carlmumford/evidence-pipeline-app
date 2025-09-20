@@ -6,7 +6,7 @@ import { extractInfoFromDocument, simplifySummary } from '../services/geminiServ
 interface UploadModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddDocument: (doc: Omit<Document, 'id'>) => void;
+  onAddDocument: (doc: Omit<Document, 'id' | 'createdAt'>) => void;
 }
 
 export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAddDocument }) => {
@@ -158,7 +158,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
                 disabled={!file || isExtracting}
                 className="w-full flex justify-center items-center px-6 py-3 text-white bg-brand-primary rounded-md hover:bg-brand-secondary transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
               >
-                {isExtracting ? <LoadingSpinner/> : <UploadIcon className="h-5 w-5 mr-2"/>}
+                {isExtracting ? <LoadingSpinner className="mr-2" /> : <UploadIcon className="h-5 w-5 mr-2"/>}
                 {isExtracting ? 'Analyzing Document...' : 'Extract Information with AI'}
               </button>
             </div>
