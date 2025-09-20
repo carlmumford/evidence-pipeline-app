@@ -113,11 +113,11 @@ const MainApp: React.FC = () => {
         doc.title.toLowerCase().includes(query) ||
         doc.summary.toLowerCase().includes(query) ||
         (doc.simplifiedSummary && doc.simplifiedSummary.toLowerCase().includes(query)) ||
-        doc.authors.some(author => author.toLowerCase().includes(query)) ||
-        (doc.subjects && doc.subjects.some(subject => subject.toLowerCase().includes(query))) ||
-        (doc.riskFactors && doc.riskFactors.some(rf => rf.toLowerCase().includes(query))) ||
-        (doc.interventions && doc.interventions.some(i => i.toLowerCase().includes(query))) ||
-        (doc.keyPopulations && doc.keyPopulations.some(kp => kp.toLowerCase().includes(query)))
+        (doc.authors || []).some(author => author.toLowerCase().includes(query)) ||
+        (doc.subjects || []).some(subject => subject.toLowerCase().includes(query)) ||
+        (doc.riskFactors || []).some(rf => rf.toLowerCase().includes(query)) ||
+        (doc.interventions || []).some(i => i.toLowerCase().includes(query)) ||
+        (doc.keyPopulations || []).some(kp => kp.toLowerCase().includes(query))
       );
     }
 
