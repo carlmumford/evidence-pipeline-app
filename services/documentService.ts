@@ -10,7 +10,8 @@ import {
     orderBy,
     writeBatch,
     Timestamp,
-    doc // Import the 'doc' function
+    doc,
+    deleteDoc
 } from "firebase/firestore";
 
 const DOCUMENTS_COLLECTION = 'documents';
@@ -98,4 +99,18 @@ export const addDocument = async (newDocument: Omit<Document, 'id' | 'createdAt'
     console.error("Could not add document to Firestore:", error);
     throw new Error("Failed to save the new document.");
   }
+};
+
+/**
+ * Deletes a document from Firestore.
+ * @param id - The ID of the document to delete.
+ */
+export const deleteDocument = async (id: string): Promise<void> => {
+    try {
+        const docRef = doc(db, DOCUMENTS_COLLECTION, id);
+        await deleteDoc(docRef);
+    } catch (error) {
+        console.error("Could not delete document from Firestore:", error);
+        throw new Error("Failed to delete the document.");
+    }
 };
