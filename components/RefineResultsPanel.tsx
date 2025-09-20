@@ -8,6 +8,7 @@ interface Filters {
   interventions: string[];
   keyPopulations: string[];
   riskFactors: string[];
+  keyOrganizations: string[];
 }
 
 interface RefineResultsPanelProps {
@@ -17,6 +18,7 @@ interface RefineResultsPanelProps {
     interventions: string[];
     keyPopulations: string[];
     riskFactors: string[];
+    keyOrganizations: string[];
   };
   filters: Filters;
   onFilterChange: (newFilters: Filters) => void;
@@ -107,6 +109,10 @@ export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ options,
 
         {options.keyPopulations.length > 0 && <FilterSection title="Key Population">
             <CheckboxFilterGroup items={options.keyPopulations} checkedItems={filters.keyPopulations} onCheckboxChange={(val) => handleCheckboxChange('keyPopulations', val)} />
+        </FilterSection>}
+
+        {options.keyOrganizations.length > 0 && <FilterSection title="Key Organization">
+            <CheckboxFilterGroup items={options.keyOrganizations} checkedItems={filters.keyOrganizations} onCheckboxChange={(val) => handleCheckboxChange('keyOrganizations', val)} />
         </FilterSection>}
         
         {options.resourceTypes.length > 0 && <FilterSection title="Resource Type">

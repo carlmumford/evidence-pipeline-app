@@ -4,22 +4,28 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>School to Prison Pipeline Evidence Project</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
         darkMode: 'class', // or 'media'
         theme: {
           extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
             colors: {
-              'brand-primary': '#0D47A1',
-              'brand-secondary': '#1976D2',
-              'brand-accent': '#42A5F5',
+              'brand-primary': '#4338CA',
+              'brand-secondary': '#3730A3',
+              'brand-accent': '#6D28D9',
               'base-100': '#FFFFFF',
-              'base-200': '#F5F5F5',
-              'base-300': '#E0E0E0',
-              'dark-base-100': '#121212',
-              'dark-base-200': '#1E1E1E',
-              'dark-base-300': '#2C2C2C',
+              'base-200': '#F3F4F6',
+              'base-300': '#E5E7EB',
+              'dark-base-100': '#374151',
+              'dark-base-200': '#1F2937',
+              'dark-base-300': '#111827',
             },
             keyframes: {
               'fade-in': {
@@ -48,7 +54,7 @@
 }
 </script>
 </head>
-  <body class="bg-base-200 dark:bg-dark-base-200">
+  <body class="bg-base-200 dark:bg-dark-base-300 font-sans">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

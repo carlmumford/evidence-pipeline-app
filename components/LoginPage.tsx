@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { authService } from '../services/authService';
+import { Logo } from '../constants';
 
 interface LoginPageProps {
   onLogin: () => void;
@@ -29,11 +30,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-base-200 dark:bg-dark-base-200 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-base-200 dark:bg-dark-base-300 p-4">
       <div className="w-full max-w-md">
-        <div className="bg-base-100 dark:bg-dark-base-300 rounded-xl shadow-2xl p-8 border border-base-300 dark:border-slate-700">
+        <Logo className="justify-center mb-8" />
+        <div className="bg-base-100 dark:bg-dark-base-200 rounded-2xl shadow-2xl p-8 md:p-10 border border-base-300 dark:border-dark-base-100">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-brand-primary dark:text-brand-accent">
+            <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
               Administrator Login
             </h1>
             <p className="text-slate-500 dark:text-slate-400 mt-2">
@@ -54,7 +56,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 id="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-3 py-2 border border-base-300 dark:border-slate-600 rounded-md shadow-sm focus:ring-brand-accent focus:border-brand-accent bg-base-200 dark:bg-dark-base-100"
+                className="w-full px-4 py-3 border border-base-300 dark:border-slate-700 rounded-lg shadow-sm focus:ring-brand-primary focus:border-brand-primary bg-base-200 dark:bg-dark-base-100"
                 required
                 autoCapitalize="none"
               />
@@ -71,7 +73,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-base-300 dark:border-slate-600 rounded-md shadow-sm focus:ring-brand-accent focus:border-brand-accent bg-base-200 dark:bg-dark-base-100"
+                className="w-full px-4 py-3 border border-base-300 dark:border-slate-700 rounded-lg shadow-sm focus:ring-brand-primary focus:border-brand-primary bg-base-200 dark:bg-dark-base-100"
                 required
               />
             </div>
@@ -83,7 +85,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             <div>
               <button
                 type="submit"
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-brand-primary hover:bg-brand-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent disabled:bg-slate-400"
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-brand-primary hover:bg-brand-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary disabled:bg-slate-400"
                 disabled={isLoading}
               >
                 {isLoading ? 'Signing In...' : 'Sign In'}
@@ -91,7 +93,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             </div>
           </form>
         </div>
-        <p className="text-center text-xs text-slate-500 mt-4">
+        <p className="text-center text-xs text-slate-500 mt-6">
             Default credentials are admin / admin
         </p>
       </div>

@@ -3,15 +3,16 @@ import { SearchBar } from './SearchBar';
 import { ResultsList } from './ResultsList';
 import { AISuggestions } from './AISuggestions';
 import { UploadModal } from './UploadModal';
-import { DataVisualizations } from './DataVisualizations';
+import { DataPage } from './DataPage';
 import { RefineResultsPanel } from './RefineResultsPanel';
 import { CitationModal } from './CitationModal';
 import { SavedList } from './SavedList';
+import { PDFViewerModal } from './PDFViewerModal';
 import { getSearchSuggestions } from '../services/geminiService';
 import { getDocuments, addDocument as saveDocument } from '../services/documentService';
 import { listService } from '../services/listService';
 import type { Document } from '../types';
-import { UploadIcon, LoadingSpinner, CheckCircleIcon, CloseIcon, ListIcon } from '../constants';
+import { UploadIcon, LoadingSpinner, CheckCircleIcon, CloseIcon, ListIcon, ChartBarIcon } from '../constants';
 
 const RESULTS_PER_PAGE = 5;
 
@@ -31,7 +32,7 @@ const MainApp: React.FC = () => {
   const [confirmationMessage, setConfirmationMessage] = useState<string | null>(null);
   
   // View State
-  const [view, setView] = useState<'search' | 'list'>('search');
+  const [view, setView] = useState<'search' | 'list' | 'data'>('search');
 
   // Saved List State
   const [savedDocIds, setSavedDocIds] = useState<string[]>(listService.getSavedIds());
@@ -45,13 +46,15 @@ const MainApp: React.FC = () => {
       interventions: [] as string[],
       keyPopulations: [] as string[],
       riskFactors: [] as string[],
+      keyOrganizations: [] as string[],
   });
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Citation Modal State
+  // Modal States
   const [citationModalDoc, setCitationModalDoc] = useState<Document | null>(null);
+  const [pdfToView, setPdfToView] = useState<Document | null>(null);
 
   // Fetch all documents on initial load
   const fetchDocuments = useCallback(async () => {
@@ -77,7 +80,7 @@ const MainApp: React.FC = () => {
 
   const filteredResults = useMemo(() => {
     return searchResults.filter(doc => {
-      const { startYear, endYear, resourceTypes, subjects, interventions, keyPopulations, riskFactors } = filters;
+      const { startYear, endYear, resourceTypes, subjects, interventions, keyPopulations, riskFactors, keyOrganizations } = filters;
       const docYear = doc.year || 0;
       const start = startYear ? parseInt(startYear, 10) : 0;
       const end = endYear ? parseInt(endYear, 10) : Infinity;
@@ -91,8 +94,9 @@ const MainApp: React.FC = () => {
       const interventionMatch = interventions.length === 0 || (doc.interventions && interventions.some(i => doc.interventions?.includes(i)));
       const populationMatch = keyPopulations.length === 0 || (doc.keyPopulations && keyPopulations.some(p => doc.keyPopulations?.includes(p)));
       const riskFactorMatch = riskFactors.length === 0 || (doc.riskFactors && riskFactors.some(r => doc.riskFactors?.includes(r)));
+      const organizationMatch = keyOrganizations.length === 0 || (doc.keyOrganizations && keyOrganizations.some(o => doc.keyOrganizations?.includes(o)));
 
-      return yearMatch && resourceTypeMatch && subjectMatch && interventionMatch && populationMatch && riskFactorMatch;
+      return yearMatch && resourceTypeMatch && subjectMatch && interventionMatch && populationMatch && riskFactorMatch && organizationMatch;
     });
   }, [searchResults, filters]);
   
@@ -107,7 +111,8 @@ const MainApp: React.FC = () => {
       const interventions = [...new Set(searchResults.flatMap(d => d.interventions).filter(Boolean) as string[])];
       const keyPopulations = [...new Set(searchResults.flatMap(d => d.keyPopulations).filter(Boolean) as string[])];
       const riskFactors = [...new Set(searchResults.flatMap(d => d.riskFactors).filter(Boolean) as string[])];
-      return { resourceTypes, subjects, interventions, keyPopulations, riskFactors };
+      const keyOrganizations = [...new Set(searchResults.flatMap(d => d.keyOrganizations).filter(Boolean) as string[])];
+      return { resourceTypes, subjects, interventions, keyPopulations, riskFactors, keyOrganizations };
   }, [searchResults]);
 
   const performSearch = useCallback((query: string, searchDocuments: Document[]) => {
@@ -120,13 +125,16 @@ const MainApp: React.FC = () => {
       doc.subjects?.some(s => s.toLowerCase().includes(lowerCaseQuery)) ||
       doc.interventions?.some(i => i.toLowerCase().includes(lowerCaseQuery)) ||
       doc.keyPopulations?.some(p => p.toLowerCase().includes(lowerCaseQuery)) ||
-      doc.riskFactors?.some(r => r.toLowerCase().includes(lowerCaseQuery))
+      doc.riskFactors?.some(r => r.toLowerCase().includes(lowerCaseQuery)) ||
+      doc.keyOrganizations?.some(o => o.toLowerCase().includes(lowerCaseQuery))
     );
   }, []);
 
   // Handlers
   const handleSearch = useCallback(async (query: string) => {
     setSearchQuery(query);
+    setView('search');
+
     if (!query.trim()) {
       setSearchResults([]);
       setAiSuggestions([]);
@@ -139,15 +147,16 @@ const MainApp: React.FC = () => {
     setHasSearched(true);
     setAiSuggestions([]);
     setCurrentPage(1); 
-    setFilters({ startYear: '', endYear: '', resourceTypes: [], subjects: [], interventions: [], keyPopulations: [], riskFactors: [] }); 
-    setView('search');
+    setFilters({ startYear: '', endYear: '', resourceTypes: [], subjects: [], interventions: [], keyPopulations: [], riskFactors: [], keyOrganizations: [] }); 
 
     const filtered = performSearch(query, documents);
     setSearchResults(filtered);
 
     try {
-      const suggestions = await getSearchSuggestions(query, documents);
-      setAiSuggestions(suggestions);
+      if (query.length > 3) {
+        const suggestions = await getSearchSuggestions(query, documents);
+        setAiSuggestions(suggestions);
+      }
     } catch (err) {
       console.error(err);
       setError('Failed to fetch AI suggestions.');
@@ -156,16 +165,23 @@ const MainApp: React.FC = () => {
     }
   }, [documents, performSearch]);
   
-  const handleDashboardSearch = (term: string) => {
-    handleSearch(term);
-  };
-
   const handleFindRelated = (doc: Document) => {
-    const relatedTags = [...(doc.subjects || []), ...(doc.riskFactors || []), ...(doc.interventions || [])];
-    if (relatedTags.length === 0) return;
+    const queryParts = [
+        ...(doc.subjects || []),
+        ...(doc.riskFactors || []),
+    ];
+    const query = queryParts.slice(0, 2).join(' ');
     
-    // For simplicity, we'll just search for the first tag. A more complex query could be built.
-    handleSearch(relatedTags[0]);
+    if (!query) {
+        handleSearch(doc.title);
+        return;
+    }
+    
+    handleSearch(query);
+  };
+  
+  const handleAuthorSearch = (author: string) => {
+      handleSearch(`"${author}"`);
   };
 
   const handleAddDocument = async (newDocument: Omit<Document, 'id' | 'createdAt'>) => {
@@ -201,47 +217,66 @@ const MainApp: React.FC = () => {
     );
   }
 
-  const renderContent = () => {
-    if (view === 'list') {
-        return (
-            <SavedList
-                savedDocuments={savedDocuments}
-                onToggleSave={handleToggleSave}
-                onCite={setCitationModalDoc}
-                onReturn={() => setView('search')}
-            />
-        );
-    }
-    
-    return (
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <aside className={`lg:col-span-3 ${hasSearched ? 'block' : 'hidden'} lg:block`}>
-          <RefineResultsPanel
-            options={filterOptions}
-            filters={filters}
-            onFilterChange={setFilters}
-            disabled={!hasSearched || searchResults.length === 0}
-          />
-        </aside>
+  const renderCurrentView = () => {
+    switch(view) {
+        case 'list':
+            return (
+                 <div className="mt-12 max-w-4xl mx-auto">
+                    <SavedList
+                        savedDocuments={savedDocuments}
+                        onToggleSave={handleToggleSave}
+                        onCite={setCitationModalDoc}
+                        onReturn={() => setView('search')}
+                        onFindRelated={handleFindRelated}
+                        onViewPdf={setPdfToView}
+                        onAuthorClick={handleAuthorSearch}
+                    />
+                </div>
+            );
+        case 'data':
+            return (
+                <div className="mt-12 max-w-6xl mx-auto">
+                    <DataPage
+                        documents={documents}
+                        onSearch={handleSearch}
+                        onReturn={() => setView('search')}
+                    />
+                </div>
+            );
+        case 'search':
+        default:
+             return (
+                <div className="mt-12 grid grid-cols-1 lg:grid-cols-12 gap-12">
+                    <aside className={`lg:col-span-3 ${hasSearched ? 'block' : 'hidden'} lg:block`}>
+                    <RefineResultsPanel
+                        options={filterOptions}
+                        filters={filters}
+                        onFilterChange={setFilters}
+                        disabled={!hasSearched || searchResults.length === 0}
+                    />
+                    </aside>
 
-        <div className="lg:col-span-9">
-          <AISuggestions suggestions={aiSuggestions} onSuggestionClick={handleSearch} isLoading={isLoading} />
-          <ResultsList
-            results={paginatedResults}
-            isLoading={isLoading}
-            hasSearched={hasSearched}
-            savedDocIds={savedDocIds}
-            onToggleSave={handleToggleSave}
-            onCite={setCitationModalDoc}
-            onFindRelated={handleFindRelated}
-            currentPage={currentPage}
-            totalResults={filteredResults.length}
-            resultsPerPage={RESULTS_PER_PAGE}
-            onPageChange={setCurrentPage}
-          />
-        </div>
-      </div>
-    );
+                    <div className="lg:col-span-9">
+                    <AISuggestions suggestions={aiSuggestions} onSuggestionClick={handleSearch} isLoading={isLoading} />
+                    <ResultsList
+                        results={paginatedResults}
+                        isLoading={isLoading}
+                        hasSearched={hasSearched}
+                        savedDocIds={savedDocIds}
+                        onToggleSave={handleToggleSave}
+                        onCite={setCitationModalDoc}
+                        onFindRelated={handleFindRelated}
+                        onViewPdf={setPdfToView}
+                        onAuthorClick={handleAuthorSearch}
+                        currentPage={currentPage}
+                        totalResults={filteredResults.length}
+                        resultsPerPage={RESULTS_PER_PAGE}
+                        onPageChange={setCurrentPage}
+                    />
+                    </div>
+                </div>
+            );
+    }
   };
 
   return (
@@ -260,48 +295,40 @@ const MainApp: React.FC = () => {
       )}
 
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-brand-primary dark:text-brand-accent mb-2">Evidence Hub</h2>
-          <p className="text-lg text-slate-600 dark:text-slate-400">Search our repository of research on the school-to-prison pipeline.</p>
+        <div className="text-center mb-12">
+          <h2 className="text-4xl md:text-5xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tighter mb-4">Evidence Hub</h2>
+          <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">Search our AI-powered repository of research on the school-to-prison pipeline.</p>
         </div>
 
-        <div className="flex justify-center items-center gap-4 mb-8">
-          <button onClick={() => setIsUploadModalOpen(true)} className="flex items-center gap-2 px-6 py-3 bg-brand-primary text-white font-semibold rounded-lg shadow-md hover:bg-brand-secondary focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-opacity-75 transition-transform transform hover:scale-105">
+        <div className="flex flex-wrap justify-center items-center gap-4 mb-12">
+          <button onClick={() => setIsUploadModalOpen(true)} className="flex items-center gap-2 px-6 py-3 bg-brand-primary text-white font-semibold rounded-lg shadow-lg shadow-brand-primary/20 hover:bg-brand-secondary focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 dark:focus:ring-offset-dark-base-300 transition-transform transform hover:scale-105">
             <UploadIcon />
             Upload Evidence
           </button>
-          <button onClick={() => setView('list')} className="flex items-center gap-2 px-6 py-3 bg-base-100 dark:bg-dark-base-300 text-slate-700 dark:text-slate-200 font-semibold rounded-lg shadow-md hover:bg-base-200 dark:hover:bg-dark-base-100 focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-opacity-75 transition-transform transform hover:scale-105">
+           <button onClick={() => setView('data')} className="flex items-center gap-2 px-6 py-3 bg-base-100 dark:bg-dark-base-200 text-slate-700 dark:text-slate-200 font-semibold rounded-lg shadow-md hover:bg-base-200 dark:hover:bg-dark-base-100 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 dark:focus:ring-offset-dark-base-300 transition-transform transform hover:scale-105">
+            <ChartBarIcon />
+            Data & Insights
+          </button>
+          <button onClick={() => setView('list')} className="flex items-center gap-2 px-6 py-3 bg-base-100 dark:bg-dark-base-200 text-slate-700 dark:text-slate-200 font-semibold rounded-lg shadow-md hover:bg-base-200 dark:hover:bg-dark-base-100 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 dark:focus:ring-offset-dark-base-300 transition-transform transform hover:scale-105">
             <ListIcon />
             My List ({savedDocIds.length})
           </button>
         </div>
 
-        <div className="max-w-4xl mx-auto">
-            <SearchBar onSearch={handleSearch} isLoading={isLoading} initialQuery={searchQuery} />
-        </div>
+        {view === 'search' && (
+            <div className="max-w-4xl mx-auto">
+                <SearchBar onSearch={handleSearch} isLoading={isLoading} initialQuery={searchQuery} />
+            </div>
+        )}
         
         {error && <p className="text-center text-red-500 mt-4">{error}</p>}
         
-        {view === 'search' && (
-          <>
-            <div className="my-8">
-              <DataVisualizations documents={documents} onTermClick={handleDashboardSearch} />
-            </div>
-            <div className="mt-12">
-              {renderContent()}
-            </div>
-          </>
-        )}
+        {renderCurrentView()}
       </div>
-
-       {view === 'list' && (
-         <div className="mt-12 max-w-4xl mx-auto">
-            {renderContent()}
-         </div>
-       )}
 
       <UploadModal isOpen={isUploadModalOpen} onClose={() => setIsUploadModalOpen(false)} onAddDocument={handleAddDocument} />
       <CitationModal document={citationModalDoc} isOpen={!!citationModalDoc} onClose={() => setCitationModalDoc(null)} />
+      <PDFViewerModal document={pdfToView} isOpen={!!pdfToView} onClose={() => setPdfToView(null)} />
     </>
   );
 };

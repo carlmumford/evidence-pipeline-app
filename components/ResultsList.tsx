@@ -15,6 +15,10 @@ interface ResultsListProps {
   onCite: (doc: Document) => void;
   // For finding related documents
   onFindRelated: (doc: Document) => void;
+  // For viewing PDF
+  onViewPdf: (doc: Document) => void;
+  // For clickable authors
+  onAuthorClick: (author: string) => void;
   // For pagination
   currentPage: number;
   totalResults: number;
@@ -30,6 +34,8 @@ export const ResultsList: React.FC<ResultsListProps> = ({
   onToggleSave,
   onCite,
   onFindRelated,
+  onViewPdf,
+  onAuthorClick,
   currentPage,
   totalResults,
   resultsPerPage,
@@ -82,6 +88,8 @@ export const ResultsList: React.FC<ResultsListProps> = ({
             onToggleSave={() => onToggleSave(doc)}
             onCite={() => onCite(doc)}
             onFindRelated={() => onFindRelated(doc)}
+            onViewPdf={() => onViewPdf(doc)}
+            onAuthorClick={onAuthorClick}
           />
         ))}
       </div>

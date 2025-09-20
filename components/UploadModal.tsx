@@ -24,6 +24,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
   const [interventions, setInterventions] = useState('');
   const [keyPopulations, setKeyPopulations] = useState('');
   const [riskFactors, setRiskFactors] = useState('');
+  const [keyOrganizations, setKeyOrganizations] = useState('');
 
   // Control state
   const [file, setFile] = useState<File | null>(null);
@@ -44,6 +45,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
     setInterventions('');
     setKeyPopulations('');
     setRiskFactors('');
+    setKeyOrganizations('');
     setFile(null);
     setIsExtracting(false);
     setExtractionError(null);
@@ -97,6 +99,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
       setInterventions(extractedData.interventions || '');
       setKeyPopulations(extractedData.keyPopulations || '');
       setRiskFactors(extractedData.riskFactors || '');
+      setKeyOrganizations(extractedData.keyOrganizations || '');
       
       if (originalSummary) {
           const simpleSummary = await simplifySummary(originalSummary);
@@ -130,6 +133,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
       interventions: interventions.split(',').map(s => s.trim()).filter(Boolean),
       keyPopulations: keyPopulations.split(',').map(s => s.trim()).filter(Boolean),
       riskFactors: riskFactors.split(',').map(s => s.trim()).filter(Boolean),
+      keyOrganizations: keyOrganizations.split(',').map(s => s.trim()).filter(Boolean),
       pdfUrl,
     };
     onAddDocument(newDoc);
@@ -214,6 +218,10 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
             <div>
                 <label htmlFor="publicationTitle" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Publication Title</label>
                 <input type="text" id="publicationTitle" value={publicationTitle} onChange={e => setPublicationTitle(e.target.value)} className="input-style" placeholder="e.g., The Journal of Law & Equity"/>
+            </div>
+             <div>
+                <label htmlFor="keyOrganizations" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Key Organizations (comma-separated)</label>
+                <input type="text" id="keyOrganizations" value={keyOrganizations} onChange={e => setKeyOrganizations(e.target.value)} className="input-style" placeholder="e.g., The Advancement Project"/>
             </div>
             <div>
                 <label htmlFor="subjects" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Subjects (comma-separated)</label>

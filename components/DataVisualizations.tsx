@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import type { Document } from '../types';
 
-interface DataVisualizationsProps {
+interface TopicBreakdownChartsProps {
   documents: Document[];
   onTermClick: (term: string) => void;
 }
@@ -31,7 +31,7 @@ const getTopItems = (documents: Document[], key: 'riskFactors' | 'keyPopulations
       .slice(0, count);
 };
 
-const Chart: React.FC<{ title: string; data: DataItem[]; color: string; onTermClick: (term: string) => void }> = ({ title, data, color, onTermClick }) => {
+const Chart: React.FC<{ title: string; data: DataItem[]; color: string; onTermClick: (term:string) => void; }> = ({ title, data, color, onTermClick }) => {
     const maxCount = Math.max(...data.map(d => d.count), 0);
 
     if (data.length === 0) return null;
@@ -49,10 +49,10 @@ const Chart: React.FC<{ title: string; data: DataItem[]; color: string; onTermCl
                         className="w-full grid grid-cols-12 items-center gap-2 group text-left"
                         aria-label={`${formatPhrase(name)}, mentioned in ${count} document${count > 1 ? 's' : ''}. Click to search for this term.`}
                     >
-                        <span className="col-span-4 md:col-span-3 text-sm font-medium text-slate-600 dark:text-slate-400 text-right truncate group-hover:text-brand-primary dark:group-hover:text-brand-accent" title={formatPhrase(name)}>
+                        <span className="col-span-5 md:col-span-4 text-sm font-medium text-slate-600 dark:text-slate-400 text-right truncate group-hover:text-brand-primary dark:group-hover:text-brand-accent" title={formatPhrase(name)}>
                             {formatPhrase(name)}
                         </span>
-                        <div className="col-span-8 md:col-span-9 flex items-center">
+                        <div className="col-span-7 md:col-span-8 flex items-center">
                             <div 
                                 className={`${color} h-6 rounded-r-md transition-all duration-500 ease-out group-hover:opacity-80`}
                                 style={{ width: `${maxCount > 0 ? (count / maxCount) * 100 : 0}%` }}
@@ -69,7 +69,7 @@ const Chart: React.FC<{ title: string; data: DataItem[]; color: string; onTermCl
     );
 };
 
-export const DataVisualizations: React.FC<DataVisualizationsProps> = ({ documents, onTermClick }) => {
+export const TopicBreakdownCharts: React.FC<TopicBreakdownChartsProps> = ({ documents, onTermClick }) => {
   const topRiskFactors = useMemo(() => getTopItems(documents, 'riskFactors', 5), [documents]);
   const topPopulations = useMemo(() => getTopItems(documents, 'keyPopulations', 5), [documents]);
   const topInterventions = useMemo(() => getTopItems(documents, 'interventions', 5), [documents]);

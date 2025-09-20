@@ -32,7 +32,7 @@ const App: React.FC = () => {
 
   if (isInitializing) {
       return (
-        <div className="min-h-screen bg-base-200 dark:bg-dark-base-200 flex justify-center items-center">
+        <div className="min-h-screen bg-base-200 dark:bg-dark-base-300 flex justify-center items-center">
             <LoadingSpinner className="h-12 w-12 text-brand-primary dark:text-brand-accent"/>
         </div>
       );
@@ -43,7 +43,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-base-200 dark:bg-dark-base-200 text-slate-800 dark:text-slate-200 font-sans transition-colors duration-300">
+    <div className="min-h-screen bg-base-200 dark:bg-dark-base-300 text-slate-800 dark:text-slate-200 font-sans transition-colors duration-300">
       <Header 
         isLoggedIn={isLoggedIn} 
         onLogout={handleLogout} 

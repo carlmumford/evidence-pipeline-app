@@ -8,9 +8,12 @@ interface SavedListProps {
   onToggleSave: (doc: Document) => void;
   onCite: (doc: Document) => void;
   onReturn: () => void;
+  onFindRelated: (doc: Document) => void;
+  onViewPdf: (doc: Document) => void;
+  onAuthorClick: (author: string) => void;
 }
 
-export const SavedList: React.FC<SavedListProps> = ({ savedDocuments, onToggleSave, onCite, onReturn }) => {
+export const SavedList: React.FC<SavedListProps> = ({ savedDocuments, onToggleSave, onCite, onReturn, onFindRelated, onViewPdf, onAuthorClick }) => {
   const handleExportToCSV = () => {
     if (savedDocuments.length === 0) return;
 
@@ -76,7 +79,9 @@ export const SavedList: React.FC<SavedListProps> = ({ savedDocuments, onToggleSa
               isSaved={true}
               onToggleSave={() => onToggleSave(doc)}
               onCite={() => onCite(doc)}
-              onFindRelated={() => { /* Not available on this page, but prop is required */ }}
+              onFindRelated={() => onFindRelated(doc)}
+              onViewPdf={() => onViewPdf(doc)}
+              onAuthorClick={onAuthorClick}
             />
           ))}
         </div>
