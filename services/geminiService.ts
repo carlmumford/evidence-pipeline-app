@@ -70,10 +70,11 @@ export const extractInfoFromDocument = async (fileData: { mimeType: string; data
         6.  **Resource Type**: The type of document (e.g., "Journal Article", "Book Chapter", "Report", "Thesis"). If unsure, classify as "General".
         7.  **Subjects**: A single string of 3-5 general key subjects or keywords, separated by commas.
         8.  **Risk Factors**: A single string of 3-5 key risk factors mentioned (e.g., poverty, neurodiversity, exclusion rates, zero tolerance policies), separated by commas.
-        9.  **Key Populations**: A single string of specific demographic or population groups discussed (e.g., students of colour, students with disabilities, low-income students, ADHD), separated by commas.
-        10. **Interventions**: A single string of interventions or practices discussed (e.g., restorative justice, policy reform, teacher training), separated by commas.
-        11. **Key Stats**: A single string of 2-3 key statistics or quantitative findings from the paper, separated by commas.
-        12. **Key Organisations**: A single string of specific schools, institutions, or organisations mentioned, separated by commas.
+        9.  **Key Populations**: A single string of specific demographic or population groups discussed (e.g., students of colour, students with disabilities, low-income students), separated by commas.
+        10. **Mental Health or Neurodivergent Conditions**: A single string of specific conditions mentioned (e.g., ADHD, anxiety, trauma, autism spectrum disorder), separated by commas.
+        11. **Interventions**: A single string of interventions or practices discussed (e.g., restorative justice, policy reform, teacher training), separated by commas.
+        12. **Key Stats**: A single string of 2-3 key statistics or quantitative findings from the paper, separated by commas.
+        13. **Key Organisations**: A single string of specific schools, institutions, or organisations mentioned, separated by commas.
 
         Provide the output in a clean JSON format. Do not include any explanatory text before or after the JSON object.
     `;
@@ -106,6 +107,7 @@ export const extractInfoFromDocument = async (fileData: { mimeType: string; data
                         subjects: { type: Type.STRING, description: "A single string of key subjects, separated by commas." },
                         riskFactors: { type: Type.STRING, description: "Key risk factors as a comma-separated string." },
                         keyPopulations: { type: Type.STRING, description: "Key populations as a comma-separated string." },
+                        mentalHealthConditions: { type: Type.STRING, description: "Mental health or neurodivergent conditions as a comma-separated string." },
                         interventions: { type: Type.STRING, description: "Interventions or practices as a comma-separated string." },
                         keyStats: { type: Type.STRING, description: "Key statistics as a comma-separated string." },
                         keyOrganisations: { type: Type.STRING, description: "Key organisations as a comma-separated string." }

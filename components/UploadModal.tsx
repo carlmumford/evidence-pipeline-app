@@ -23,6 +23,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
   const [interventions, setInterventions] = useState('');
   const [keyPopulations, setKeyPopulations] = useState('');
   const [riskFactors, setRiskFactors] = useState('');
+  const [mentalHealthConditions, setMentalHealthConditions] = useState('');
   const [keyStats, setKeyStats] = useState('');
   const [keyOrganisations, setKeyOrganisations] = useState('');
 
@@ -44,6 +45,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
     setInterventions('');
     setKeyPopulations('');
     setRiskFactors('');
+    setMentalHealthConditions('');
     setKeyStats('');
     setKeyOrganisations('');
     setFile(null);
@@ -99,6 +101,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
       setInterventions(extractedData.interventions || '');
       setKeyPopulations(extractedData.keyPopulations || '');
       setRiskFactors(extractedData.riskFactors || '');
+      setMentalHealthConditions(extractedData.mentalHealthConditions || '');
       setKeyStats(extractedData.keyStats || '');
       setKeyOrganisations(extractedData.keyOrganisations || '');
       
@@ -134,6 +137,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
       interventions: interventions.split(',').map(s => s.trim()).filter(Boolean),
       keyPopulations: keyPopulations.split(',').map(s => s.trim()).filter(Boolean),
       riskFactors: riskFactors.split(',').map(s => s.trim()).filter(Boolean),
+      mentalHealthConditions: mentalHealthConditions.split(',').map(s => s.trim()).filter(Boolean),
       keyStats: keyStats.split(',').map(s => s.trim()).filter(Boolean),
       keyOrganisations: keyOrganisations.split(',').map(s => s.trim()).filter(Boolean),
       pdfUrl,
@@ -243,6 +247,10 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
                     <label htmlFor="keyPopulations" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Key Populations (comma-separated)</label>
                     <input type="text" id="keyPopulations" value={keyPopulations} onChange={e => setKeyPopulations(e.target.value)} className={inputClasses} placeholder="e.g., students of colour"/>
                 </div>
+            </div>
+            <div>
+                <label htmlFor="mentalHealthConditions" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mental Health / Neurodivergent Conditions (comma-separated)</label>
+                <input type="text" id="mentalHealthConditions" value={mentalHealthConditions} onChange={e => setMentalHealthConditions(e.target.value)} className={inputClasses} placeholder="e.g., ADHD, trauma, anxiety"/>
             </div>
             <div>
                 <label htmlFor="interventions" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Interventions (comma-separated)</label>

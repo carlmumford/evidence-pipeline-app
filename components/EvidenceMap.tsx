@@ -64,7 +64,8 @@ export const EvidenceMap: React.FC<EvidenceMapProps> = ({ documents, onNodeClick
       vy: 0,
     }));
 
-    const docMap = new Map(documents.map(d => [d.id, getDocumentTags(d)]));
+    // FIX: Add explicit type annotation to Map to ensure correct type inference for `docMap.get()`.
+    const docMap = new Map<string, string[]>(documents.map(d => [d.id, getDocumentTags(d)]));
     const newLinks: Link[] = [];
 
     for (let i = 0; i < documents.length; i++) {

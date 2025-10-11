@@ -10,6 +10,7 @@ interface Filters {
   keyPopulations: string[];
   riskFactors: string[];
   keyOrganisations: string[];
+  mentalHealthConditions: string[];
 }
 
 interface RefineResultsPanelProps {
@@ -20,6 +21,7 @@ interface RefineResultsPanelProps {
     keyPopulations: string[];
     riskFactors: string[];
     keyOrganisations: string[];
+    mentalHealthConditions: string[];
   };
   filters: Filters;
   onFilterChange: (newFilters: Filters) => void;
@@ -115,6 +117,7 @@ export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ options,
         keyPopulations: [],
         riskFactors: [],
         keyOrganisations: [],
+        mentalHealthConditions: [],
     });
   };
 
@@ -145,6 +148,10 @@ export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ options,
 
                 {options.riskFactors.length > 0 && <FilterSection title="Risk Factor">
                 <CheckboxFilterGroup items={options.riskFactors} checkedItems={filters.riskFactors} onCheckboxChange={(val) => handleCheckboxChange('riskFactors', val)} />
+                </FilterSection>}
+
+                {options.mentalHealthConditions.length > 0 && <FilterSection title="Mental Health / Neurodiversity">
+                    <CheckboxFilterGroup items={options.mentalHealthConditions} checkedItems={filters.mentalHealthConditions} onCheckboxChange={(val) => handleCheckboxChange('mentalHealthConditions', val)} />
                 </FilterSection>}
 
                 {options.interventions.length > 0 && <FilterSection title="Intervention">

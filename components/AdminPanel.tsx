@@ -158,6 +158,8 @@ const AdminPanel: React.FC = () => {
           interventions: [],
           keyPopulations: [],
           riskFactors: [],
+          // FIX: Add missing mentalHealthConditions property to satisfy Document type.
+          mentalHealthConditions: [],
           keyStats: [],
           keyOrganisations: [],
           publicationTitle: ''

@@ -39,6 +39,7 @@ const MainApp: React.FC = () => {
     keyPopulations: [] as string[],
     riskFactors: [] as string[],
     keyOrganisations: [] as string[],
+    mentalHealthConditions: [] as string[],
   });
 
   // AI Suggestions State
@@ -125,7 +126,7 @@ const MainApp: React.FC = () => {
     }
 
     // Filter by checkbox categories
-    const checkboxFilterKeys: (keyof Omit<typeof filters, 'startYear'|'endYear'>)[] = ['resourceTypes', 'subjects', 'interventions', 'keyPopulations', 'riskFactors', 'keyOrganisations'];
+    const checkboxFilterKeys: (keyof Omit<typeof filters, 'startYear'|'endYear'>)[] = ['resourceTypes', 'subjects', 'interventions', 'keyPopulations', 'riskFactors', 'keyOrganisations', 'mentalHealthConditions'];
     
     checkboxFilterKeys.forEach(key => {
         const filterValues = filters[key];
@@ -186,6 +187,7 @@ const MainApp: React.FC = () => {
         keyPopulations: getUniqueValues('keyPopulations'),
         riskFactors: getUniqueValues('riskFactors'),
         keyOrganisations: getUniqueValues('keyOrganisations'),
+        mentalHealthConditions: getUniqueValues('mentalHealthConditions'),
     };
   }, [allDocuments]);
 

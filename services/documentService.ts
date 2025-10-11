@@ -46,6 +46,7 @@ const hydrateDocument = (id: string, data: DocumentData): Document => {
     interventions: cleanArray(data.interventions),
     keyPopulations: cleanArray(data.keyPopulations),
     riskFactors: cleanArray(data.riskFactors),
+    mentalHealthConditions: cleanArray(data.mentalHealthConditions),
     keyStats: cleanArray(data.keyStats),
     keyOrganisations: cleanArray(data.keyOrganisations),
   };
