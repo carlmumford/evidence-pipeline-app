@@ -1,5 +1,5 @@
 import React from 'react';
-import { CloseIcon, ExclamationTriangleIcon } from '../../../constants';
+import { ExclamationTriangleIcon } from '../../../constants';
 
 interface ConfirmationDialogProps {
   isOpen: boolean;
