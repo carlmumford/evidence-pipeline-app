@@ -42,7 +42,7 @@ export const EvidenceMap: React.FC<EvidenceMapProps> = ({ documents, onNodeClick
         setIsLocating(true);
         setLocationError(null);
         navigator.geolocation.getCurrentPosition(
-            (position) => {
+            (_position) => {
                 // In a real app, we'd use these coords. Here we just confirm it works.
                 setUserLocationInput('Your Current Location');
                 setIsLocating(false);
