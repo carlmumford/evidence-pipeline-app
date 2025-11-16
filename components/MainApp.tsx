@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Fuse from 'fuse.js';
 import { getDocuments, addDocument } from '../services/documentService';
 import { getSearchSuggestions } from '../services/geminiService';
@@ -13,7 +13,7 @@ import { CitationModal } from './CitationModal';
 import { PDFViewerModal } from './PDFViewerModal';
 import { SavedList } from './SavedList';
 import { DataPage } from './DataPage';
-import { LoadingSpinner, FilterIcon } from '../constants';
+import { FilterIcon } from '../constants';
 import { FilterPills } from './FilterPills';
 
 
