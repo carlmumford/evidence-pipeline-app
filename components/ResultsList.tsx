@@ -56,9 +56,6 @@ export const ResultsList: React.FC<ResultsListProps> = ({
 
   return (
     <div>
-        <div className="px-4 md:px-6 py-2 border-y border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{`Showing ${results.length} of ${totalResults} results`}</p>
-        </div>
       <div className="border-b border-gray-200 dark:border-gray-800">
         {results.map((doc) => (
           <ResultCard 

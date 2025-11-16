@@ -26,6 +26,13 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
   const [mentalHealthConditions, setMentalHealthConditions] = useState('');
   const [keyStats, setKeyStats] = useState('');
   const [keyOrganisations, setKeyOrganisations] = useState('');
+  const [strengthOfEvidence, setStrengthOfEvidence] = useState('');
+  const [sampleSize, setSampleSize] = useState('');
+  const [aim, setAim] = useState('');
+  const [population, setPopulation] = useState('');
+  const [methods, setMethods] = useState('');
+  const [keyFindings, setKeyFindings] = useState('');
+  const [implications, setImplications] = useState('');
 
   const [file, setFile] = useState<File | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
@@ -48,6 +55,13 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
     setMentalHealthConditions('');
     setKeyStats('');
     setKeyOrganisations('');
+    setStrengthOfEvidence('');
+    setSampleSize('');
+    setAim('');
+    setPopulation('');
+    setMethods('');
+    setKeyFindings('');
+    setImplications('');
     setFile(null);
     setIsExtracting(false);
     setExtractionError(null);
@@ -104,6 +118,13 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
       setMentalHealthConditions(extractedData.mentalHealthConditions || '');
       setKeyStats(extractedData.keyStats || '');
       setKeyOrganisations(extractedData.keyOrganisations || '');
+      setStrengthOfEvidence(extractedData.strengthOfEvidence || '');
+      setSampleSize(extractedData.sampleSize || '');
+      setAim(extractedData.aim || '');
+      setPopulation(extractedData.population || '');
+      setMethods(extractedData.methods || '');
+      setKeyFindings(extractedData.keyFindings || '');
+      setImplications(extractedData.implications || '');
       
       if (originalSummary) {
           const simpleSummary = await simplifySummary(originalSummary);
@@ -121,8 +142,8 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !authors || !summary) {
-      alert('Please fill in all required fields.');
+    if (!title || !authors) {
+      alert('Please fill in title and authors.');
       return;
     }
     const newDoc = {
@@ -141,6 +162,13 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
       keyStats: keyStats.split(',').map(s => s.trim()).filter(Boolean),
       keyOrganisations: keyOrganisations.split(',').map(s => s.trim()).filter(Boolean),
       pdfUrl,
+      strengthOfEvidence,
+      sampleSize,
+      aim,
+      population,
+      methods,
+      keyFindings,
+      implications,
     };
     onAddDocument(newDoc);
     handleClose();
@@ -226,9 +254,39 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
                 <input type="text" id="resourceType" value={resourceType} onChange={e => setResourceType(e.target.value)} className={inputClasses} placeholder="e.g., Journal Article"/>
                 </div>
             </div>
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <label htmlFor="strengthOfEvidence" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Strength of Evidence</label>
+                    <input type="text" id="strengthOfEvidence" value={strengthOfEvidence} onChange={e => setStrengthOfEvidence(e.target.value)} className={inputClasses} placeholder="e.g., Systematic Review"/>
+                </div>
+                <div>
+                    <label htmlFor="sampleSize" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sample Size</label>
+                    <input type="text" id="sampleSize" value={sampleSize} onChange={e => setSampleSize(e.target.value)} className={inputClasses} placeholder="e.g., N=250 students"/>
+                </div>
+            </div>
             <div>
                 <label htmlFor="publicationTitle" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Publication Title</label>
                 <input type="text" id="publicationTitle" value={publicationTitle} onChange={e => setPublicationTitle(e.target.value)} className={inputClasses} placeholder="e.g., The Journal of Law & Equity"/>
+            </div>
+            <div>
+                <label htmlFor="aim" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Aim</label>
+                <input type="text" id="aim" value={aim} onChange={e => setAim(e.target.value)} className={inputClasses} />
+            </div>
+             <div>
+                <label htmlFor="population" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Population</label>
+                <input type="text" id="population" value={population} onChange={e => setPopulation(e.target.value)} className={inputClasses} />
+            </div>
+            <div>
+                <label htmlFor="methods" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Methods</label>
+                <input type="text" id="methods" value={methods} onChange={e => setMethods(e.target.value)} className={inputClasses} />
+            </div>
+            <div>
+                <label htmlFor="keyFindings" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Key Findings (semicolon-separated)</label>
+                <textarea id="keyFindings" rows={2} value={keyFindings} onChange={e => setKeyFindings(e.target.value)} className={inputClasses}></textarea>
+            </div>
+             <div>
+                <label htmlFor="implications" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Implications</label>
+                <input type="text" id="implications" value={implications} onChange={e => setImplications(e.target.value)} className={inputClasses} />
             </div>
              <div>
                 <label htmlFor="keyOrganisations" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Key Organisations (comma-separated)</label>
@@ -265,8 +323,8 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onAdd
                 <input type="url" id="pdfUrl" value={pdfUrl} onChange={e => setPdfUrl(e.target.value)} className={inputClasses} placeholder="https://example.com/document.pdf"/>
             </div>
             <div>
-                <label htmlFor="summary" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Summary / Abstract *</label>
-                <textarea id="summary" rows={4} value={summary} onChange={e => setSummary(e.target.value)} className={inputClasses} required></textarea>
+                <label htmlFor="summary" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Summary / Abstract</label>
+                <textarea id="summary" rows={4} value={summary} onChange={e => setSummary(e.target.value)} className={inputClasses}></textarea>
             </div>
             <div className="flex justify-between items-center pt-4 sticky bottom-0 bg-white dark:bg-gray-800 py-4 -mx-2 px-2">
                 <button type="button" onClick={() => { setIsExtracted(false); setFile(null); resetForm(); }} className="px-4 py-2 text-sm text-accent hover:underline font-medium">Upload another</button>

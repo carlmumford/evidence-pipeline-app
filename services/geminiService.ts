@@ -62,20 +62,29 @@ export const extractInfoFromDocument = async (fileData: { mimeType: string; data
     const prompt = `
         You are an AI assistant designed to analyse academic papers and research documents related to the school-to-prison pipeline.
         From the provided document, please extract the following information. Please use British English spelling (e.g., 'organisation', 'centre', 'analyse').
-        1.  **Title**: The main title of the document. If not found, return an empty string.
-        2.  **Authors**: A single string of all authors, separated by commas. If not found, return an empty string.
-        3.  **Year**: The publication year as a number. If not found, return 0.
-        4.  **Summary**: The abstract or a concise summary of the document. If not found, return an empty string.
-        5.  **Publication Title**: The name of the journal, book, or conference where it was published. If not found, return an empty string.
-        6.  **Resource Type**: The type of document (e.g., "Journal Article", "Book Chapter", "Report", "Thesis"). If unsure, classify as "General".
-        7.  **Subjects**: A single string of 3-5 general key subjects or keywords, separated by commas.
-        8.  **Risk Factors**: A single string of 3-5 key risk factors mentioned (e.g., poverty, neurodiversity, exclusion rates, zero tolerance policies), separated by commas.
-        9.  **Key Populations**: A single string of specific demographic or population groups discussed (e.g., students of colour, students with disabilities, low-income students), separated by commas.
-        10. **Mental Health or Neurodivergent Conditions**: A single string of specific conditions mentioned (e.g., ADHD, anxiety, trauma, autism spectrum disorder), separated by commas.
-        11. **Interventions**: A single string of interventions or practices discussed (e.g., restorative justice, policy reform, teacher training), separated by commas.
-        12. **Key Stats**: A single string of 2-3 key statistics or quantitative findings from the paper, separated by commas.
-        13. **Key Organisations**: A single string of specific schools, institutions, or organisations mentioned, separated by commas.
-        14. **Location**: The primary city and country where the research was conducted (e.g., "London, UK"). If not specified, return an empty string.
+        If a field is not found, return an empty string, or 0 for the year.
+
+        1.  **Title**: The main title of the document.
+        2.  **Authors**: A single string of all authors, separated by commas.
+        3.  **Year**: The publication year as a number.
+        4.  **Summary**: The original abstract of the document.
+        5.  **Publication Title**: The name of the journal, book, or conference where it was published.
+        6.  **Resource Type**: The type of document (e.g., "Journal Article", "Book Chapter", "Report", "Thesis").
+        7.  **Strength of Evidence**: The study type (e.g., "Systematic Review", "Randomised Controlled Trial", "Meta-analysis", "Observational Study", "Qualitative Study", "Grey Literature").
+        8.  **Aim**: A concise sentence describing the main objective of the study.
+        9.  **Population**: A brief description of the study's participants or sample.
+        10. **Sample Size**: The total number of participants or units in the study (e.g., "N=250 students", "5 schools").
+        11. **Methods**: A brief summary of the research methodology used.
+        12. **Key Findings**: 2-3 bullet points of the most important results. Return as a single string with points separated by a semicolon ';'.
+        13. **Implications**: A concise sentence on the practical implications or takeaways from the study.
+        14. **Subjects**: A single string of 3-5 general key subjects or keywords, separated by commas.
+        15. **Risk Factors**: A single string of 3-5 key risk factors mentioned (e.g., poverty, neurodiversity, exclusion rates, zero tolerance policies), separated by commas.
+        16. **Key Populations**: A single string of specific demographic or population groups discussed (e.g., students of colour, students with disabilities, low-income students), separated by commas.
+        17. **Mental Health or Neurodivergent Conditions**: A single string of specific conditions mentioned (e.g., ADHD, anxiety, trauma, autism spectrum disorder), separated by commas.
+        18. **Interventions**: A single string of interventions or practices discussed (e.g., restorative justice, policy reform, teacher training), separated by commas.
+        19. **Key Stats**: A single string of 2-3 key statistics or quantitative findings from the paper, separated by commas.
+        20. **Key Organisations**: A single string of specific schools, institutions, or organisations mentioned, separated by commas.
+        21. **Location**: The primary city and country where the research was conducted (e.g., "London, UK").
 
         Provide the output in a clean JSON format. Do not include any explanatory text before or after the JSON object.
     `;
@@ -99,20 +108,27 @@ export const extractInfoFromDocument = async (fileData: { mimeType: string; data
                 responseSchema: {
                     type: Type.OBJECT,
                     properties: {
-                        title: { type: Type.STRING, description: "The main title of the document." },
-                        authors: { type: Type.STRING, description: "A single string of all authors, separated by commas." },
-                        year: { type: Type.NUMBER, description: "The publication year as a number. 0 if not found." },
-                        summary: { type: Type.STRING, description: "The abstract or a concise summary of the document." },
-                        publicationTitle: { type: Type.STRING, description: "The name of the journal, book, or conference." },
-                        resourceType: { type: Type.STRING, description: 'The type of document (e.g., "Journal Article", "Report").' },
-                        subjects: { type: Type.STRING, description: "A single string of key subjects, separated by commas." },
-                        riskFactors: { type: Type.STRING, description: "Key risk factors as a comma-separated string." },
-                        keyPopulations: { type: Type.STRING, description: "Key populations as a comma-separated string." },
-                        mentalHealthConditions: { type: Type.STRING, description: "Mental health or neurodivergent conditions as a comma-separated string." },
-                        interventions: { type: Type.STRING, description: "Interventions or practices as a comma-separated string." },
-                        keyStats: { type: Type.STRING, description: "Key statistics as a comma-separated string." },
-                        keyOrganisations: { type: Type.STRING, description: "Key organisations as a comma-separated string." },
-                        location: { type: Type.STRING, description: "The city and country where the research was conducted." }
+                        title: { type: Type.STRING },
+                        authors: { type: Type.STRING },
+                        year: { type: Type.NUMBER },
+                        summary: { type: Type.STRING },
+                        publicationTitle: { type: Type.STRING },
+                        resourceType: { type: Type.STRING },
+                        strengthOfEvidence: { type: Type.STRING },
+                        aim: { type: Type.STRING },
+                        population: { type: Type.STRING },
+                        sampleSize: { type: Type.STRING },
+                        methods: { type: Type.STRING },
+                        keyFindings: { type: Type.STRING },
+                        implications: { type: Type.STRING },
+                        subjects: { type: Type.STRING },
+                        riskFactors: { type: Type.STRING },
+                        keyPopulations: { type: Type.STRING },
+                        mentalHealthConditions: { type: Type.STRING },
+                        interventions: { type: Type.STRING },
+                        keyStats: { type: Type.STRING },
+                        keyOrganisations: { type: Type.STRING },
+                        location: { type: Type.STRING }
                     }
                 }
             }
@@ -124,14 +140,12 @@ export const extractInfoFromDocument = async (fileData: { mimeType: string; data
 
         const parsedJson = JSON.parse(response.text.trim());
         
-        // Basic type-checking to ensure the AI response is in the expected format
+        // A simple validation to ensure the response is in a usable state
         if (
             parsedJson &&
             typeof parsedJson.title === 'string' &&
             typeof parsedJson.authors === 'string' &&
-            typeof parsedJson.summary === 'string' &&
-            typeof parsedJson.year === 'number' &&
-            typeof parsedJson.location === 'string'
+            typeof parsedJson.year === 'number'
         ) {
             return parsedJson as ExtractedInfo;
         } else {

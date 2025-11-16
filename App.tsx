@@ -12,6 +12,21 @@ const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(authService.isLoggedIn());
   const [view, setView] = useState<'main' | 'admin'>('main');
   const [isInitializing, setIsInitializing] = useState(true);
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const savedTheme = localStorage.getItem('theme');
+    return (savedTheme === 'dark' || savedTheme === 'light') ? savedTheme : 'light';
+  });
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove(theme === 'light' ? 'dark' : 'light');
+    root.classList.add(theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+  
+  const toggleTheme = () => {
+    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
+  };
 
   // A brief delay to prevent UI flash on load
   useEffect(() => {
@@ -62,6 +77,8 @@ const App: React.FC = () => {
             onLogout={handleLogout} 
             view={view}
             setView={setView}
+            theme={theme}
+            toggleTheme={toggleTheme}
         />
         <main>
             <Suspense fallback={

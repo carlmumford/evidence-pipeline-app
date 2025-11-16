@@ -4,8 +4,8 @@ export interface Document {
   id: string;
   title: string;
   authors: string[];
-  summary: string;
-  simplifiedSummary: string;
+  summary: string; // The original abstract
+  simplifiedSummary: string; // The AI-generated simple summary
   year?: number;
   createdAt: Timestamp;
   resourceType: string;
@@ -19,12 +19,21 @@ export interface Document {
   keyStats: string[];
   keyOrganisations: string[];
   location?: string;
+  
+  // New structured fields
+  strengthOfEvidence?: string;
+  sampleSize?: string;
+  aim?: string;
+  population?: string;
+  methods?: string;
+  keyFindings?: string; // Semicolon-separated string from AI
+  implications?: string;
 }
 
 export interface ExtractedInfo {
   title: string;
   authors: string;
-  summary: string;
+  summary: string; // The original abstract
   year: number;
   resourceType: string;
   subjects: string; // AI will extract as a comma-separated string
@@ -36,6 +45,15 @@ export interface ExtractedInfo {
   keyStats: string; // AI will extract as a comma-separated string
   keyOrganisations: string; // AI will extract as a comma-separated string
   location: string;
+
+  // New structured fields
+  strengthOfEvidence: string;
+  sampleSize: string;
+  aim: string;
+  population: string;
+  methods: string;
+  keyFindings: string; // Semicolon-separated string
+  implications: string;
 }
 
 export interface User {

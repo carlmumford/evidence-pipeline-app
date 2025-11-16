@@ -50,6 +50,14 @@ const hydrateDocument = (id: string, data: DocumentData): Document => {
     keyStats: cleanArray(data.keyStats),
     keyOrganisations: cleanArray(data.keyOrganisations),
     location: typeof data.location === 'string' ? data.location : undefined,
+    // New optional fields
+    strengthOfEvidence: typeof data.strengthOfEvidence === 'string' ? data.strengthOfEvidence : undefined,
+    sampleSize: typeof data.sampleSize === 'string' ? data.sampleSize : undefined,
+    aim: typeof data.aim === 'string' ? data.aim : undefined,
+    population: typeof data.population === 'string' ? data.population : undefined,
+    methods: typeof data.methods === 'string' ? data.methods : undefined,
+    keyFindings: typeof data.keyFindings === 'string' ? data.keyFindings : undefined,
+    implications: typeof data.implications === 'string' ? data.implications : undefined,
   };
 };
 

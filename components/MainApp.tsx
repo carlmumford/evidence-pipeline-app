@@ -45,6 +45,7 @@ const MainApp: React.FC = () => {
     keyOrganisations: [],
     mentalHealthConditions: [],
   });
+  const [sortBy, setSortBy] = useState<'relevance' | 'newest' | 'oldest'>('relevance');
 
   // AI Suggestions State
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
@@ -177,8 +178,9 @@ const MainApp: React.FC = () => {
     if (isLoading) return;
 
     let results: Document[] = [];
+    const hasSearchQuery = searchQuery.trim() !== '';
 
-    if (searchQuery.trim()) {
+    if (hasSearchQuery) {
         results = fuse.search(searchQuery).map(result => result.item);
     } else {
         results = [...allDocuments];
@@ -227,13 +229,19 @@ const MainApp: React.FC = () => {
         });
     }
 
-    if (!searchQuery.trim()) {
+    // Default to relevance for search, otherwise newest. User selection overrides.
+    const effectiveSortBy = hasSearchQuery ? sortBy : (sortBy === 'relevance' ? 'newest' : sortBy);
+    
+    if (effectiveSortBy === 'newest') {
         results.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+    } else if (effectiveSortBy === 'oldest') {
+        results.sort((a, b) => a.createdAt.toMillis() - b.createdAt.toMillis());
     }
+    // If 'relevance', we keep the Fuse.js order, so no extra sort is needed.
 
     setFilteredDocuments(results);
     setCurrentPage(1);
-  }, [searchQuery, filters, allDocuments, fuse, isLoading, termMappings]);
+  }, [searchQuery, filters, allDocuments, fuse, isLoading, termMappings, sortBy]);
   
   // Event Handlers
   const handleSearch = (query: string) => {
@@ -383,6 +391,23 @@ const MainApp: React.FC = () => {
 
                     <FilterPills filters={filters} onRemoveFilter={handleRemoveFilter} onClearAll={handleClearFilters} />
                     
+                    <div className="flex justify-between items-center px-4 md:px-6 py-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{`Showing ${paginatedResults.length} of ${filteredDocuments.length} results`}</p>
+                        <div className="flex items-center gap-2">
+                            <label htmlFor="sort-by" className="text-sm font-medium text-gray-600 dark:text-gray-400">Sort by:</label>
+                            <select 
+                                id="sort-by"
+                                value={sortBy}
+                                onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                                className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-sm py-1 pl-2 pr-8 focus:ring-accent focus:border-accent"
+                            >
+                                <option value="relevance" disabled={!searchQuery.trim()}>Relevance</option>
+                                <option value="newest">Newest</option>
+                                <option value="oldest">Oldest</option>
+                            </select>
+                        </div>
+                    </div>
+
                     {searchQuery.length > 2 && (
                         <div className="p-4 md:px-6">
                             <AISuggestions 

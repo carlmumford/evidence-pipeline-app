@@ -107,13 +107,12 @@ export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ document
     
     const allCounts: { [category: string]: Record<string, number> } = {};
 
-    const categories: Exclude<keyof Filters, 'startYear' | 'endYear'>[] = [
+    const categories = [
         'resourceTypes', 'subjects', 'interventions', 'keyPopulations',
         'riskFactors', 'keyOrganisations', 'mentalHealthConditions'
-    ];
+    ] as const;
 
-    // FIX: Changed type to Record<keyof Omit<...>> to correctly type the object and resolve TS error.
-    const docKeys: Record<keyof Omit<Filters, 'startYear' | 'endYear'>, keyof Document> = {
+    const docKeys: Record<typeof categories[number], keyof Document> = {
         resourceTypes: 'resourceType',
         subjects: 'subjects',
         interventions: 'interventions',
@@ -242,7 +241,7 @@ export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ document
                 </div>
                 </FilterSection>
 
-                {options.riskFactors.length > 0 && <FilterSection title="Risk Factor">
+                {options.riskFactors.length > 0 && <FilterSection title="Risk Factor" defaultOpen={true}>
                 <CheckboxFilterGroup items={options.riskFactors} checkedItems={filters.riskFactors} onCheckboxChange={(val) => handleCheckboxChange('riskFactors', val)} counts={filterCounts.riskFactors || {}} />
                 </FilterSection>}
 
