@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { getDocuments, addDocument } from '../services/documentService';
-import { getSearchSuggestions } from '../services/geminiService';
+import { getSearchSuggestions, performAISearch } from '../services/geminiService';
 import { listService } from '../services/listService';
-import type { Document } from '../types';
+import type { Document, Filters } from '../types';
 import { SearchBar } from './SearchBar';
 import { RefineResultsPanel } from './RefineResultsPanel';
 import { ResultsList } from './ResultsList';
@@ -30,17 +30,18 @@ const MainApp: React.FC = () => {
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<Filters>({
     startYear: '',
     endYear: '',
-    resourceTypes: [] as string[],
-    subjects: [] as string[],
-    interventions: [] as string[],
-    keyPopulations: [] as string[],
-    riskFactors: [] as string[],
-    keyOrganisations: [] as string[],
-    mentalHealthConditions: [] as string[],
+    resourceTypes: [],
+    subjects: [],
+    interventions: [],
+    keyPopulations: [],
+    riskFactors: [],
+    keyOrganisations: [],
+    mentalHealthConditions: [],
   });
+  const [isAiSearching, setIsAiSearching] = useState(false);
 
   // AI Suggestions State
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
@@ -98,59 +99,40 @@ const MainApp: React.FC = () => {
     return () => clearTimeout(handler);
   }, [searchQuery, allDocuments]);
   
-  // Filtering logic
-  const applyFilters = useCallback(() => {
-    let docs = [...allDocuments];
-    const query = searchQuery.toLowerCase().trim();
+  // AI-powered search logic
+  const performSearch = useCallback(async () => {
+    setIsAiSearching(true);
+    setError(null);
 
-    // Text search (only if a search has been performed)
-    if (hasSearched && query) {
-      docs = docs.filter(doc => 
-        doc.title.toLowerCase().includes(query) ||
-        doc.summary.toLowerCase().includes(query) ||
-        doc.simplifiedSummary.toLowerCase().includes(query) ||
-        doc.authors.some(author => author.toLowerCase().includes(query)) ||
-        doc.subjects.some(subject => subject.toLowerCase().includes(query)) ||
-        doc.riskFactors.some(rf => rf.toLowerCase().includes(query)) ||
-        doc.interventions.some(i => i.toLowerCase().includes(query)) ||
-        doc.keyPopulations.some(kp => kp.toLowerCase().includes(query))
-      );
+    try {
+        const matchingIds = await performAISearch(searchQuery, filters, allDocuments);
+        
+        // The AI returns IDs. We need to find the full documents and preserve the AI's ranking.
+        const idToDocMap = new Map(allDocuments.map(doc => [doc.id, doc]));
+        const aiFilteredDocs = matchingIds.map(id => idToDocMap.get(id)).filter((doc): doc is Document => !!doc);
+        
+        setFilteredDocuments(aiFilteredDocs);
+        setCurrentPage(1);
+    } catch (err) {
+        setError("AI search failed. Please try again or refine your query.");
+        setFilteredDocuments([]);
+        console.error(err);
+    } finally {
+        setIsAiSearching(false);
     }
+  }, [searchQuery, filters, allDocuments]);
 
-    // Filter by year
-    if (filters.startYear) {
-      docs = docs.filter(doc => doc.year && doc.year >= parseInt(filters.startYear, 10));
-    }
-    if (filters.endYear) {
-      docs = docs.filter(doc => doc.year && doc.year <= parseInt(filters.endYear, 10));
-    }
 
-    // Filter by checkbox categories
-    const checkboxFilterKeys: (keyof Omit<typeof filters, 'startYear'|'endYear'>)[] = ['resourceTypes', 'subjects', 'interventions', 'keyPopulations', 'riskFactors', 'keyOrganisations', 'mentalHealthConditions'];
-    
-    checkboxFilterKeys.forEach(key => {
-        const filterValues = filters[key];
-        if (filterValues.length > 0) {
-            docs = docs.filter(doc => {
-                const docValues = doc[key as keyof Document];
-                if (Array.isArray(docValues)) {
-                    return filterValues.every(val => docValues.includes(val));
-                }
-                if (typeof docValues === 'string') {
-                    return filterValues.includes(docValues);
-                }
-                return false;
-            });
-        }
-    });
-
-    setFilteredDocuments(docs);
-    setCurrentPage(1); // Reset to first page on new filter/search
-  }, [searchQuery, filters, allDocuments, hasSearched]);
-
+  // Effect to trigger AI search on query or filter change
   useEffect(() => {
-    applyFilters();
-  }, [applyFilters]);
+    if (hasSearched && !isLoading) {
+      const handler = setTimeout(() => {
+        performSearch();
+      }, 500); // Debounce to avoid rapid firing on typing or multiple filter clicks
+      return () => clearTimeout(handler);
+    }
+  }, [searchQuery, filters, hasSearched, isLoading, performSearch]);
+
 
   // Event Handlers
   const handleSearch = (query: string) => {
@@ -201,7 +183,7 @@ const MainApp: React.FC = () => {
   }, [filteredDocuments, currentPage]);
 
 
-  if (isLoading && allDocuments.length === 0) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <LoadingSpinner className="h-10 w-10 text-gray-400" />
@@ -209,7 +191,7 @@ const MainApp: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (error && !isAiSearching) {
     return <div className="text-center py-20 text-red-500">{error}</div>;
   }
   
@@ -238,7 +220,7 @@ const MainApp: React.FC = () => {
                     <div className="max-w-3xl mx-auto">
                         <SearchBar 
                             onSearch={handleSearch} 
-                            isLoading={isSuggesting}
+                            isLoading={isSuggesting || isAiSearching}
                             initialQuery={searchQuery}
                         />
                         <AISuggestions 
@@ -246,10 +228,11 @@ const MainApp: React.FC = () => {
                             onSuggestionClick={handleSearch}
                             isLoading={isSuggesting}
                         />
+                         {error && isAiSearching && <div className="text-center py-4 text-red-500">{error}</div>}
                     </div>
                     <ResultsList
                         results={paginatedResults}
-                        isLoading={isLoading}
+                        isLoading={isAiSearching}
                         hasSearched={hasSearched}
                         savedDocIds={savedDocIds}
                         onToggleSave={handleToggleSave}

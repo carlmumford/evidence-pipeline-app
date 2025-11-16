@@ -52,3 +52,15 @@ export interface DiscoveredResearch {
   confidenceScore: number; // A score from 1-100
   sources?: { uri: string; title: string }[]; // From grounding chunks
 }
+
+export interface Filters {
+  startYear: string;
+  endYear: string;
+  resourceTypes: string[];
+  subjects: string[];
+  interventions: string[];
+  keyPopulations: string[];
+  riskFactors: string[];
+  keyOrganisations: string[];
+  mentalHealthConditions: string[];
+}

@@ -1,17 +1,6 @@
 import React, { useState } from 'react';
+import type { Filters } from '../types';
 import { UploadIcon, ListIcon, ChartBarIcon, ChevronDownIcon } from '../constants';
-
-interface Filters {
-  startYear: string;
-  endYear: string;
-  resourceTypes: string[];
-  subjects: string[];
-  interventions: string[];
-  keyPopulations: string[];
-  riskFactors: string[];
-  keyOrganisations: string[];
-  mentalHealthConditions: string[];
-}
 
 interface RefineResultsPanelProps {
   options: {

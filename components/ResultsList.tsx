@@ -35,9 +35,12 @@ export const ResultsList: React.FC<ResultsListProps> = ({
   resultsPerPage,
   onPageChange
 }) => {
-  if (isLoading && results.length === 0 && hasSearched) {
+  if (isLoading) {
     return (
       <div className="border-t border-gray-200 dark:border-gray-800">
+        <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 animate-pulse">
+            <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+        </div>
         {[...Array(5)].map((_, i) => <ResultCardSkeleton key={i} />)}
       </div>
     );
