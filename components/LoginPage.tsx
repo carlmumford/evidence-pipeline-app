@@ -34,7 +34,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <div className="w-full max-w-md">
-        <Logo className="justify-center mb-8" />
+        <Logo className="justify-center mb-8" imgClassName="h-16 w-auto" />
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 md:p-10 border border-gray-200 dark:border-gray-700">
           <div className="text-center mb-8">
             <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">

@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import type { Document, Filters } from '../types';
-import { UploadIcon, ListIcon, ChartBarIcon, ChevronDownIcon, CloseIcon } from '../constants';
+import { UploadIcon, ListIcon, ChartBarIcon, ChevronDownIcon, CloseIcon, ExclamationTriangleIcon } from '../constants';
+import { authService } from '../services/authService';
 
 interface RefineResultsPanelProps {
   documents: Document[];
@@ -67,7 +68,7 @@ const CheckboxFilterGroup: React.FC<{
             className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-accent focus:ring-accent bg-gray-100 dark:bg-gray-800 flex-shrink-0 mt-0.5"
           />
           <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white capitalize">
-            {item} <span className="text-gray-400 dark:text-gray-500">({counts[item] || 0})</span>
+            {item} <span className="text-gray-400 dark:text-gray-500">({counts[item.toLowerCase().trim()] || 0})</span>
           </span>
         </label>
       ))}
@@ -98,7 +99,8 @@ const NavButton: React.FC<{
 
 
 export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ documents, options, filters, onFilterChange, onSetView, onOpenUpload, savedDocCount, currentView, onClose }) => {
-  
+  const currentUser = useMemo(() => authService.getCurrentUser(), []);
+
   const filterCounts = useMemo(() => {
     const counts: { [K in keyof Omit<Filters, 'startYear' | 'endYear'>]?: Record<string, number> } = {};
     
@@ -106,14 +108,23 @@ export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ document
         const categoryCounts: Record<string, number> = {};
         documents.forEach(doc => {
             const values = doc[key];
+            const processedValues = new Set<string>(); // Use a set to count each normalized value only once per document
+
+            const addValueToSet = (val: string) => {
+                if (typeof val === 'string' && val.trim()) {
+                    processedValues.add(val.toLowerCase().trim());
+                }
+            };
+
             if (Array.isArray(values)) {
-                // Use a Set to count each value only once per document
-                new Set(values).forEach(val => {
-                    categoryCounts[val] = (categoryCounts[val] || 0) + 1;
-                });
-            } else if (typeof values === 'string' && values) {
-                categoryCounts[values] = (categoryCounts[values] || 0) + 1;
+                values.forEach(addValueToSet);
+            } else if (typeof values === 'string') {
+                addValueToSet(values);
             }
+
+            processedValues.forEach(normalizedVal => {
+                categoryCounts[normalizedVal] = (categoryCounts[normalizedVal] || 0) + 1;
+            });
         });
         counts[category] = categoryCounts;
     }
@@ -178,8 +189,22 @@ export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ document
             </div>
             <NavButton icon={<UploadIcon />} label="Upload Evidence" onClick={onOpenUpload} isActive={false} />
             <NavButton icon={<ListIcon />} label="My List" onClick={() => onSetView('list')} isActive={currentView === 'list'} badge={savedDocCount}/>
-            <NavButton icon={<ChartBarIcon />} label="Data & Insights" onClick={() => onSetView('data')} isActive={currentView === 'data'}/>
+            {currentUser?.role !== 'trial' && (
+                <NavButton icon={<ChartBarIcon />} label="Data & Insights" onClick={() => onSetView('data')} isActive={currentView === 'data'}/>
+            )}
         </div>
+        
+        {currentUser?.role === 'trial' && (
+             <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+                <a
+                    href="mailto:carl@schooltoprisonpipeline.org"
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors text-white bg-accent hover:bg-accent-hover"
+                >
+                    <ExclamationTriangleIcon className="h-4 w-4" />
+                    Report Bug
+                </a>
+            </div>
+        )}
 
         <div className="flex-grow overflow-y-auto">
             <div className="flex justify-between items-center p-4">

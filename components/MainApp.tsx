@@ -144,7 +144,10 @@ const MainApp: React.FC = () => {
 
             const checkArrayFilter = (docField: string[], filterField: string[]) => {
                 if (filterField.length === 0) return true;
-                return filterField.every(filterItem => docField.includes(filterItem));
+                const lowerDocField = docField.map(f => (typeof f === 'string' ? f.toLowerCase().trim() : ''));
+                return filterField.every(filterItem => 
+                    lowerDocField.includes(filterItem.toLowerCase().trim())
+                );
             };
 
             if (!checkArrayFilter(doc.resourceType ? [doc.resourceType] : [], filters.resourceTypes)) return false;
@@ -220,8 +223,21 @@ const MainApp: React.FC = () => {
   // Memoized values for performance
   const filterOptions = useMemo(() => {
     const getUniqueValues = (key: keyof Document) => {
-        const allValues = allDocuments.flatMap(doc => doc[key] || []);
-        return [...new Set(allValues.filter(Boolean))].sort() as string[];
+        const allValues = allDocuments.flatMap(doc => {
+            const value = doc[key];
+            if (Array.isArray(value)) return value;
+            if (typeof value === 'string') return [value];
+            return [];
+        }).filter(Boolean) as string[];
+
+        const uniqueMap = new Map<string, string>();
+        allValues.forEach(val => {
+            const normalized = val.toLowerCase().trim();
+            if (!uniqueMap.has(normalized)) {
+                uniqueMap.set(normalized, val); // Keep first-encountered casing
+            }
+        });
+        return Array.from(uniqueMap.values()).sort((a, b) => a.localeCompare(b));
     };
     return {
         resourceTypes: getUniqueValues('resourceType'),

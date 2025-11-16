@@ -90,17 +90,13 @@ export const MOCK_DOCUMENTS: Omit<Document, 'id' | 'createdAt'>[] = [
   }
 ];
 
-export const Logo: React.FC<{ className?: string }> = ({ className }) => (
-    <div className={`flex items-center gap-2 ${className}`}>
-        <div className="w-8 h-8 flex-shrink-0">
-            <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M14 2.33331C7.54833 2.33331 2.33333 7.54831 2.33333 14C2.33333 20.4516 7.54833 25.6666 14 25.6666C20.4517 25.6666 25.6667 20.4516 25.6667 14C25.6667 7.54831 20.4517 2.33331 14 2.33331ZM14 23.3333C8.84 23.3333 4.66667 19.16 4.66667 14C4.66667 8.84 8.84 4.66665 14 4.66665C19.16 4.66665 23.3333 8.84 23.3333 14C23.3333 19.16 19.16 23.3333 14 23.3333Z" fill="currentColor"/>
-                <path d="M15.1667 12.8333L18.6667 9.33331L17.5 8.16665L14 11.6666L10.5 8.16665L9.33333 9.33331L12.8333 12.8333L9.33333 16.3333L10.5 17.5L14 14L17.5 17.5L18.6667 16.3333L15.1667 12.8333Z" fill="currentColor"/>
-            </svg>
-        </div>
-        <span className="text-lg font-semibold tracking-tight text-gray-800 dark:text-gray-100 whitespace-nowrap">
-            Evidence Project
-        </span>
+export const Logo: React.FC<{ className?: string; imgClassName?: string }> = ({ className, imgClassName }) => (
+    <div className={`flex items-center ${className}`}>
+        <img 
+            src="https://schooltoprisonpipeline.org/wp-content/uploads/2025/11/applogo.png" 
+            alt="School to Prison Pipeline Evidence Project Logo"
+            className={imgClassName || "h-12 w-auto"} 
+        />
     </div>
 );
 

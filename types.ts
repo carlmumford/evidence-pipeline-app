@@ -41,7 +41,7 @@ export interface ExtractedInfo {
 export interface User {
     username: string;
     password?: string; // Optional because we don't always expose it
-    role: 'admin' | 'editor';
+    role: 'admin' | 'editor' | 'trial';
 }
 
 export interface DiscoveredResearch {

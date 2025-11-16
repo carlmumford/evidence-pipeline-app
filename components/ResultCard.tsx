@@ -25,7 +25,7 @@ const IconButton: React.FC<{
   const content = (
     <>
       {children}
-      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max px-2 py-1 bg-gray-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 group-hover:z-50 transition-opacity pointer-events-none">
+      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-max px-2 py-1 bg-gray-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 group-hover:z-50 transition-opacity pointer-events-none">
         {tooltip}
       </span>
     </>
@@ -100,7 +100,7 @@ export const ResultCard: React.FC<ResultCardProps> = ({ document, isSaved, onTog
                 </div>
             )}
             
-            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                  <IconButton 
                     href={document.pdfUrl} 
                     disabled={!document.pdfUrl || document.pdfUrl === '#'} 

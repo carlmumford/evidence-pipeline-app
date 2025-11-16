@@ -14,7 +14,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ initialUsers, on
     const [searchQuery, setSearchQuery] = useState('');
     const [newUsername, setNewUsername] = useState('');
     const [newUserPassword, setNewUserPassword] = useState('');
-    const [newUserRole, setNewUserRole] = useState<'admin' | 'editor'>('editor');
+    const [newUserRole, setNewUserRole] = useState<'admin' | 'editor' | 'trial'>('editor');
     const { addToast } = useToast();
 
     const filteredUsers = useMemo(() => {
@@ -72,9 +72,10 @@ export const UserManagement: React.FC<UserManagementProps> = ({ initialUsers, on
                         </div>
                         <div>
                             <label className="block text-sm font-medium mb-1" htmlFor="new-user-role">Role</label>
-                            <select id="new-user-role" value={newUserRole} onChange={e => setNewUserRole(e.target.value as 'admin' | 'editor')} className={inputClasses}>
+                            <select id="new-user-role" value={newUserRole} onChange={e => setNewUserRole(e.target.value as 'admin' | 'editor' | 'trial')} className={inputClasses}>
                                 <option value="editor">Editor</option>
                                 <option value="admin">Admin</option>
+                                <option value="trial">Trial</option>
                             </select>
                         </div>
                         <div className="text-right pt-2">

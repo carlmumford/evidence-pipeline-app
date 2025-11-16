@@ -4,6 +4,7 @@ import { Card } from './shared/Card';
 import { DocumentIcon, TrashIcon, EyeIcon, SearchIcon, ChevronUpIcon, ChevronsUpDownIcon, ChevronDownIcon } from '../../constants';
 import { deleteDocument } from '../../services/documentService';
 import { useToast } from '../../contexts/ToastContext';
+import { authService } from '../../services/authService';
 
 type SortKey = keyof Pick<Document, 'title' | 'authors' | 'year'>;
 type SortDirection = 'asc' | 'desc';
@@ -19,6 +20,7 @@ export const DocumentManagement: React.FC<DocumentManagementProps> = ({ initialD
     const [sortKey, setSortKey] = useState<SortKey>('title');
     const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
     const { addToast } = useToast();
+    const currentUser = useMemo(() => authService.getCurrentUser(), []);
 
     const sortedAndFilteredDocuments = useMemo(() => {
         let docs = [...initialDocuments].filter(doc =>
@@ -116,7 +118,8 @@ export const DocumentManagement: React.FC<DocumentManagementProps> = ({ initialD
                                         <button onClick={() => onViewPdf(doc)} className="p-1 text-gray-500 hover:text-accent" title="View PDF"><EyeIcon className="h-4 w-4" /></button>
                                         <button 
                                             onClick={() => handleDeleteDocument(doc.id, doc.title)}
-                                            className="p-1 text-gray-500 hover:text-red-500"
+                                            disabled={currentUser?.role === 'trial'}
+                                            className="p-1 text-gray-500 hover:text-red-500 disabled:opacity-30 disabled:cursor-not-allowed"
                                             aria-label={`Delete ${doc.title}`}
                                             title="Delete document"
                                         >
