@@ -75,6 +75,7 @@ export const extractInfoFromDocument = async (fileData: { mimeType: string; data
         11. **Interventions**: A single string of interventions or practices discussed (e.g., restorative justice, policy reform, teacher training), separated by commas.
         12. **Key Stats**: A single string of 2-3 key statistics or quantitative findings from the paper, separated by commas.
         13. **Key Organisations**: A single string of specific schools, institutions, or organisations mentioned, separated by commas.
+        14. **Location**: The primary city and country where the research was conducted (e.g., "London, UK"). If not specified, return an empty string.
 
         Provide the output in a clean JSON format. Do not include any explanatory text before or after the JSON object.
     `;
@@ -110,7 +111,8 @@ export const extractInfoFromDocument = async (fileData: { mimeType: string; data
                         mentalHealthConditions: { type: Type.STRING, description: "Mental health or neurodivergent conditions as a comma-separated string." },
                         interventions: { type: Type.STRING, description: "Interventions or practices as a comma-separated string." },
                         keyStats: { type: Type.STRING, description: "Key statistics as a comma-separated string." },
-                        keyOrganisations: { type: Type.STRING, description: "Key organisations as a comma-separated string." }
+                        keyOrganisations: { type: Type.STRING, description: "Key organisations as a comma-separated string." },
+                        location: { type: Type.STRING, description: "The city and country where the research was conducted." }
                     }
                 }
             }
@@ -128,7 +130,8 @@ export const extractInfoFromDocument = async (fileData: { mimeType: string; data
             typeof parsedJson.title === 'string' &&
             typeof parsedJson.authors === 'string' &&
             typeof parsedJson.summary === 'string' &&
-            typeof parsedJson.year === 'number'
+            typeof parsedJson.year === 'number' &&
+            typeof parsedJson.location === 'string'
         ) {
             return parsedJson as ExtractedInfo;
         } else {

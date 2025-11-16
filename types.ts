@@ -18,6 +18,7 @@ export interface Document {
   mentalHealthConditions: string[];
   keyStats: string[];
   keyOrganisations: string[];
+  location?: string;
 }
 
 export interface ExtractedInfo {
@@ -34,6 +35,7 @@ export interface ExtractedInfo {
   mentalHealthConditions: string; // AI will extract as a comma-separated string
   keyStats: string; // AI will extract as a comma-separated string
   keyOrganisations: string; // AI will extract as a comma-separated string
+  location: string;
 }
 
 export interface User {

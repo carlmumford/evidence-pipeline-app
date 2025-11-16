@@ -1,5 +1,5 @@
-import React from 'react';
-import { UploadIcon, ListIcon, ChartBarIcon } from '../constants';
+import React, { useState } from 'react';
+import { UploadIcon, ListIcon, ChartBarIcon, ChevronDownIcon } from '../constants';
 
 interface Filters {
   startYear: string;
@@ -31,14 +31,32 @@ interface RefineResultsPanelProps {
   currentView: 'search' | 'list' | 'data';
 }
 
-const FilterSection: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-  <div className="py-4">
-    <h4 className="px-4 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3">{title}</h4>
-    <div className="px-4">
-        {children}
-    </div>
-  </div>
-);
+const FilterSection: React.FC<{ title: string; children: React.ReactNode; defaultOpen?: boolean }> = ({ title, children, defaultOpen = false }) => {
+    const [isOpen, setIsOpen] = useState(defaultOpen);
+  
+    return (
+      <div className="py-4">
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="w-full flex justify-between items-center px-4"
+            aria-expanded={isOpen}
+            aria-controls={`filter-section-${title.replace(/\s+/g, '-')}`}
+          >
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{title}</h4>
+              <ChevronDownIcon className={`h-5 w-5 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+          </button>
+        
+        {isOpen && (
+          <div 
+            id={`filter-section-${title.replace(/\s+/g, '-')}`}
+            className="mt-3 px-4"
+          >
+            {children}
+          </div>
+        )}
+      </div>
+    );
+};
 
 const CheckboxFilterGroup: React.FC<{
   items: string[];
@@ -138,7 +156,7 @@ export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ options,
             </div>
 
             <div className="divide-y divide-gray-200 dark:divide-gray-800">
-                <FilterSection title="Publication Year">
+                <FilterSection title="Publication Year" defaultOpen={true}>
                 <div className="flex items-center gap-2">
                     <input type="number" placeholder="From" value={filters.startYear} onChange={e => handleYearChange(e, 'start')} className="w-full input-style" />
                     <span className="text-gray-400">-</span>

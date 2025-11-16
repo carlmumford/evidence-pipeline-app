@@ -1,7 +1,6 @@
 import React from 'react';
 import type { Document } from '../types';
 import { PipelineInfographic } from './PipelineInfographic';
-import { TrendCharts } from './TrendCharts';
 import { TopicBreakdownCharts } from './DataVisualizations';
 import { EvidenceMap } from './EvidenceMap';
 
@@ -43,17 +42,10 @@ export const DataPage: React.FC<DataPageProps> = ({ documents, onSearch, onRetur
             </Section>
 
             <Section
-                title="Evidence Map"
-                description="This experimental network graph visualizes connections between documents. Papers that share common themes are linked together. Click a node to search for that document."
+                title="Global Evidence Map"
+                description="Explore where research has been conducted. Enter your location or use the location button to see research near you, or click on a marker to discover studies from that area."
             >
                 <EvidenceMap documents={documents} onNodeClick={onSearch} />
-            </Section>
-
-            <Section
-                title="Trends Over Time"
-                description="Visualize how research focus and publication volume have evolved. These charts are generated from the metadata of all documents in the evidence library."
-            >
-                <TrendCharts documents={documents} />
             </Section>
             
             <Section

@@ -16,13 +16,14 @@ export const MOCK_DOCUMENTS: Omit<Document, 'id' | 'createdAt'>[] = [
     interventions: ['legal reform', 'policy changes'],
     keyPopulations: ['students from disadvantaged backgrounds', 'students of colour'],
     riskFactors: ['punitive school policies', 'racial disparity'],
-    mentalHealthConditions: ['conduct disorder'],
+    mentalHealthConditions: ['conduct disorder', 'Dyspraxia'],
     keyStats: [
         'Students of colour are 3.5 times more likely to be suspended than white students.',
         'Schools with zero-tolerance policies have higher rates of expulsion for minor infractions.',
         'A 10% increase in graduation rates corresponds to a 9% decline in criminal arrest rates.'
     ],
-    keyOrganisations: ['Charles Hamilton Houston Institute']
+    keyOrganisations: ['Charles Hamilton Houston Institute'],
+    location: 'Cambridge, MA, USA',
   },
   {
     title: 'Zero Tolerance, High Stakes, and the School-to-Prison Pipeline',
@@ -37,12 +38,13 @@ export const MOCK_DOCUMENTS: Omit<Document, 'id' | 'createdAt'>[] = [
     interventions: ['policy analysis'],
     keyPopulations: ['general student population'],
     riskFactors: ['zero tolerance policies', 'suspension', 'expulsion'],
-    mentalHealthConditions: ['oppositional defiant disorder'],
+    mentalHealthConditions: ['oppositional defiant disorder', 'Traumatic Brain Injury'],
     keyStats: [
         'Over 95% of out-of-school suspensions are for nonviolent, minor disruptions such as tardiness or dress code violations.',
         'Schools with higher suspension rates do not have better academic outcomes.',
     ],
-    keyOrganisations: []
+    keyOrganisations: [],
+    location: 'Bloomington, IN, USA',
   },
   {
     title: 'Race, Disability, and the School-to-Prison Pipeline',
@@ -57,12 +59,13 @@ export const MOCK_DOCUMENTS: Omit<Document, 'id' | 'createdAt'>[] = [
     interventions: ['disciplinary policy reform'],
     keyPopulations: ['students of colour', 'students with disabilities'],
     riskFactors: ['racial disparity', 'disability discrimination', 'intersectionality'],
-    mentalHealthConditions: ['ADHD', 'emotional disturbance'],
+    mentalHealthConditions: ['ADHD', 'emotional disturbance', 'Autism', 'Dyslexia'],
     keyStats: [
         'Black students represent 16% of student enrolment but 31% of school-related arrests.',
         'Students with disabilities are twice as likely to receive an out-of-school suspension than students without disabilities.',
     ],
-    keyOrganisations: []
+    keyOrganisations: [],
+    location: 'San Francisco, CA, USA',
   },
   {
     title: 'Dismantling the School-to-Prison Pipeline: A Restorative Justice Approach',
@@ -77,12 +80,13 @@ export const MOCK_DOCUMENTS: Omit<Document, 'id' | 'createdAt'>[] = [
     interventions: ['restorative justice'],
     keyPopulations: ['school communities'],
     riskFactors: ['punitive disciplinary measures', 'school conflict'],
-    mentalHealthConditions: ['trauma'],
+    mentalHealthConditions: ['trauma', 'Foetal Alcohol Syndrome', 'Acquired Brain Injury'],
     keyStats: [
         'Schools using restorative justice have seen suspension rates drop by as much as 40%.',
         'Restorative practices can improve school climate and teacher-student relationships.',
     ],
-    keyOrganisations: ['The Advancement Project']
+    keyOrganisations: ['The Advancement Project'],
+    location: 'Washington, D.C., USA',
   }
 ];
 

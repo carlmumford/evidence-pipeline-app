@@ -49,6 +49,7 @@ const hydrateDocument = (id: string, data: DocumentData): Document => {
     mentalHealthConditions: cleanArray(data.mentalHealthConditions),
     keyStats: cleanArray(data.keyStats),
     keyOrganisations: cleanArray(data.keyOrganisations),
+    location: typeof data.location === 'string' ? data.location : undefined,
   };
 };
 
