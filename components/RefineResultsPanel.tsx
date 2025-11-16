@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import type { Filters } from '../types';
-import { UploadIcon, ListIcon, ChartBarIcon, ChevronDownIcon } from '../constants';
+import React, { useState, useMemo } from 'react';
+import type { Document, Filters } from '../types';
+import { UploadIcon, ListIcon, ChartBarIcon, ChevronDownIcon, CloseIcon } from '../constants';
 
 interface RefineResultsPanelProps {
+  documents: Document[];
   options: {
     resourceTypes: string[];
     subjects: string[];
@@ -18,6 +19,7 @@ interface RefineResultsPanelProps {
   onOpenUpload: () => void;
   savedDocCount: number;
   currentView: 'search' | 'list' | 'data';
+  onClose: () => void;
 }
 
 const FilterSection: React.FC<{ title: string; children: React.ReactNode; defaultOpen?: boolean }> = ({ title, children, defaultOpen = false }) => {
@@ -51,7 +53,8 @@ const CheckboxFilterGroup: React.FC<{
   items: string[];
   checkedItems: string[];
   onCheckboxChange: (value: string) => void;
-}> = ({ items, checkedItems, onCheckboxChange }) => {
+  counts: Record<string, number>;
+}> = ({ items, checkedItems, onCheckboxChange, counts }) => {
   if (items.length === 0) return <p className="text-sm text-gray-400">No options available</p>;
   return (
     <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
@@ -63,7 +66,9 @@ const CheckboxFilterGroup: React.FC<{
             onChange={() => onCheckboxChange(item)}
             className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-accent focus:ring-accent bg-gray-100 dark:bg-gray-800 flex-shrink-0 mt-0.5"
           />
-          <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white capitalize">{item}</span>
+          <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white capitalize">
+            {item} <span className="text-gray-400 dark:text-gray-500">({counts[item] || 0})</span>
+          </span>
         </label>
       ))}
     </div>
@@ -92,7 +97,38 @@ const NavButton: React.FC<{
 );
 
 
-export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ options, filters, onFilterChange, onSetView, onOpenUpload, savedDocCount, currentView }) => {
+export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ documents, options, filters, onFilterChange, onSetView, onOpenUpload, savedDocCount, currentView, onClose }) => {
+  
+  const filterCounts = useMemo(() => {
+    const counts: { [K in keyof Omit<Filters, 'startYear' | 'endYear'>]?: Record<string, number> } = {};
+    
+    const countValues = (key: keyof Document, category: keyof typeof counts) => {
+        const categoryCounts: Record<string, number> = {};
+        documents.forEach(doc => {
+            const values = doc[key];
+            if (Array.isArray(values)) {
+                // Use a Set to count each value only once per document
+                new Set(values).forEach(val => {
+                    categoryCounts[val] = (categoryCounts[val] || 0) + 1;
+                });
+            } else if (typeof values === 'string' && values) {
+                categoryCounts[values] = (categoryCounts[values] || 0) + 1;
+            }
+        });
+        counts[category] = categoryCounts;
+    }
+
+    countValues('resourceType', 'resourceTypes');
+    countValues('subjects', 'subjects');
+    countValues('interventions', 'interventions');
+    countValues('keyPopulations', 'keyPopulations');
+    countValues('riskFactors', 'riskFactors');
+    countValues('keyOrganisations', 'keyOrganisations');
+    countValues('mentalHealthConditions', 'mentalHealthConditions');
+
+    return counts;
+
+  }, [documents]);
   
   const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'start' | 'end') => {
     const value = e.target.value;
@@ -129,11 +165,20 @@ export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ options,
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900/50">
         <div className="p-4 space-y-2 border-b border-gray-200 dark:border-gray-800">
-             <NavButton icon={<UploadIcon />} label="Upload Evidence" onClick={onOpenUpload} isActive={false} />
-             <NavButton icon={<ListIcon />} label="My List" onClick={() => onSetView('list')} isActive={currentView === 'list'} badge={savedDocCount}/>
-             <NavButton icon={<ChartBarIcon />} label="Data & Insights" onClick={() => onSetView('data')} isActive={currentView === 'data'}/>
+            <div className="flex justify-end lg:hidden mb-2">
+                <button 
+                    onClick={onClose} 
+                    className="p-1 text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                    aria-label="Close filters"
+                >
+                    <CloseIcon />
+                </button>
+            </div>
+            <NavButton icon={<UploadIcon />} label="Upload Evidence" onClick={onOpenUpload} isActive={false} />
+            <NavButton icon={<ListIcon />} label="My List" onClick={() => onSetView('list')} isActive={currentView === 'list'} badge={savedDocCount}/>
+            <NavButton icon={<ChartBarIcon />} label="Data & Insights" onClick={() => onSetView('data')} isActive={currentView === 'data'}/>
         </div>
 
         <div className="flex-grow overflow-y-auto">
@@ -154,31 +199,31 @@ export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ options,
                 </FilterSection>
 
                 {options.riskFactors.length > 0 && <FilterSection title="Risk Factor">
-                <CheckboxFilterGroup items={options.riskFactors} checkedItems={filters.riskFactors} onCheckboxChange={(val) => handleCheckboxChange('riskFactors', val)} />
+                <CheckboxFilterGroup items={options.riskFactors} checkedItems={filters.riskFactors} onCheckboxChange={(val) => handleCheckboxChange('riskFactors', val)} counts={filterCounts.riskFactors || {}} />
                 </FilterSection>}
 
                 {options.mentalHealthConditions.length > 0 && <FilterSection title="Mental Health / Neurodiversity">
-                    <CheckboxFilterGroup items={options.mentalHealthConditions} checkedItems={filters.mentalHealthConditions} onCheckboxChange={(val) => handleCheckboxChange('mentalHealthConditions', val)} />
+                    <CheckboxFilterGroup items={options.mentalHealthConditions} checkedItems={filters.mentalHealthConditions} onCheckboxChange={(val) => handleCheckboxChange('mentalHealthConditions', val)} counts={filterCounts.mentalHealthConditions || {}}/>
                 </FilterSection>}
 
                 {options.interventions.length > 0 && <FilterSection title="Intervention">
-                    <CheckboxFilterGroup items={options.interventions} checkedItems={filters.interventions} onCheckboxChange={(val) => handleCheckboxChange('interventions', val)} />
+                    <CheckboxFilterGroup items={options.interventions} checkedItems={filters.interventions} onCheckboxChange={(val) => handleCheckboxChange('interventions', val)} counts={filterCounts.interventions || {}}/>
                 </FilterSection>}
 
                 {options.keyPopulations.length > 0 && <FilterSection title="Key Population">
-                    <CheckboxFilterGroup items={options.keyPopulations} checkedItems={filters.keyPopulations} onCheckboxChange={(val) => handleCheckboxChange('keyPopulations', val)} />
+                    <CheckboxFilterGroup items={options.keyPopulations} checkedItems={filters.keyPopulations} onCheckboxChange={(val) => handleCheckboxChange('keyPopulations', val)} counts={filterCounts.keyPopulations || {}}/>
                 </FilterSection>}
 
                 {options.keyOrganisations.length > 0 && <FilterSection title="Key Organisation">
-                    <CheckboxFilterGroup items={options.keyOrganisations} checkedItems={filters.keyOrganisations} onCheckboxChange={(val) => handleCheckboxChange('keyOrganisations', val)} />
+                    <CheckboxFilterGroup items={options.keyOrganisations} checkedItems={filters.keyOrganisations} onCheckboxChange={(val) => handleCheckboxChange('keyOrganisations', val)} counts={filterCounts.keyOrganisations || {}}/>
                 </FilterSection>}
                 
                 {options.resourceTypes.length > 0 && <FilterSection title="Resource Type">
-                    <CheckboxFilterGroup items={options.resourceTypes} checkedItems={filters.resourceTypes} onCheckboxChange={(val) => handleCheckboxChange('resourceTypes', val)} />
+                    <CheckboxFilterGroup items={options.resourceTypes} checkedItems={filters.resourceTypes} onCheckboxChange={(val) => handleCheckboxChange('resourceTypes', val)} counts={filterCounts.resourceTypes || {}}/>
                 </FilterSection>}
 
                 {options.subjects.length > 0 && <FilterSection title="Subject">
-                    <CheckboxFilterGroup items={options.subjects} checkedItems={filters.subjects} onCheckboxChange={(val) => handleCheckboxChange('subjects', val)} />
+                    <CheckboxFilterGroup items={options.subjects} checkedItems={filters.subjects} onCheckboxChange={(val) => handleCheckboxChange('subjects', val)} counts={filterCounts.subjects || {}}/>
                 </FilterSection>}
             </div>
         </div>

@@ -2,12 +2,10 @@ import React from 'react';
 import type { Document } from '../types';
 import { ResultCard, ResultCardSkeleton } from './ResultCard';
 import { Pagination } from './Pagination';
-import { SearchIcon } from '../constants';
 
 interface ResultsListProps {
   results: Document[];
   isLoading: boolean;
-  hasSearched: boolean;
   savedDocIds: string[];
   onToggleSave: (doc: Document) => void;
   onCite: (doc: Document) => void;
@@ -23,7 +21,6 @@ interface ResultsListProps {
 export const ResultsList: React.FC<ResultsListProps> = ({ 
   results, 
   isLoading, 
-  hasSearched,
   savedDocIds,
   onToggleSave,
   onCite,
@@ -41,17 +38,7 @@ export const ResultsList: React.FC<ResultsListProps> = ({
         <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 animate-pulse">
             <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
         </div>
-        {[...Array(5)].map((_, i) => <ResultCardSkeleton key={i} />)}
-      </div>
-    );
-  }
-
-  if (!hasSearched) {
-    return (
-      <div className="text-center py-20 px-6">
-        <SearchIcon className="h-12 w-12 text-gray-300 dark:text-gray-700 mx-auto mb-4"/>
-        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Ready for discovery?</h3>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">Enter a search term above to find relevant documents.</p>
+        {[...Array(10)].map((_, i) => <ResultCardSkeleton key={i} />)}
       </div>
     );
   }
@@ -69,7 +56,7 @@ export const ResultsList: React.FC<ResultsListProps> = ({
 
   return (
     <div>
-        <div className="px-4 py-2 border-y border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
+        <div className="px-4 md:px-6 py-2 border-y border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
             <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{`Showing ${results.length} of ${totalResults} results`}</p>
         </div>
       <div className="border-b border-gray-200 dark:border-gray-800">

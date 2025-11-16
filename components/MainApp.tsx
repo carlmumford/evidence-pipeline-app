@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import Fuse from 'fuse.js';
 import { getDocuments, addDocument } from '../services/documentService';
-import { getSearchSuggestions, performAISearch } from '../services/geminiService';
+import { getSearchSuggestions } from '../services/geminiService';
 import { listService } from '../services/listService';
 import type { Document, Filters } from '../types';
 import { SearchBar } from './SearchBar';
@@ -12,7 +13,9 @@ import { CitationModal } from './CitationModal';
 import { PDFViewerModal } from './PDFViewerModal';
 import { SavedList } from './SavedList';
 import { DataPage } from './DataPage';
-import { LoadingSpinner } from '../constants';
+import { LoadingSpinner, FilterIcon } from '../constants';
+import { FilterPills } from './FilterPills';
+
 
 const MainApp: React.FC = () => {
   // Data state
@@ -26,10 +29,10 @@ const MainApp: React.FC = () => {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [citationDoc, setCitationDoc] = useState<Document | null>(null);
   const [pdfDoc, setPdfDoc] = useState<Document | null>(null);
+  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
-  const [hasSearched, setHasSearched] = useState(false);
   const [filters, setFilters] = useState<Filters>({
     startYear: '',
     endYear: '',
@@ -41,7 +44,6 @@ const MainApp: React.FC = () => {
     keyOrganisations: [],
     mentalHealthConditions: [],
   });
-  const [isAiSearching, setIsAiSearching] = useState(false);
 
   // AI Suggestions State
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
@@ -62,7 +64,6 @@ const MainApp: React.FC = () => {
         setError(null);
         const docs = await getDocuments();
         setAllDocuments(docs);
-        setFilteredDocuments(docs); // Initially, all documents are shown
       } catch (err) {
         setError('Failed to load documents. Please try refreshing the page.');
         console.error(err);
@@ -98,47 +99,79 @@ const MainApp: React.FC = () => {
 
     return () => clearTimeout(handler);
   }, [searchQuery, allDocuments]);
-  
-  // AI-powered search logic
-  const performSearch = useCallback(async () => {
-    setIsAiSearching(true);
-    setError(null);
 
-    try {
-        const matchingIds = await performAISearch(searchQuery, filters, allDocuments);
-        
-        // The AI returns IDs. We need to find the full documents and preserve the AI's ranking.
-        const idToDocMap = new Map(allDocuments.map(doc => [doc.id, doc]));
-        const aiFilteredDocs = matchingIds.map(id => idToDocMap.get(id)).filter((doc): doc is Document => !!doc);
-        
-        setFilteredDocuments(aiFilteredDocs);
-        setCurrentPage(1);
-    } catch (err) {
-        setError("AI search failed. Please try again or refine your query.");
-        setFilteredDocuments([]);
-        console.error(err);
-    } finally {
-        setIsAiSearching(false);
-    }
-  }, [searchQuery, filters, allDocuments]);
+  const fuse = useMemo(() => {
+    const options = {
+        keys: [
+            'title', 
+            'authors', 
+            'summary', 
+            'subjects', 
+            'riskFactors', 
+            'interventions', 
+            'keyPopulations',
+            'publicationTitle',
+            'keyOrganisations',
+            'mentalHealthConditions'
+        ],
+        includeScore: true,
+        threshold: 0.4,
+        ignoreLocation: true,
+    };
+    return new Fuse(allDocuments, options);
+  }, [allDocuments]);
 
-
-  // Effect to trigger AI search on query or filter change
   useEffect(() => {
-    if (hasSearched && !isLoading) {
-      const handler = setTimeout(() => {
-        performSearch();
-      }, 500); // Debounce to avoid rapid firing on typing or multiple filter clicks
-      return () => clearTimeout(handler);
+    if (isLoading) return;
+
+    let results: Document[] = [];
+
+    if (searchQuery.trim()) {
+        results = fuse.search(searchQuery).map(result => result.item);
+    } else {
+        results = [...allDocuments];
     }
-  }, [searchQuery, filters, hasSearched, isLoading, performSearch]);
+    
+    const hasActiveFilters = 
+        filters.startYear ||
+        filters.endYear ||
+        Object.values(filters).some(value => Array.isArray(value) && value.length > 0);
 
+    if (hasActiveFilters) {
+        results = results.filter(doc => {
+            if (filters.startYear && doc.year && doc.year < parseInt(filters.startYear, 10)) return false;
+            if (filters.endYear && doc.year && doc.year > parseInt(filters.endYear, 10)) return false;
 
+            const checkArrayFilter = (docField: string[], filterField: string[]) => {
+                if (filterField.length === 0) return true;
+                return filterField.every(filterItem => docField.includes(filterItem));
+            };
+
+            if (!checkArrayFilter(doc.resourceType ? [doc.resourceType] : [], filters.resourceTypes)) return false;
+            if (!checkArrayFilter(doc.subjects, filters.subjects)) return false;
+            if (!checkArrayFilter(doc.interventions, filters.interventions)) return false;
+            if (!checkArrayFilter(doc.keyPopulations, filters.keyPopulations)) return false;
+            if (!checkArrayFilter(doc.riskFactors, filters.riskFactors)) return false;
+            if (!checkArrayFilter(doc.keyOrganisations, filters.keyOrganisations)) return false;
+            if (!checkArrayFilter(doc.mentalHealthConditions, filters.mentalHealthConditions)) return false;
+
+            return true;
+        });
+    }
+
+    if (!searchQuery.trim()) {
+        results.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+    }
+
+    setFilteredDocuments(results);
+    setCurrentPage(1);
+  }, [searchQuery, filters, allDocuments, fuse, isLoading]);
+  
   // Event Handlers
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    setHasSearched(true);
     setView('search');
+    setIsFilterPanelOpen(false);
   };
   
   const handleAddDocument = async (newDocData: Omit<Document, 'id' | 'createdAt'>) => {
@@ -154,6 +187,34 @@ const MainApp: React.FC = () => {
   const handleToggleSave = (doc: Document) => {
     const newSavedIds = listService.toggleSaved(doc.id);
     setSavedDocIds(newSavedIds);
+  };
+
+  const handleRemoveFilter = (category: keyof Filters, valueToRemove: string) => {
+    setFilters(prevFilters => {
+        const newFilters = { ...prevFilters };
+        if (category === 'startYear' || category === 'endYear') {
+            newFilters.startYear = '';
+            newFilters.endYear = '';
+        } else {
+            const currentValues = prevFilters[category] as string[];
+            (newFilters[category] as string[]) = currentValues.filter(v => v !== valueToRemove);
+        }
+        return newFilters;
+    });
+  };
+
+  const handleClearFilters = () => {
+    setFilters({
+        startYear: '',
+        endYear: '',
+        resourceTypes: [],
+        subjects: [],
+        interventions: [],
+        keyPopulations: [],
+        riskFactors: [],
+        keyOrganisations: [],
+        mentalHealthConditions: [],
+    });
   };
   
   // Memoized values for performance
@@ -182,16 +243,7 @@ const MainApp: React.FC = () => {
     return filteredDocuments.slice(startIndex, startIndex + RESULTS_PER_PAGE);
   }, [filteredDocuments, currentPage]);
 
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <LoadingSpinner className="h-10 w-10 text-gray-400" />
-      </div>
-    );
-  }
-
-  if (error && !isAiSearching) {
+  if (error) {
     return <div className="text-center py-20 text-red-500">{error}</div>;
   }
   
@@ -216,24 +268,39 @@ const MainApp: React.FC = () => {
         case 'search':
         default:
             return (
-                <div className="p-4 md:p-6">
-                    <div className="max-w-3xl mx-auto">
-                        <SearchBar 
-                            onSearch={handleSearch} 
-                            isLoading={isSuggesting || isAiSearching}
-                            initialQuery={searchQuery}
-                        />
-                        <AISuggestions 
-                            suggestions={aiSuggestions}
-                            onSuggestionClick={handleSearch}
-                            isLoading={isSuggesting}
-                        />
-                         {error && isAiSearching && <div className="text-center py-4 text-red-500">{error}</div>}
+                <>
+                    <div className="p-4 md:px-6 md:py-4 sticky top-16 bg-white dark:bg-gray-900 z-20 border-b border-gray-200 dark:border-gray-800">
+                        <div className="flex gap-4 items-center">
+                            <SearchBar 
+                                onQueryChange={setSearchQuery}
+                                query={searchQuery} 
+                                isLoading={isSuggesting}
+                            />
+                            <button 
+                                onClick={() => setIsFilterPanelOpen(true)}
+                                className="lg:hidden flex-shrink-0 flex items-center gap-2 px-3 py-3 bg-gray-100 dark:bg-gray-800 rounded-md text-sm font-medium"
+                                aria-label="Open filters"
+                            >
+                                <FilterIcon />
+                            </button>
+                        </div>
                     </div>
+
+                    <FilterPills filters={filters} onRemoveFilter={handleRemoveFilter} onClearAll={handleClearFilters} />
+                    
+                    {searchQuery.length > 2 && (
+                        <div className="p-4 md:px-6">
+                            <AISuggestions 
+                                suggestions={aiSuggestions}
+                                onSuggestionClick={handleSearch}
+                                isLoading={isSuggesting}
+                            />
+                        </div>
+                    )}
+
                     <ResultsList
                         results={paginatedResults}
-                        isLoading={isAiSearching}
-                        hasSearched={hasSearched}
+                        isLoading={isLoading}
                         savedDocIds={savedDocIds}
                         onToggleSave={handleToggleSave}
                         onCite={setCitationDoc}
@@ -245,15 +312,22 @@ const MainApp: React.FC = () => {
                         resultsPerPage={RESULTS_PER_PAGE}
                         onPageChange={setCurrentPage}
                     />
-                </div>
+                </>
             );
     }
   };
 
   return (
     <div className="lg:flex">
-      <aside className="hidden lg:block lg:w-1/4 xl:w-1/5 h-[calc(100vh-4rem)] sticky top-16 flex-shrink-0 bg-gray-50 dark:bg-gray-900/50 border-r border-gray-200 dark:border-gray-800">
+      {/* Mobile filter panel overlay */}
+      <div 
+        className={`fixed inset-0 bg-black/60 z-30 lg:hidden ${isFilterPanelOpen ? 'block' : 'hidden'}`}
+        onClick={() => setIsFilterPanelOpen(false)}
+        aria-hidden="true"
+      />
+      <aside className={`fixed top-0 left-0 w-full max-w-sm h-full z-40 transform transition-transform duration-300 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] lg:translate-x-0 lg:max-w-none lg:w-72 xl:w-80 flex-shrink-0 border-r border-gray-200 dark:border-gray-800 ${isFilterPanelOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <RefineResultsPanel 
+            documents={allDocuments}
             options={filterOptions}
             filters={filters}
             onFilterChange={setFilters}
@@ -261,9 +335,11 @@ const MainApp: React.FC = () => {
             onOpenUpload={() => setIsUploadModalOpen(true)}
             savedDocCount={savedDocIds.length}
             currentView={view}
+            onClose={() => setIsFilterPanelOpen(false)}
         />
       </aside>
-      <main className="w-full flex-grow lg:h-[calc(100vh-4rem)] lg:overflow-y-auto">
+      
+      <main className="w-full flex-grow">
         {renderMainContent()}
       </main>
 
