@@ -103,45 +103,61 @@ export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ document
   const currentUser = useMemo(() => authService.getCurrentUser(), []);
 
   const filterCounts = useMemo(() => {
-    if (!termMappings) return {};
-
-    const counts: { [K in keyof Omit<Filters, 'startYear' | 'endYear'>]?: Record<string, number> } = {};
+    if (!documents || documents.length === 0) return {};
     
-    const countValues = (docKey: keyof Document, category: keyof typeof termMappings) => {
-        const categoryCounts: Record<string, number> = {};
-        const mappingsForCategory = termMappings[category];
-        if (!mappingsForCategory) return;
+    const allCounts: { [category: string]: Record<string, number> } = {};
 
+    const categories: Exclude<keyof Filters, 'startYear' | 'endYear'>[] = [
+        'resourceTypes', 'subjects', 'interventions', 'keyPopulations',
+        'riskFactors', 'keyOrganisations', 'mentalHealthConditions'
+    ];
+
+    // FIX: Changed type to Record<keyof Omit<...>> to correctly type the object and resolve TS error.
+    const docKeys: Record<keyof Omit<Filters, 'startYear' | 'endYear'>, keyof Document> = {
+        resourceTypes: 'resourceType',
+        subjects: 'subjects',
+        interventions: 'interventions',
+        keyPopulations: 'keyPopulations',
+        riskFactors: 'riskFactors',
+        keyOrganisations: 'keyOrganisations',
+        mentalHealthConditions: 'mentalHealthConditions',
+    };
+
+    categories.forEach(category => {
+        const docKey = docKeys[category];
+        const categoryCounts: Record<string, number> = {};
+        
         documents.forEach(doc => {
             const values = doc[docKey];
             const docValues = Array.isArray(values) ? values : (typeof values === 'string' && values ? [values] : []);
             
-            const canonicalTermsInDoc = new Set<string>();
-
-            docValues.forEach(term => {
-                const canonicalTerm = mappingsForCategory[term.toLowerCase().trim()];
-                if (canonicalTerm) {
-                    canonicalTermsInDoc.add(canonicalTerm);
+            // If mappings are available, count based on the canonical term.
+            if (termMappings) {
+                const mappingsForCategory = termMappings[category];
+                if (mappingsForCategory) {
+                    const canonicalTermsInDoc = new Set<string>();
+                    docValues.forEach(term => {
+                        const canonicalTerm = mappingsForCategory[term.toLowerCase().trim()];
+                        if (canonicalTerm) {
+                            canonicalTermsInDoc.add(canonicalTerm);
+                        }
+                    });
+                    canonicalTermsInDoc.forEach(canonicalTerm => {
+                        categoryCounts[canonicalTerm] = (categoryCounts[canonicalTerm] || 0) + 1;
+                    });
                 }
-            });
-
-            canonicalTermsInDoc.forEach(canonicalTerm => {
-                categoryCounts[canonicalTerm] = (categoryCounts[canonicalTerm] || 0) + 1;
-            });
+            } 
+            // Before mappings arrive, count each raw term individually.
+            else {
+                docValues.forEach(term => {
+                    categoryCounts[term] = (categoryCounts[term] || 0) + 1;
+                });
+            }
         });
-        counts[category as keyof typeof counts] = categoryCounts;
-    }
+        allCounts[category] = categoryCounts;
+    });
 
-    countValues('resourceType', 'resourceTypes');
-    countValues('subjects', 'subjects');
-    countValues('interventions', 'interventions');
-    countValues('keyPopulations', 'keyPopulations');
-    countValues('riskFactors', 'riskFactors');
-    countValues('keyOrganisations', 'keyOrganisations');
-    countValues('mentalHealthConditions', 'mentalHealthConditions');
-
-    return counts;
-
+    return allCounts;
   }, [documents, termMappings]);
   
   const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'start' | 'end') => {

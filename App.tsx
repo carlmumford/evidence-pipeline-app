@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { authService } from './services/authService';
-import LoginPage from './components/LoginPage';
-import MainApp from './components/MainApp';
-import AdminPanel from './components/AdminPanel';
 import { Header } from './components/Header';
 import { LoadingSpinner } from './constants';
 import { ToastProvider } from './contexts/ToastContext';
+
+const LoginPage = lazy(() => import('./components/LoginPage'));
+const MainApp = lazy(() => import('./components/MainApp'));
+const AdminPanel = lazy(() => import('./components/AdminPanel'));
 
 const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(authService.isLoggedIn());
@@ -39,8 +40,18 @@ const App: React.FC = () => {
       );
   }
 
+  const suspenseFallback = (
+    <div className="min-h-screen bg-white dark:bg-gray-900 flex justify-center items-center">
+        <LoadingSpinner className="h-10 w-10 text-gray-400"/>
+    </div>
+  );
+
   if (!isLoggedIn) {
-    return <LoginPage onLogin={handleLogin} />;
+    return (
+        <Suspense fallback={suspenseFallback}>
+            <LoginPage onLogin={handleLogin} />
+        </Suspense>
+    );
   }
 
   return (
@@ -53,7 +64,13 @@ const App: React.FC = () => {
             setView={setView}
         />
         <main>
-            {view === 'admin' ? <AdminPanel /> : <MainApp />}
+            <Suspense fallback={
+                <div className="flex justify-center items-center p-8 min-h-[calc(100vh-4rem)]">
+                    <LoadingSpinner className="h-8 w-8 text-accent" />
+                </div>
+            }>
+                {view === 'admin' ? <AdminPanel /> : <MainApp />}
+            </Suspense>
         </main>
         </div>
     </ToastProvider>

@@ -57,16 +57,29 @@ const MainApp: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const RESULTS_PER_PAGE = 10;
 
-  // Initial data fetch and term normalization
+  // STEP 1: Fetch critical data (documents) immediately to unblock UI.
   useEffect(() => {
-    const fetchAndProcessData = async () => {
+    const fetchDocs = async () => {
       try {
         setIsLoading(true);
         setError(null);
         const docs = await getDocuments();
         setAllDocuments(docs);
-        
-        // After getting docs, generate and fetch term mappings
+      } catch (err) {
+        setError('Failed to load documents. Please try refreshing the page.');
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchDocs();
+  }, []);
+  
+  // STEP 2: Once documents are loaded, run non-blocking AI normalization in the background.
+  useEffect(() => {
+    if (allDocuments.length === 0) return;
+
+    const normalizeTermsInBackground = async () => {
         const categoriesToNormalize: Record<string, string[]> = {
             resourceTypes: [], subjects: [], interventions: [], keyPopulations: [],
             riskFactors: [], keyOrganisations: [], mentalHealthConditions: [],
@@ -74,7 +87,7 @@ const MainApp: React.FC = () => {
         
         const tempUniqueValues: Record<string, Set<string>> = {};
 
-        docs.forEach(doc => {
+        allDocuments.forEach(doc => {
             Object.keys(categoriesToNormalize).forEach(key => {
                 if (!tempUniqueValues[key]) tempUniqueValues[key] = new Set();
                 const value = doc[key as keyof Document];
@@ -90,15 +103,28 @@ const MainApp: React.FC = () => {
         const mappings = await normalizeFilterTerms(categoriesToNormalize);
         setTermMappings(mappings);
 
-      } catch (err) {
-        setError('Failed to load documents or AI term mappings. Please try refreshing the page.');
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
+        // After getting mappings, translate any currently active filters to their canonical form.
+        setFilters(currentFilters => {
+            const newFilters = { ...currentFilters };
+            Object.keys(mappings).forEach(category => {
+                const categoryMapping = mappings[category as keyof typeof mappings];
+                const oldFilterValues = currentFilters[category as keyof Filters] as string[];
+                
+                if (Array.isArray(oldFilterValues) && oldFilterValues.length > 0 && categoryMapping) {
+                    const newCanonicalValues = new Set(
+                        oldFilterValues
+                            .map(oldValue => categoryMapping[oldValue.toLowerCase()])
+                            .filter(Boolean)
+                    );
+                    (newFilters[category as keyof Filters] as string[]) = Array.from(newCanonicalValues);
+                }
+            });
+            return newFilters;
+        });
     };
-    fetchAndProcessData();
-  }, []);
+
+    normalizeTermsInBackground();
+  }, [allDocuments]);
 
   // Debounced AI suggestions fetch
   useEffect(() => {
@@ -148,7 +174,7 @@ const MainApp: React.FC = () => {
   }, [allDocuments]);
 
   useEffect(() => {
-    if (isLoading || !termMappings) return;
+    if (isLoading) return;
 
     let results: Document[] = [];
 
@@ -168,19 +194,25 @@ const MainApp: React.FC = () => {
             if (filters.startYear && doc.year && doc.year < parseInt(filters.startYear, 10)) return false;
             if (filters.endYear && doc.year && doc.year > parseInt(filters.endYear, 10)) return false;
             
-            const checkArrayFilter = (docField: string[] | string | undefined, filterField: string[], category: keyof typeof termMappings) => {
+            const checkArrayFilter = (docField: string[] | string | undefined, filterField: string[], category: keyof Filters) => {
                 if (filterField.length === 0) return true;
-                
-                const mappingsForCategory = termMappings[category];
-                if (!mappingsForCategory) return true; // Fail open if mappings don't exist
-
                 const docValues = Array.isArray(docField) ? docField : (docField ? [docField] : []);
-                
-                const canonicalDocTerms = new Set(
-                    docValues.map(term => mappingsForCategory[term.toLowerCase().trim()]).filter(Boolean)
-                );
 
-                return filterField.every(filterItem => canonicalDocTerms.has(filterItem));
+                // If mappings are ready, use them for robust filtering.
+                if (termMappings) {
+                    const mappingsForCategory = termMappings[category];
+                    if (!mappingsForCategory) return true; // Fail open if mappings don't exist
+
+                    const canonicalDocTerms = new Set(
+                        docValues.map(term => mappingsForCategory[term.toLowerCase().trim()]).filter(Boolean)
+                    );
+                    return filterField.every(filterItem => canonicalDocTerms.has(filterItem));
+                } 
+                // Before mappings are ready, perform a simple, direct match.
+                else {
+                    const docTerms = new Set(docValues);
+                    return filterField.every(filterItem => docTerms.has(filterItem));
+                }
             };
 
             if (!checkArrayFilter(doc.resourceType, filters.resourceTypes, 'resourceTypes')) return false;
@@ -255,18 +287,34 @@ const MainApp: React.FC = () => {
   
   // Memoized values for performance
   const filterOptions = useMemo(() => {
+    const getRawUniqueValues = (key: keyof Document) => {
+        const valueSet = new Set<string>();
+        allDocuments.forEach(doc => {
+            const value = doc[key];
+            const values = Array.isArray(value) ? value : (typeof value === 'string' ? [value] : []);
+            values.forEach(v => v && valueSet.add(v));
+        });
+        return Array.from(valueSet).sort((a, b) => a.localeCompare(b));
+    };
+
+    // Before AI normalization is done, show the raw, un-grouped filter options.
     if (!termMappings) {
         return {
-            resourceTypes: [], subjects: [], interventions: [], keyPopulations: [],
-            riskFactors: [], keyOrganisations: [], mentalHealthConditions: [],
+            resourceTypes: getRawUniqueValues('resourceType'),
+            subjects: getRawUniqueValues('subjects'),
+            interventions: getRawUniqueValues('interventions'),
+            keyPopulations: getRawUniqueValues('keyPopulations'),
+            riskFactors: getRawUniqueValues('riskFactors'),
+            keyOrganisations: getRawUniqueValues('keyOrganisations'),
+            mentalHealthConditions: getRawUniqueValues('mentalHealthConditions'),
         };
     }
 
+    // After AI normalization, show the clean, canonical filter options.
     const getCanonicalValues = (category: keyof typeof termMappings) => {
         const mappingsForCategory = termMappings[category];
         if (!mappingsForCategory) return [];
         const canonicalValues = new Set(Object.values(mappingsForCategory));
-        // FIX: Explicitly type sort parameters to resolve 'unknown' type error.
         return Array.from(canonicalValues).sort((a: string, b: string) => a.localeCompare(b));
     };
 
@@ -279,7 +327,7 @@ const MainApp: React.FC = () => {
         keyOrganisations: getCanonicalValues('keyOrganisations'),
         mentalHealthConditions: getCanonicalValues('mentalHealthConditions'),
     };
-  }, [termMappings]);
+  }, [allDocuments, termMappings]);
 
   const savedDocuments = useMemo(() => {
     return allDocuments.filter(doc => savedDocIds.includes(doc.id));
@@ -347,7 +395,7 @@ const MainApp: React.FC = () => {
 
                     <ResultsList
                         results={paginatedResults}
-                        isLoading={isLoading || !termMappings}
+                        isLoading={isLoading}
                         savedDocIds={savedDocIds}
                         onToggleSave={handleToggleSave}
                         onCite={setCitationDoc}
