@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Fuse from 'fuse.js';
 import { getDocuments, addDocument } from '../services/documentService';
-import { getSearchSuggestions } from '../services/geminiService';
+import { getSearchSuggestions, normalizeFilterTerms } from '../services/geminiService';
 import { listService } from '../services/listService';
 import type { Document, Filters } from '../types';
 import { SearchBar } from './SearchBar';
@@ -23,6 +23,7 @@ const MainApp: React.FC = () => {
   const [filteredDocuments, setFilteredDocuments] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [termMappings, setTermMappings] = useState<Record<string, Record<string, string>> | null>(null);
 
   // UI State
   const [view, setView] = useState<'search' | 'list' | 'data'>('search');
@@ -56,22 +57,47 @@ const MainApp: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const RESULTS_PER_PAGE = 10;
 
-  // Initial data fetch
+  // Initial data fetch and term normalization
   useEffect(() => {
-    const fetchDocuments = async () => {
+    const fetchAndProcessData = async () => {
       try {
         setIsLoading(true);
         setError(null);
         const docs = await getDocuments();
         setAllDocuments(docs);
+        
+        // After getting docs, generate and fetch term mappings
+        const categoriesToNormalize: Record<string, string[]> = {
+            resourceTypes: [], subjects: [], interventions: [], keyPopulations: [],
+            riskFactors: [], keyOrganisations: [], mentalHealthConditions: [],
+        };
+        
+        const tempUniqueValues: Record<string, Set<string>> = {};
+
+        docs.forEach(doc => {
+            Object.keys(categoriesToNormalize).forEach(key => {
+                if (!tempUniqueValues[key]) tempUniqueValues[key] = new Set();
+                const value = doc[key as keyof Document];
+                const values = Array.isArray(value) ? value : (typeof value === 'string' ? [value] : []);
+                values.forEach(v => v && tempUniqueValues[key].add(v));
+            });
+        });
+        
+        Object.keys(tempUniqueValues).forEach(key => {
+            categoriesToNormalize[key] = Array.from(tempUniqueValues[key]);
+        });
+        
+        const mappings = await normalizeFilterTerms(categoriesToNormalize);
+        setTermMappings(mappings);
+
       } catch (err) {
-        setError('Failed to load documents. Please try refreshing the page.');
+        setError('Failed to load documents or AI term mappings. Please try refreshing the page.');
         console.error(err);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchDocuments();
+    fetchAndProcessData();
   }, []);
 
   // Debounced AI suggestions fetch
@@ -122,7 +148,7 @@ const MainApp: React.FC = () => {
   }, [allDocuments]);
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || !termMappings) return;
 
     let results: Document[] = [];
 
@@ -141,22 +167,29 @@ const MainApp: React.FC = () => {
         results = results.filter(doc => {
             if (filters.startYear && doc.year && doc.year < parseInt(filters.startYear, 10)) return false;
             if (filters.endYear && doc.year && doc.year > parseInt(filters.endYear, 10)) return false;
-
-            const checkArrayFilter = (docField: string[], filterField: string[]) => {
+            
+            const checkArrayFilter = (docField: string[] | string | undefined, filterField: string[], category: keyof typeof termMappings) => {
                 if (filterField.length === 0) return true;
-                const lowerDocField = docField.map(f => (typeof f === 'string' ? f.toLowerCase().trim() : ''));
-                return filterField.every(filterItem => 
-                    lowerDocField.includes(filterItem.toLowerCase().trim())
+                
+                const mappingsForCategory = termMappings[category];
+                if (!mappingsForCategory) return true; // Fail open if mappings don't exist
+
+                const docValues = Array.isArray(docField) ? docField : (docField ? [docField] : []);
+                
+                const canonicalDocTerms = new Set(
+                    docValues.map(term => mappingsForCategory[term.toLowerCase().trim()]).filter(Boolean)
                 );
+
+                return filterField.every(filterItem => canonicalDocTerms.has(filterItem));
             };
 
-            if (!checkArrayFilter(doc.resourceType ? [doc.resourceType] : [], filters.resourceTypes)) return false;
-            if (!checkArrayFilter(doc.subjects, filters.subjects)) return false;
-            if (!checkArrayFilter(doc.interventions, filters.interventions)) return false;
-            if (!checkArrayFilter(doc.keyPopulations, filters.keyPopulations)) return false;
-            if (!checkArrayFilter(doc.riskFactors, filters.riskFactors)) return false;
-            if (!checkArrayFilter(doc.keyOrganisations, filters.keyOrganisations)) return false;
-            if (!checkArrayFilter(doc.mentalHealthConditions, filters.mentalHealthConditions)) return false;
+            if (!checkArrayFilter(doc.resourceType, filters.resourceTypes, 'resourceTypes')) return false;
+            if (!checkArrayFilter(doc.subjects, filters.subjects, 'subjects')) return false;
+            if (!checkArrayFilter(doc.interventions, filters.interventions, 'interventions')) return false;
+            if (!checkArrayFilter(doc.keyPopulations, filters.keyPopulations, 'keyPopulations')) return false;
+            if (!checkArrayFilter(doc.riskFactors, filters.riskFactors, 'riskFactors')) return false;
+            if (!checkArrayFilter(doc.keyOrganisations, filters.keyOrganisations, 'keyOrganisations')) return false;
+            if (!checkArrayFilter(doc.mentalHealthConditions, filters.mentalHealthConditions, 'mentalHealthConditions')) return false;
 
             return true;
         });
@@ -168,7 +201,7 @@ const MainApp: React.FC = () => {
 
     setFilteredDocuments(results);
     setCurrentPage(1);
-  }, [searchQuery, filters, allDocuments, fuse, isLoading]);
+  }, [searchQuery, filters, allDocuments, fuse, isLoading, termMappings]);
   
   // Event Handlers
   const handleSearch = (query: string) => {
@@ -222,33 +255,31 @@ const MainApp: React.FC = () => {
   
   // Memoized values for performance
   const filterOptions = useMemo(() => {
-    const getUniqueValues = (key: keyof Document) => {
-        const allValues = allDocuments.flatMap(doc => {
-            const value = doc[key];
-            if (Array.isArray(value)) return value;
-            if (typeof value === 'string') return [value];
-            return [];
-        }).filter(Boolean) as string[];
+    if (!termMappings) {
+        return {
+            resourceTypes: [], subjects: [], interventions: [], keyPopulations: [],
+            riskFactors: [], keyOrganisations: [], mentalHealthConditions: [],
+        };
+    }
 
-        const uniqueMap = new Map<string, string>();
-        allValues.forEach(val => {
-            const normalized = val.toLowerCase().trim();
-            if (!uniqueMap.has(normalized)) {
-                uniqueMap.set(normalized, val); // Keep first-encountered casing
-            }
-        });
-        return Array.from(uniqueMap.values()).sort((a, b) => a.localeCompare(b));
+    const getCanonicalValues = (category: keyof typeof termMappings) => {
+        const mappingsForCategory = termMappings[category];
+        if (!mappingsForCategory) return [];
+        const canonicalValues = new Set(Object.values(mappingsForCategory));
+        // FIX: Explicitly type sort parameters to resolve 'unknown' type error.
+        return Array.from(canonicalValues).sort((a: string, b: string) => a.localeCompare(b));
     };
+
     return {
-        resourceTypes: getUniqueValues('resourceType'),
-        subjects: getUniqueValues('subjects'),
-        interventions: getUniqueValues('interventions'),
-        keyPopulations: getUniqueValues('keyPopulations'),
-        riskFactors: getUniqueValues('riskFactors'),
-        keyOrganisations: getUniqueValues('keyOrganisations'),
-        mentalHealthConditions: getUniqueValues('mentalHealthConditions'),
+        resourceTypes: getCanonicalValues('resourceTypes'),
+        subjects: getCanonicalValues('subjects'),
+        interventions: getCanonicalValues('interventions'),
+        keyPopulations: getCanonicalValues('keyPopulations'),
+        riskFactors: getCanonicalValues('riskFactors'),
+        keyOrganisations: getCanonicalValues('keyOrganisations'),
+        mentalHealthConditions: getCanonicalValues('mentalHealthConditions'),
     };
-  }, [allDocuments]);
+  }, [termMappings]);
 
   const savedDocuments = useMemo(() => {
     return allDocuments.filter(doc => savedDocIds.includes(doc.id));
@@ -316,7 +347,7 @@ const MainApp: React.FC = () => {
 
                     <ResultsList
                         results={paginatedResults}
-                        isLoading={isLoading}
+                        isLoading={isLoading || !termMappings}
                         savedDocIds={savedDocIds}
                         onToggleSave={handleToggleSave}
                         onCite={setCitationDoc}
@@ -352,6 +383,7 @@ const MainApp: React.FC = () => {
             savedDocCount={savedDocIds.length}
             currentView={view}
             onClose={() => setIsFilterPanelOpen(false)}
+            termMappings={termMappings}
         />
       </aside>
       

@@ -21,6 +21,7 @@ interface RefineResultsPanelProps {
   savedDocCount: number;
   currentView: 'search' | 'list' | 'data';
   onClose: () => void;
+  termMappings: Record<string, Record<string, string>> | null;
 }
 
 const FilterSection: React.FC<{ title: string; children: React.ReactNode; defaultOpen?: boolean }> = ({ title, children, defaultOpen = false }) => {
@@ -68,7 +69,7 @@ const CheckboxFilterGroup: React.FC<{
             className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-accent focus:ring-accent bg-gray-100 dark:bg-gray-800 flex-shrink-0 mt-0.5"
           />
           <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white capitalize">
-            {item} <span className="text-gray-400 dark:text-gray-500">({counts[item.toLowerCase().trim()] || 0})</span>
+            {item} <span className="text-gray-400 dark:text-gray-500">({counts[item] || 0})</span>
           </span>
         </label>
       ))}
@@ -98,35 +99,37 @@ const NavButton: React.FC<{
 );
 
 
-export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ documents, options, filters, onFilterChange, onSetView, onOpenUpload, savedDocCount, currentView, onClose }) => {
+export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ documents, options, filters, onFilterChange, onSetView, onOpenUpload, savedDocCount, currentView, onClose, termMappings }) => {
   const currentUser = useMemo(() => authService.getCurrentUser(), []);
 
   const filterCounts = useMemo(() => {
+    if (!termMappings) return {};
+
     const counts: { [K in keyof Omit<Filters, 'startYear' | 'endYear'>]?: Record<string, number> } = {};
     
-    const countValues = (key: keyof Document, category: keyof typeof counts) => {
+    const countValues = (docKey: keyof Document, category: keyof typeof termMappings) => {
         const categoryCounts: Record<string, number> = {};
+        const mappingsForCategory = termMappings[category];
+        if (!mappingsForCategory) return;
+
         documents.forEach(doc => {
-            const values = doc[key];
-            const processedValues = new Set<string>(); // Use a set to count each normalized value only once per document
+            const values = doc[docKey];
+            const docValues = Array.isArray(values) ? values : (typeof values === 'string' && values ? [values] : []);
+            
+            const canonicalTermsInDoc = new Set<string>();
 
-            const addValueToSet = (val: string) => {
-                if (typeof val === 'string' && val.trim()) {
-                    processedValues.add(val.toLowerCase().trim());
+            docValues.forEach(term => {
+                const canonicalTerm = mappingsForCategory[term.toLowerCase().trim()];
+                if (canonicalTerm) {
+                    canonicalTermsInDoc.add(canonicalTerm);
                 }
-            };
+            });
 
-            if (Array.isArray(values)) {
-                values.forEach(addValueToSet);
-            } else if (typeof values === 'string') {
-                addValueToSet(values);
-            }
-
-            processedValues.forEach(normalizedVal => {
-                categoryCounts[normalizedVal] = (categoryCounts[normalizedVal] || 0) + 1;
+            canonicalTermsInDoc.forEach(canonicalTerm => {
+                categoryCounts[canonicalTerm] = (categoryCounts[canonicalTerm] || 0) + 1;
             });
         });
-        counts[category] = categoryCounts;
+        counts[category as keyof typeof counts] = categoryCounts;
     }
 
     countValues('resourceType', 'resourceTypes');
@@ -139,7 +142,7 @@ export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ document
 
     return counts;
 
-  }, [documents]);
+  }, [documents, termMappings]);
   
   const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'start' | 'end') => {
     const value = e.target.value;

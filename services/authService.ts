@@ -17,7 +17,7 @@ export const authService = {
         const users = localStorage.getItem(USERS_KEY);
         if (!users) {
             const defaultUsers: UserStore = {
-                admin: { password: 'admin', role: 'admin' }
+                admin: { password: 's2ppadmin', role: 'admin' }
             };
             localStorage.setItem(USERS_KEY, JSON.stringify(defaultUsers));
         }

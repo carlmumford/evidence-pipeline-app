@@ -95,9 +95,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             </div>
           </form>
         </div>
-        <p className="text-center text-xs text-gray-500 mt-6">
-            Default credentials are admin / admin
-        </p>
       </div>
     </div>
   );

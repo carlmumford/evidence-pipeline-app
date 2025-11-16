@@ -20,7 +20,7 @@ const IconButton: React.FC<{
   'aria-label': string;
   tooltip: string;
 }> = ({ onClick, href, disabled, children, 'aria-label': ariaLabel, tooltip }) => {
-  const commonClasses = "p-2 rounded-md transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-800 dark:hover:text-gray-100 group relative";
+  const commonClasses = "px-3 py-2 rounded-md transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-800 dark:hover:text-gray-100 group relative";
 
   const content = (
     <>
@@ -100,7 +100,7 @@ export const ResultCard: React.FC<ResultCardProps> = ({ document, isSaved, onTog
                 </div>
             )}
             
-            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                  <IconButton 
                     href={document.pdfUrl} 
                     disabled={!document.pdfUrl || document.pdfUrl === '#'} 

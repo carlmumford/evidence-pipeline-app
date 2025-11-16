@@ -242,3 +242,56 @@ export const findRecentResearch = async (): Promise<DiscoveredResearch[]> => {
         throw new Error("Could not find recent research.");
     }
 };
+
+export const normalizeFilterTerms = async (
+    categoriesWithTerms: Record<string, string[]>
+): Promise<Record<string, Record<string, string>>> => {
+    const prompt = `
+        You are an AI assistant specializing in social science research and data normalization. Your task is to consolidate similar or synonymous filter terms into a single, representative term for better user experience.
+
+        For each category provided below, analyse the list of terms. Group together terms that are semantically similar, plural/singular variations, or refer to the same concept. For each group, choose one single, clear, and representative name (the "canonical term"). Use British English spelling where appropriate.
+
+        For example, within 'Key Populations', terms like "Black Students" and "Black Youth" should be grouped under a single canonical term like "Black Youth". Within 'Risk Factors', "Zero Tolerance Policies" and "zero-tolerance policies" should be grouped under "Zero Tolerance Policies".
+
+        Return your response as a single, valid JSON object. The keys of this object should be the category names I provide. The value for each category key should be another JSON object that serves as a mapping, where each key is an original term from my list (converted to lowercase) and its value is the chosen canonical term (with proper casing).
+
+        Every single original term provided must be present as a key in the mapping for its respective category.
+
+        Here are the categories and terms:
+        ${JSON.stringify(categoriesWithTerms, null, 2)}
+    `;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+            }
+        });
+
+        if (!response.text) {
+            throw new Error("AI response was empty for term normalization.");
+        }
+
+        const parsedJson = JSON.parse(response.text.trim());
+        
+        if (typeof parsedJson === 'object' && parsedJson !== null && !Array.isArray(parsedJson)) {
+            return parsedJson as Record<string, Record<string, string>>;
+        } else {
+             throw new Error("AI response for term normalization was not in the expected object format.");
+        }
+
+    } catch (error) {
+        console.error("Error normalizing filter terms with Gemini API:", error);
+        // Fallback: return a mapping that doesn't change anything
+        const fallbackMapping: Record<string, Record<string, string>> = {};
+        for (const category in categoriesWithTerms) {
+            fallbackMapping[category] = {};
+            categoriesWithTerms[category].forEach(term => {
+                fallbackMapping[category][term.toLowerCase()] = term;
+            });
+        }
+        return fallbackMapping;
+    }
+};
