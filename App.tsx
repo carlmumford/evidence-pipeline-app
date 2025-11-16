@@ -5,6 +5,7 @@ import MainApp from './components/MainApp';
 import AdminPanel from './components/AdminPanel';
 import { Header } from './components/Header';
 import { LoadingSpinner } from './constants';
+import { ToastProvider } from './contexts/ToastContext';
 
 const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(authService.isLoggedIn());
@@ -43,17 +44,19 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans">
-      <Header 
-        isLoggedIn={isLoggedIn} 
-        onLogout={handleLogout} 
-        view={view}
-        setView={setView}
-      />
-      <main>
-        {view === 'admin' ? <div className="container mx-auto p-4 md:p-8"><AdminPanel /></div> : <MainApp />}
-      </main>
-    </div>
+    <ToastProvider>
+        <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans">
+        <Header 
+            isLoggedIn={isLoggedIn} 
+            onLogout={handleLogout} 
+            view={view}
+            setView={setView}
+        />
+        <main>
+            {view === 'admin' ? <AdminPanel /> : <MainApp />}
+        </main>
+        </div>
+    </ToastProvider>
   );
 };
 
