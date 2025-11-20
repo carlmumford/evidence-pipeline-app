@@ -1,5 +1,3 @@
-
-
 import { GoogleGenAI, Type } from "@google/genai";
 import type { Document, ExtractedInfo, DiscoveredResearch } from '../types';
 
@@ -10,19 +8,20 @@ export const getSearchSuggestions = async (query: string, existingDocuments: Doc
     const documentTitles = existingDocuments.map(doc => doc.title).join(', ');
 
     const prompt = `
-        You are an AI research assistant for the 'School to Prison Pipeline Evidence Project'.
+        You are an expert AI research assistant for the 'School to Prison Pipeline Evidence Project'.
         A user is searching for "${query}".
         
         GOAL: Help the user refine their search with high-quality, academic, or policy-relevant terms.
 
         GUIDELINES:
-        1. **Refine & Expand**: Acknowledge the user's intent. If they search for a broad term (e.g., "suspension"), suggest specific angles like "disproportionate suspension rates" or "exclusionary discipline impacts".
-        2. **Pipeline Context**: If the query relates to a specific stage (School Environment, Discipline, Justice System, Incarceration), suggest terms that link this stage to the pipeline progression or adjacent stages.
-        3. **Diversity**: Suggest a mix of risk factors, interventions, and specific populations based on the context of our existing library.
+        1. **Refine & Expand**: If the term is vague (e.g., "bad behaviour"), suggest precise terminology (e.g., "externalising behaviours", "disciplinary infractions").
+        2. **Pipeline Context**: Suggest terms that explicitly link the query to stages of the pipeline (School Environment -> Discipline -> Justice System -> Incarceration).
+        3. **Diversity**: Suggest a mix of Risk Factors, Interventions, and specific Key Populations.
+        4. **Accuracy**: Do not invent terms; stick to established social science and criminological terminology.
         
         Context from our database titles: ${documentTitles}.
         
-        Do not suggest terms that are too similar to the original query. Provide insightful suggestions in British English.
+        Provide insightful suggestions in British English.
         Return the suggestions as a JSON array of strings.
     `;
 
@@ -68,32 +67,42 @@ export const getSearchSuggestions = async (query: string, existingDocuments: Doc
 export const extractInfoFromDocument = async (fileData: { mimeType: string; data: string }): Promise<ExtractedInfo> => {
     const prompt = `
         You are an AI assistant designed to analyse academic papers and research documents related to the school-to-prison pipeline.
-        From the provided document, please extract the following information. Please use British English spelling (e.g., 'organisation', 'centre', 'analyse').
-        If a field is not found, return an empty string, or 0 for the year.
+        
+        TASK: Extract structured data from the provided document.
+        
+        GUIDELINES for Summary & Analysis:
+        1. **Study Methodology**: Explicitly identify the design (e.g., Longitudinal, Cross-sectional, Qualitative Interview).
+        2. **Population**: Be specific about who was studied (e.g., "Black male students in urban high schools").
+        3. **Location**: Identify the geographic setting.
+        4. **Pipeline Alignment**: In 'Key Findings', explicitly link risk factors or interventions to specific stages of the pipeline (School, Discipline, Justice, Incarceration).
+        5. **Accuracy**: Do not invent data or citations. Only rely on the content displayed in the document.
+        
+        Please use British English spelling. If a field is not found, return an empty string, or 0 for the year.
 
-        1.  **Title**: The main title of the document.
-        2.  **Authors**: A single string of all authors, separated by commas.
-        3.  **Year**: The publication year as a number.
-        4.  **Summary**: The original abstract of the document.
-        5.  **Publication Title**: The name of the journal, book, or conference where it was published.
-        6.  **Resource Type**: The type of document (e.g., "Journal Article", "Book Chapter", "Report", "Thesis").
-        7.  **Strength of Evidence**: The study type (e.g., "Systematic Review", "Randomised Controlled Trial", "Meta-analysis", "Observational Study", "Qualitative Study", "Grey Literature").
-        8.  **Aim**: A concise sentence describing the main objective of the study.
-        9.  **Population**: A brief description of the study's participants or sample.
-        10. **Sample Size**: The total number of participants or units in the study (e.g., "N=250 students", "5 schools").
-        11. **Methods**: A brief summary of the research methodology used.
-        12. **Key Findings**: 2-3 bullet points of the most important results. Explicitly link risk factors to outcomes or interventions where the text supports it. Return as a single string with points separated by a semicolon ';'.
-        13. **Implications**: A concise sentence on the practical implications or takeaways from the study.
-        14. **Subjects**: A single string of 3-5 general key subjects or keywords, separated by commas.
-        15. **Risk Factors**: A single string of 3-5 key risk factors mentioned (e.g., poverty, neurodiversity, exclusion rates, zero tolerance policies), separated by commas.
-        16. **Key Populations**: A single string of specific demographic or population groups discussed (e.g., students of colour, students with disabilities, low-income students), separated by commas.
-        17. **Mental Health or Neurodivergent Conditions**: A single string of specific conditions mentioned (e.g., ADHD, anxiety, trauma, autism spectrum disorder), separated by commas.
-        18. **Interventions**: A single string of interventions or practices discussed (e.g., restorative justice, policy reform, teacher training), separated by commas.
-        19. **Key Stats**: A single string of 2-3 key statistics or quantitative findings from the paper, separated by commas.
-        20. **Key Organisations**: A single string of specific schools, institutions, or organisations mentioned, separated by commas.
-        21. **Location**: The primary city and country where the research was conducted (e.g., "London, UK").
+        FIELDS TO EXTRACT:
+        1.  **Title**: Main title.
+        2.  **Authors**: Comma-separated string.
+        3.  **Year**: Number.
+        4.  **Summary**: Original abstract.
+        5.  **Publication Title**: Journal/Book name.
+        6.  **Resource Type**: e.g., "Journal Article", "Report".
+        7.  **Strength of Evidence**: e.g., "Systematic Review", "RCT", "Observational".
+        8.  **Aim**: Concise objective.
+        9.  **Population**: Description of participants.
+        10. **Sample Size**: e.g., "N=250".
+        11. **Methods**: Brief methodology summary.
+        12. **Key Findings**: 2-3 bullet points, separated by semicolons. Ensure links between risk factors and pipeline stages are clear.
+        13. **Implications**: Practical takeaways for policy or practice.
+        14. **Subjects**: 3-5 keywords, comma-separated.
+        15. **Risk Factors**: 3-5 key risks, comma-separated.
+        16. **Key Populations**: Specific groups, comma-separated.
+        17. **Mental Health or Neurodivergent Conditions**: Specific conditions, comma-separated.
+        18. **Interventions**: Specific practices/reforms, comma-separated.
+        19. **Key Stats**: 2-3 quantitative findings, comma-separated.
+        20. **Key Organisations**: Institutions mentioned, comma-separated.
+        21. **Location**: City/Country.
 
-        Provide the output in a clean JSON format. Do not include any explanatory text before or after the JSON object.
+        Provide the output in a clean JSON format.
     `;
 
     try {
@@ -147,7 +156,6 @@ export const extractInfoFromDocument = async (fileData: { mimeType: string; data
 
         const parsedJson = JSON.parse(response.text.trim());
         
-        // A simple validation to ensure the response is in a usable state
         if (
             parsedJson &&
             typeof parsedJson.title === 'string' &&
@@ -167,16 +175,16 @@ export const extractInfoFromDocument = async (fileData: { mimeType: string; data
 
 export const simplifySummary = async (summary: string): Promise<string> => {
     const prompt = `
-        You are an AI assistant skilled at making complex research accessible.
-        The following text is an abstract or summary from a research paper about the school-to-prison pipeline.
-        Please rewrite it in simple, clear terms.
-
+        You are an expert research assistant for the School to Prison Pipeline Evidence Project.
+        
+        TASK: Rewrite the following abstract into a simplified, rich summary.
+        
         REQUIREMENTS:
         1. **Structure**: Use a clear, accessible paragraph.
-        2. **Content**: Explicitly mention the study's methodology (e.g., "Using interviews with..."), the specific population (e.g., "students in..."), and location if available in the text.
-        3. **Goal**: Capture the main point and any key quality indicators (e.g., "This systematic review finds...").
-        4. **Tone**: Professional but easy to read. Use British English spelling.
-
+        2. **Key Details**: You MUST include the Study Methodology (e.g., "Using interviews..."), the Population studied, and the Location (if identifiable).
+        3. **Pipeline Insight**: Briefly explain how this evidence fits into the school-to-prison pipeline (e.g., "This highlights how early suspension contributes to justice involvement").
+        4. **Tone**: Professional, British English, accessible to policymakers and educators.
+        
         Original Summary:
         "${summary}"
 
@@ -202,10 +210,11 @@ export const simplifySummary = async (summary: string): Promise<string> => {
 export const findRecentResearch = async (): Promise<DiscoveredResearch[]> => {
     const prompt = `
         You are an expert research assistant. Find the 5 most recent and relevant research articles about the 'school-to-prison pipeline' from popular academic and research websites (like JSTOR, Google Scholar, university sites, research institutes).
-        For each article, provide the title, a direct URL to the article page or PDF, the authors as a comma-separated string, a concise one-paragraph summary, and a confidence score (from 1 to 100) indicating how directly it relates to the school-to-prison pipeline.
-        The summary for each article should be in British English.
+        For each article, provide the title, a direct URL to the article page or PDF, the authors as a comma-separated string, a concise one-paragraph summary (including population and methodology where possible), and a confidence score (from 1 to 100).
+        Use British English.
+        
         Your entire response MUST be a single, valid JSON array of objects. Each object in the array should represent one research article and have the keys "title", "url", "authors", "summary", and "confidenceScore".
-        Do not include any introductory text, closing text, or markdown formatting like \`\`\`json. Your response must start with '[' and end with ']'.
+        Do not include any introductory text, closing text, or markdown formatting.
     `;
 
     try {
@@ -225,18 +234,14 @@ export const findRecentResearch = async (): Promise<DiscoveredResearch[]> => {
         try {
             let jsonString = response.text.trim();
             
-            // Handle markdown code blocks just in case
             const markdownMatch = jsonString.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
             if (markdownMatch && markdownMatch[1]) {
                 jsonString = markdownMatch[1].trim();
             }
 
-            // The model is instructed to return only JSON. If it doesn't, try to recover.
             if (!jsonString.startsWith('[') || !jsonString.endsWith(']')) {
-                console.warn("AI response was not a clean JSON array. Attempting to recover.");
                 const startIndex = jsonString.indexOf('[');
                 const endIndex = jsonString.lastIndexOf(']');
-
                 if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
                     jsonString = jsonString.substring(startIndex, endIndex + 1);
                 } else {
@@ -247,7 +252,7 @@ export const findRecentResearch = async (): Promise<DiscoveredResearch[]> => {
             researchList = JSON.parse(jsonString);
 
         } catch (e) {
-            console.error("Failed to parse JSON from AI response. Raw text:", response.text, "Error:", e);
+            console.error("Failed to parse JSON from AI response.", e);
             throw new Error("AI returned a malformed response.");
         }
         
@@ -269,17 +274,15 @@ export const normalizeFilterTerms = async (
     categoriesWithTerms: Record<string, string[]>
 ): Promise<Record<string, Record<string, string>>> => {
     const prompt = `
-        You are an AI assistant specializing in social science research and data normalization. Your task is to consolidate similar or synonymous filter terms into a single, representative term for better user experience.
+        You are an AI assistant specializing in data normalization.
+        Task: Consolidate similar/synonymous filter terms into single canonical terms.
+        Use British English.
+        
+        Example: "Black Students", "Black Youth", "African American students" -> "Black Youth".
+        
+        Return a JSON object where keys are category names, and values are objects mapping 'original term (lowercase)' -> 'Canonical Term'.
 
-        For each category provided below, analyse the list of terms. Group together terms that are semantically similar, plural/singular variations, or refer to the same concept. For each group, choose one single, clear, and representative name (the "canonical term"). Use British English spelling where appropriate.
-
-        For example, within 'Key Populations', terms like "Black Students" and "Black Youth" should be grouped under a single canonical term like "Black Youth". Within 'Risk Factors', "Zero Tolerance Policies" and "zero-tolerance policies" should be grouped under "Zero Tolerance Policies".
-
-        Return your response as a single, valid JSON object. The keys of this object should be the category names I provide. The value for each category key should be another JSON object that serves as a mapping, where each key is an original term from my list (converted to lowercase) and its value is the chosen canonical term (with proper casing).
-
-        Every single original term provided must be present as a key in the mapping for its respective category.
-
-        Here are the categories and terms:
+        Categories:
         ${JSON.stringify(categoriesWithTerms, null, 2)}
     `;
 
@@ -293,20 +296,14 @@ export const normalizeFilterTerms = async (
         });
 
         if (!response.text) {
-            throw new Error("AI response was empty for term normalization.");
+            throw new Error("AI response was empty.");
         }
 
         const parsedJson = JSON.parse(response.text.trim());
-        
-        if (typeof parsedJson === 'object' && parsedJson !== null && !Array.isArray(parsedJson)) {
-            return parsedJson as Record<string, Record<string, string>>;
-        } else {
-             throw new Error("AI response for term normalization was not in the expected object format.");
-        }
+        return parsedJson as Record<string, Record<string, string>>;
 
     } catch (error) {
-        console.error("Error normalizing filter terms with Gemini API:", error);
-        // Fallback: return a mapping that doesn't change anything
+        console.error("Error normalizing filter terms:", error);
         const fallbackMapping: Record<string, Record<string, string>> = {};
         for (const category in categoriesWithTerms) {
             fallbackMapping[category] = {};
@@ -321,23 +318,50 @@ export const normalizeFilterTerms = async (
 export const analyzeSavedCollection = async (documents: Document[]): Promise<string> => {
     if (documents.length === 0) return "No documents to analyze.";
 
-    // Create a context string from the documents
+    // Construct a rich context string using available metadata
     const context = documents.map(d => 
-        `Title: ${d.title}\nSummary: ${d.simplifiedSummary}\nRisk Factors: ${d.riskFactors.join(', ')}\nInterventions: ${d.interventions.join(', ')}`
-    ).join('\n---\n');
+        `---
+        Title: ${d.title}
+        Year: ${d.year || 'N/A'}
+        Summary: ${d.simplifiedSummary}
+        Methods: ${d.methods || 'N/A'}
+        Population: ${d.population || d.keyPopulations.join(', ') || 'N/A'}
+        Location: ${d.location || 'N/A'}
+        Risk Factors: ${d.riskFactors.join(', ')}
+        Interventions: ${d.interventions.join(', ')}
+        ---`
+    ).join('\n');
 
     const prompt = `
-        You are the research lead for the School to Prison Pipeline Evidence Project.
-        Analyze the following collection of saved documents from a user's reading list:
+        You are the Research Lead for the School to Prison Pipeline Evidence Project.
+        
+        TASK: Analyze the user's saved reading list.
+        
+        ACCURACY RULES:
+        1. Only use the provided documents.
+        2. Do not invent findings.
+        
+        OUTPUT REQUIREMENTS:
+        Provide a structured report (in Markdown) with the following sections:
+        
+        1. **Identified Patterns**: 
+           - What are the dominant themes? 
+           - Are there recurring risk factors or specific interventions appearing across these studies?
+           
+        2. **Pipeline Coverage**:
+           - Which stages of the pipeline are well-represented (School environment, Discipline, Justice System, Incarceration)?
+           - How do the findings in this list connect to each other?
+           
+        3. **Missing Perspectives (Gaps)**:
+           - Are there key populations, geographic regions, or methodology types (e.g., quantitative vs qualitative) missing from this list?
+           
+        4. **Suggested Further Reading**:
+           - Based *specifically* on the gaps identified, suggest 2-3 topics or search terms the user should explore next.
+           
+        Use British English. Keep it concise (approx. 250 words) but insightful.
 
+        DOCUMENTS TO ANALYZE:
         ${context}
-
-        Provide a structured insight report (in clear text or Markdown) covering:
-        1. **Identified Patterns**: What common themes, risk factors, or specific interventions appear consistently across these studies?
-        2. **Missing Perspectives**: Are there key pipeline stages (e.g., early years vs. juvenile justice), populations, or geographic regions that are missing or under-represented in this list?
-        3. **Suggested Directions**: Based on this specific collection, what topics or search terms should the user explore next to round out their evidence base?
-
-        Be concise (approx. 150-200 words), helpful, and evidence-focused. Use British English.
     `;
 
     try {

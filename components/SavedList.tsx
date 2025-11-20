@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import type { Document } from '../types';
 import { ResultCard } from './ResultCard';
@@ -89,7 +88,7 @@ export const SavedList: React.FC<SavedListProps> = ({ savedDocuments, onToggleSa
                 className="flex items-center gap-2 px-4 py-2.5 text-sm bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 {isAnalyzing ? <LoadingSpinner className="text-white" /> : <SparklesIcon className="h-5 w-5 text-yellow-300" />}
-                {isAnalyzing ? "Analyzing..." : "Analyze Collection with AI"}
+                {isAnalyzing ? "Analyzing Collection..." : "Analyze Collection with AI"}
             </button>
 
             <button 
@@ -103,10 +102,10 @@ export const SavedList: React.FC<SavedListProps> = ({ savedDocuments, onToggleSa
       </div>
 
       {analysis && (
-        <div className="mb-8 p-6 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 border border-purple-100 dark:border-purple-800/50 rounded-xl animate-fade-in">
-            <h3 className="text-lg font-bold text-purple-900 dark:text-purple-100 mb-3 flex items-center gap-2">
+        <div className="mb-8 p-6 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 border border-purple-100 dark:border-purple-800/50 rounded-xl animate-fade-in shadow-sm">
+            <h3 className="text-lg font-bold text-purple-900 dark:text-purple-100 mb-4 flex items-center gap-2 border-b border-purple-200 dark:border-purple-800 pb-2">
                 <SparklesIcon className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                Collection Insights
+                AI Research Insights
             </h3>
             <div className="prose prose-sm dark:prose-invert max-w-none text-gray-800 dark:text-gray-200 whitespace-pre-wrap font-medium leading-relaxed">
                 {analysis}
