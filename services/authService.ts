@@ -53,15 +53,21 @@ const persistUserStore = (store: ReturnType<typeof readUserStore>) => {
 
 const initializeUserStore = async (): Promise<void> => {
     const existingUsers = readUserStore();
-    if (Object.keys(existingUsers).length > 0) return;
+    const normalizedAdmin = normalizeUsername('admin');
+    const adminUser = existingUsers[normalizedAdmin];
+
+    // Seed the default admin user if missing or incomplete, while preserving any other users.
+    if (adminUser && adminUser.passwordHash && adminUser.salt && adminUser.role) {
+        return;
+    }
 
     try {
         const salt = generateSalt();
         const passwordHash = await hashPassword('s2ppadmin', salt);
-        const defaultUsers = {
-            admin: { passwordHash, salt, role: 'admin' as const, createdAt: Date.now() },
-        };
-        persistUserStore(defaultUsers);
+        persistUserStore({
+            ...existingUsers,
+            [normalizedAdmin]: { passwordHash, salt, role: 'admin' as const, createdAt: Date.now() },
+        });
     } catch (error) {
         console.error('Failed to initialize user store in localStorage:', error);
     }
