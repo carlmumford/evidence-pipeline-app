@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { Document } from '../types';
-import { BookmarkIcon, CiteIcon, DownloadIcon, ChevronDownIcon, ChevronUpIcon, MapPinIcon, BeakerIcon, UsersIcon, CheckCircleIcon } from '../constants';
+import { BookmarkIcon, CiteIcon, DownloadIcon, ChevronDownIcon, ChevronUpIcon, MapPinIcon, BeakerIcon, UsersIcon, CheckCircleIcon, ExclamationTriangleIcon, SparklesIcon } from '../constants';
 
 const StrengthOfEvidenceTag: React.FC<{ level?: string }> = ({ level }) => {
     if (!level) return null;
@@ -26,27 +26,51 @@ const StrengthOfEvidenceTag: React.FC<{ level?: string }> = ({ level }) => {
     );
 };
 
-const SummarySection: React.FC<{ title: string; children?: React.ReactNode }> = ({ title, children }) => {
-    if (!children) return null;
-    const isList = typeof children === 'string' && children.includes(';');
-    
+// Updated to better formatting for Analysis
+const KeyFindingItem: React.FC<{ text: string }> = ({ text }) => (
+    <li className="flex items-start gap-3 text-sm text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
+        <div className="mt-0.5 flex-shrink-0 text-accent">
+             <CheckCircleIcon className="h-4 w-4" />
+        </div>
+        <span className="leading-relaxed">{text.trim()}</span>
+    </li>
+);
+
+const MetaDataItem: React.FC<{ label: string; value?: string; icon: React.ReactNode }> = ({ label, value, icon }) => {
+    if (!value) return null;
     return (
-        <div className="pb-5 last:pb-0 animate-fade-in">
-            <h5 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">{title}</h5>
-            {isList ? (
-                 <ul className="space-y-1.5">
-                    {(children as string).split(';').map((item, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
-                            <span className="block w-1.5 h-1.5 mt-1.5 rounded-full bg-accent/40 flex-shrink-0"></span>
-                            <span className="leading-relaxed">{item.trim()}</span>
-                        </li>
-                    ))}
-                 </ul>
-            ) : (
-                <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                    {children}
-                </div>
-            )}
+        <div className="flex flex-col p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700">
+             <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
+                 {icon}
+                 {label}
+             </div>
+             <div className="text-sm text-gray-800 dark:text-gray-200 leading-snug">
+                 {value}
+             </div>
+        </div>
+    );
+};
+
+const TagGroup: React.FC<{ title: string; tags: string[]; color: 'red' | 'green' | 'blue' | 'gray' }> = ({ title, tags, color }) => {
+    if (!tags || tags.length === 0) return null;
+
+    const colorStyles = {
+        red: 'bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800/30',
+        green: 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800/30',
+        blue: 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800/30',
+        gray: 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
+    };
+
+    return (
+        <div className="space-y-2">
+            <h5 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{title}</h5>
+            <div className="flex flex-wrap gap-2">
+                {tags.map((tag, i) => (
+                    <span key={i} className={`inline-flex px-2.5 py-1 rounded-md text-xs font-medium border ${colorStyles[color]}`}>
+                        {tag}
+                    </span>
+                ))}
+            </div>
         </div>
     );
 };
@@ -151,27 +175,23 @@ export const ResultCard: React.FC<ResultCardProps> = ({
                             )}
                         </div>
                         
-                        {/* New Metadata Row */}
-                        <div className="flex flex-wrap gap-4 mt-3 text-xs text-gray-500 dark:text-gray-400">
-                            {document.location && (
-                                <div className="flex items-center gap-1">
-                                    <MapPinIcon className="h-3.5 w-3.5" />
-                                    <span>{document.location}</span>
-                                </div>
-                            )}
-                            {document.methods && (
-                                <div className="flex items-center gap-1">
-                                    <BeakerIcon className="h-3.5 w-3.5" />
-                                    <span className="truncate max-w-[150px]" title={document.methods}>{document.methods}</span>
-                                </div>
-                            )}
-                             {document.sampleSize && (
-                                <div className="flex items-center gap-1">
-                                    <UsersIcon className="h-3.5 w-3.5" />
-                                    <span>{document.sampleSize}</span>
-                                </div>
-                            )}
-                        </div>
+                        {/* Metadata Row - Condensed when collapsed */}
+                        {!isExpanded && (
+                            <div className="flex flex-wrap gap-4 mt-3 text-xs text-gray-500 dark:text-gray-400">
+                                {document.location && (
+                                    <div className="flex items-center gap-1">
+                                        <MapPinIcon className="h-3.5 w-3.5" />
+                                        <span>{document.location}</span>
+                                    </div>
+                                )}
+                                {document.sampleSize && (
+                                    <div className="flex items-center gap-1">
+                                        <UsersIcon className="h-3.5 w-3.5" />
+                                        <span>{document.sampleSize}</span>
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                     </div>
                     
@@ -227,29 +247,54 @@ export const ResultCard: React.FC<ResultCardProps> = ({
                     )}
                 </div>
 
-                {/* Expanded Details */}
+                {/* Expanded Details - REDESIGNED */}
                 {isExpanded && (
-                    <div className="mt-8 pt-6 border-t border-dashed border-gray-200 dark:border-gray-700 animate-fade-in">
-                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                             <div className="space-y-6">
-                                 <SummarySection title="Key Findings">{document.keyFindings}</SummarySection>
-                                 <SummarySection title="Methodology">{document.methods}</SummarySection>
-                                 <SummarySection title="Aim">{document.aim}</SummarySection>
+                    <div className="mt-8 pt-6 border-t border-dashed border-gray-200 dark:border-gray-700 animate-fade-in space-y-8">
+                         
+                         {/* Section 1: Key Findings (High Priority) */}
+                         {document.keyFindings && (
+                             <div className="rounded-xl bg-gray-50/50 dark:bg-gray-800/30 p-5 border border-gray-100 dark:border-gray-700/50">
+                                 <h4 className="flex items-center gap-2 text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-4">
+                                     <SparklesIcon className="h-4 w-4 text-accent" />
+                                     Key Research Findings
+                                 </h4>
+                                 <ul className="grid grid-cols-1 gap-3">
+                                     {document.keyFindings.split(';').map((item, i) => (
+                                         <KeyFindingItem key={i} text={item} />
+                                     ))}
+                                 </ul>
                              </div>
-                             <div className="space-y-6">
-                                 <SummarySection title="Risk Factors">
-                                     {document.riskFactors.length > 0 ? document.riskFactors.join('; ') : null}
-                                 </SummarySection>
-                                 <SummarySection title="Interventions">
-                                     {document.interventions.length > 0 ? document.interventions.join('; ') : null}
-                                 </SummarySection>
-                                 <SummarySection title="Key Populations">
-                                     {document.keyPopulations.length > 0 ? document.keyPopulations.join('; ') : null}
-                                 </SummarySection>
-                                 <SummarySection title="Implications">{document.implications}</SummarySection>
+                         )}
+
+                         {/* Section 2: Study Context Grid */}
+                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                             <MetaDataItem label="Study Aim" value={document.aim} icon={<CheckCircleIcon className="h-3 w-3"/>} />
+                             <MetaDataItem label="Methodology" value={document.methods} icon={<BeakerIcon className="h-3 w-3"/>} />
+                             <MetaDataItem label="Population" value={document.population} icon={<UsersIcon className="h-3 w-3"/>} />
+                             <MetaDataItem label="Location" value={document.location} icon={<MapPinIcon className="h-3 w-3"/>} />
+                         </div>
+
+                         {/* Section 3: Detailed Tags */}
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                             <div className="space-y-4">
+                                 <TagGroup title="Risk Factors Identified" tags={document.riskFactors} color="red" />
+                                 <TagGroup title="Interventions / Protective Factors" tags={document.interventions} color="green" />
+                             </div>
+                             <div className="space-y-4">
+                                 <TagGroup title="Key Populations" tags={document.keyPopulations} color="blue" />
+                                 {/* Section 4: Implications Callout */}
+                                 {document.implications && (
+                                    <div className="relative mt-2 p-4 bg-blue-50 dark:bg-blue-900/10 border-l-4 border-accent rounded-r-lg">
+                                        <h5 className="text-xs font-bold text-accent uppercase tracking-wider mb-2">Policy Implications</h5>
+                                        <p className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed italic">
+                                            "{document.implications}"
+                                        </p>
+                                    </div>
+                                 )}
                              </div>
                          </div>
                          
+                         {/* Action Buttons */}
                          <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
                              {document.pdfUrl && (
                                  <button 
@@ -268,9 +313,9 @@ export const ResultCard: React.FC<ResultCardProps> = ({
                              </button>
                          </div>
                          
-                         {/* Original Abstract Fallback */}
+                         {/* Original Abstract Toggle */}
                          {document.summary !== document.simplifiedSummary && (
-                             <div className="mt-6 pt-4">
+                             <div className="mt-2 pt-2">
                                  <details className="group/details">
                                      <summary className="text-xs font-bold uppercase tracking-wider text-gray-400 cursor-pointer hover:text-accent transition-colors list-none flex items-center gap-2">
                                          <span className="group-open/details:hidden">Show original abstract</span>
@@ -292,7 +337,7 @@ export const ResultCard: React.FC<ResultCardProps> = ({
                 onClick={() => setIsExpanded(!isExpanded)}
                 className="w-full py-3 bg-gray-50/50 dark:bg-gray-800/30 hover:bg-gray-100 dark:hover:bg-gray-800/80 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center justify-center gap-2 transition-colors focus:outline-none border-t border-gray-100 dark:border-gray-800 group/toggle"
             >
-                <span>{isExpanded ? "Close Details" : "View Analysis & Key Findings"}</span>
+                <span>{isExpanded ? "Close Analysis" : "View Analysis & Key Findings"}</span>
                 {isExpanded ? (
                     <ChevronUpIcon className="h-3.5 w-3.5 transition-transform duration-300 group-hover/toggle:-translate-y-0.5" />
                 ) : (

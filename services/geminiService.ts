@@ -5,24 +5,38 @@ import type { Document, ExtractedInfo, DiscoveredResearch } from '../types';
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const getSearchSuggestions = async (query: string, existingDocuments: Document[]): Promise<string[]> => {
-    const documentTitles = existingDocuments.map(doc => doc.title).join(', ');
+    // 1. Extract the "Valid Vocabulary" from the actual database
+    const vocabulary = new Set<string>();
+    existingDocuments.forEach(doc => {
+        doc.subjects.forEach(s => vocabulary.add(s));
+        doc.riskFactors.forEach(r => vocabulary.add(r));
+        doc.interventions.forEach(i => vocabulary.add(i));
+        doc.keyPopulations.forEach(k => vocabulary.add(k));
+        // Add authors as well
+        doc.authors.forEach(a => vocabulary.add(a));
+    });
+
+    // Convert to array and limit to prevent token overflow (e.g., top 200 distinct terms)
+    const validTerms = Array.from(vocabulary).slice(0, 200).join(', ');
 
     const prompt = `
         You are an expert AI research assistant for the 'School to Prison Pipeline Evidence Project'.
-        A user is searching for "${query}".
+        A user is searching for: "${query}".
         
-        GOAL: Help the user refine their search with high-quality, academic, or policy-relevant terms.
+        GOAL: Suggest 3-5 precise search terms that will help the user find documents in OUR SPECIFIC DATABASE.
+
+        CRITICAL CONSTRAINT:
+        Below is a list of "Valid Vocabulary" that actually exists in our database (subjects, risk factors, authors, etc.).
+        **You MUST prioritize suggesting terms that appear in this list.** 
+        Only suggest a term NOT in this list if it is a very close synonym to a term that likely exists in academic literature about this topic.
+
+        Valid Vocabulary (Database Content):
+        [${validTerms}]
 
         GUIDELINES:
-        1. **Refine & Expand**: If the term is vague (e.g., "bad behaviour"), suggest precise terminology (e.g., "externalising behaviours", "disciplinary infractions").
-        2. **Pipeline Context**: Suggest terms that explicitly link the query to stages of the pipeline (School Environment -> Discipline -> Justice System -> Incarceration).
-        3. **Diversity**: Suggest a mix of Risk Factors, Interventions, and specific Key Populations.
-        4. **Accuracy**: Do not invent terms; stick to established social science and criminological terminology.
-        
-        Context from our database titles: ${documentTitles}.
-        
-        Provide insightful suggestions in British English.
-        Return the suggestions as a JSON array of strings.
+        1. If the user types a vague term (e.g. "bad kids"), map it to a Valid Vocabulary term (e.g. "exclusion", "challenging behaviour").
+        2. Do not suggest specific years or generic words like "the".
+        3. Return the suggestions as a JSON array of strings.
     `;
 
     try {
