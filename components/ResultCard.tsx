@@ -1,25 +1,26 @@
 import React, { useState } from 'react';
 import type { Document } from '../types';
-import { BookmarkIcon, CiteIcon, DownloadIcon, ChevronDownIcon, ClipboardIcon, CheckCircleIcon } from '../constants';
+import { BookmarkIcon, CiteIcon, DownloadIcon, ChevronDownIcon, ChevronUpIcon } from '../constants';
 
 const StrengthOfEvidenceTag: React.FC<{ level?: string }> = ({ level }) => {
     if (!level) return null;
 
     const levelLower = level.toLowerCase();
-    let colorClasses = 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'; // Default for grey literature
+    // Modern pastel palette with subtle transparency
+    let colorClasses = 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700';
 
     if (levelLower.includes('systematic review') || levelLower.includes('meta-analysis')) {
-        colorClasses = 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+        colorClasses = 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20';
     } else if (levelLower.includes('randomised controlled trial') || levelLower.includes('rct')) {
-        colorClasses = 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+        colorClasses = 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20';
     } else if (levelLower.includes('observational') || levelLower.includes('cohort')) {
-        colorClasses = 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+        colorClasses = 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20';
     } else if (levelLower.includes('qualitative')) {
-        colorClasses = 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
+        colorClasses = 'bg-purple-50 text-purple-700 border-purple-100 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20';
     }
 
     return (
-        <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${colorClasses}`}>
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${colorClasses} whitespace-nowrap`}>
             {level}
         </span>
     );
@@ -27,205 +28,233 @@ const StrengthOfEvidenceTag: React.FC<{ level?: string }> = ({ level }) => {
 
 const SummarySection: React.FC<{ title: string; children?: React.ReactNode }> = ({ title, children }) => {
     if (!children) return null;
+    const isList = typeof children === 'string' && children.includes(';');
+    
     return (
-        <div>
-            <h5 className="font-semibold text-gray-800 dark:text-gray-200 text-sm">{title}</h5>
-            {typeof children === 'string' && children.includes(';') ? (
-                 <ul className="list-disc list-inside space-y-1 text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    {children.split(';').map((item, index) => item.trim() && <li key={index}>{item.trim()}</li>)}
-                </ul>
+        <div className="pb-5 last:pb-0 animate-fade-in">
+            <h5 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">{title}</h5>
+            {isList ? (
+                 <ul className="space-y-1.5">
+                    {(children as string).split(';').map((item, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
+                            <span className="block w-1.5 h-1.5 mt-1.5 rounded-full bg-accent/40 flex-shrink-0"></span>
+                            <span className="leading-relaxed">{item.trim()}</span>
+                        </li>
+                    ))}
+                 </ul>
             ) : (
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{children}</p>
+                <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                    {children}
+                </div>
             )}
         </div>
     );
 };
 
-const StructuredSummary: React.FC<{ document: Document }> = ({ document }) => {
-    const hasStructuredData = document.aim || document.population || document.methods || document.keyFindings || document.implications;
-
-    if (!hasStructuredData) {
-        return (
-             <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-sm">
-                {document.simplifiedSummary || document.summary}
-            </p>
-        );
-    }
-    
-    return (
-        <div className="space-y-4">
-            <SummarySection title="Aim">{document.aim}</SummarySection>
-            <SummarySection title="Population">{document.population}{document.sampleSize && ` (Sample size: ${document.sampleSize})`}</SummarySection>
-            <SummarySection title="Methods">{document.methods}</SummarySection>
-            <SummarySection title="Key Findings">{document.keyFindings}</SummarySection>
-            <SummarySection title="Implications for Practice">{document.implications}</SummarySection>
+export const ResultCardSkeleton: React.FC = () => (
+    <div className="p-6 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 animate-pulse mb-4">
+        <div className="flex justify-between mb-4">
+            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-8"></div>
         </div>
-    );
-};
-
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-6"></div>
+        <div className="space-y-3">
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+        </div>
+    </div>
+);
 
 interface ResultCardProps {
-  document: Document;
-  isSaved: boolean;
-  onToggleSave: () => void;
-  onCite: () => void;
-  onFindRelated: () => void;
-  onViewPdf: () => void;
-  onAuthorClick: (author: string) => void;
+    document: Document;
+    isSaved: boolean;
+    onToggleSave: () => void;
+    onCite: () => void;
+    onFindRelated: () => void;
+    onViewPdf: () => void;
+    onAuthorClick: (author: string) => void;
 }
 
-const IconButton: React.FC<{
-  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
-  href?: string;
-  disabled?: boolean;
-  children: React.ReactNode;
-  'aria-label': string;
-  tooltip: string;
-}> = ({ onClick, href, disabled, children, 'aria-label': ariaLabel, tooltip }) => {
-  const commonClasses = "px-3 py-2 rounded-md transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-800 dark:hover:text-gray-100 group relative";
+export const ResultCard: React.FC<ResultCardProps> = ({ 
+    document, 
+    isSaved, 
+    onToggleSave, 
+    onCite, 
+    onFindRelated, 
+    onViewPdf, 
+    onAuthorClick 
+}) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [showFullSummary, setShowFullSummary] = useState(false);
 
-  const content = (
-    <>
-      {children}
-      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-max px-2 py-1 bg-gray-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 group-hover:z-50 transition-opacity pointer-events-none">
-        {tooltip}
-      </span>
-    </>
-  );
+    const summaryPreview = document.simplifiedSummary.length > 280 
+        ? document.simplifiedSummary.substring(0, 280) + "..." 
+        : document.simplifiedSummary;
 
-  if (href && !disabled) {
     return (
-      <a href={href} download target="_blank" rel="noopener noreferrer" className={commonClasses} aria-label={ariaLabel}>
-        {content}
-      </a>
-    );
-  }
-  
-  return (
-    <button onClick={onClick} disabled={disabled} className={commonClasses} aria-label={ariaLabel}>
-      {content}
-    </button>
-  );
-};
-
-export const ResultCard: React.FC<ResultCardProps> = ({ document, isSaved, onToggleSave, onCite, onFindRelated, onViewPdf, onAuthorClick }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
-
-  const handleCopySummary = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    const summaryText = `
-        Title: ${document.title}\n
-        Authors: ${document.authors.join(', ')}\n
-        Year: ${document.year || 'N/A'}\n
-        Aim: ${document.aim || 'N/A'}\n
-        Population: ${document.population || 'N/A'}\n
-        Sample Size: ${document.sampleSize || 'N/A'}\n
-        Methods: ${document.methods || 'N/A'}\n
-        Key Findings: ${document.keyFindings?.replace(/;/g, '\n- ') || 'N/A'}\n
-        Implications: ${document.implications || 'N/A'}
-    `.trim().replace(/^\s+/gm, '');
-    
-    navigator.clipboard.writeText(summaryText).then(() => {
-        setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 2000);
-    });
-  };
-
-  return (
-    <div className="border-t border-gray-200 dark:border-gray-800 group">
-        <div 
-            className="flex items-center gap-4 p-4 cursor-pointer"
-            onClick={() => setIsExpanded(!isExpanded)}
-            role="button"
-            aria-expanded={isExpanded}
-            aria-controls={`details-${document.id}`}
+        <article 
+            className={`group relative bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 mb-4 overflow-hidden transition-all duration-300 hover:shadow-card-hover hover:-translate-y-1 hover:border-gray-200 dark:hover:border-gray-700 ${isExpanded ? 'shadow-md ring-1 ring-gray-200 dark:ring-gray-700' : 'shadow-sm'}`}
         >
-            <div className="flex-grow">
-                <div className="flex items-center gap-3 mb-1">
-                    <StrengthOfEvidenceTag level={document.strengthOfEvidence} />
-                    <h4 className="text-base font-semibold text-gray-900 dark:text-gray-100">{document.title}</h4>
-                </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">
-                    <span>
-                        {document.authors.map((author, index) => (
-                            <React.Fragment key={author}>
-                                <button 
-                                    onClick={(e) => { e.stopPropagation(); onAuthorClick(author); }} 
-                                    className="hover:underline focus:outline-none focus:ring-1 focus:ring-accent rounded"
-                                >
-                                    {author}
-                                </button>
-                                {index < document.authors.length - 1 && ', '}
-                            </React.Fragment>
-                        ))}
-                    </span>
-                    {document.year && <span className="mx-2">&#8226;</span>}
-                    {document.year && <span>{document.year}</span>}
-                </div>
-            </div>
-            
-            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                 <IconButton 
-                    href={document.pdfUrl} 
-                    disabled={!document.pdfUrl || document.pdfUrl === '#'} 
-                    aria-label={`Download PDF for ${document.title}`}
-                    tooltip="Download PDF"
-                >
-                    <DownloadIcon className="h-4 w-4" />
-                </IconButton>
-                <IconButton 
-                    onClick={(e) => { e.stopPropagation(); onCite(); }} 
-                    aria-label={`Cite ${document.title}`}
-                    tooltip="Cite"
-                >
-                    <CiteIcon className="h-4 w-4" />
-                </IconButton>
-                <IconButton 
-                    onClick={(e) => { e.stopPropagation(); onToggleSave(); }} 
-                    aria-label={isSaved ? `Remove ${document.title} from your list` : `Add ${document.title} to your list`}
-                    tooltip={isSaved ? 'Remove from list' : 'Add to list'}
-                >
-                    <BookmarkIcon className={`h-4 w-4 ${isSaved ? 'text-accent' : ''}`} isSaved={isSaved} />
-                </IconButton>
-            </div>
-            
-             <ChevronDownIcon className={`h-5 w-5 text-gray-400 transition-transform duration-300 flex-shrink-0 ${isExpanded ? 'rotate-180' : ''}`} />
-        </div>
-      
-        {isExpanded && (
-            <div id={`details-${document.id}`} className="px-4 pb-4 animate-fade-in">
-                <div className="pl-4 border-l-2 border-gray-200 dark:border-gray-700">
-                    <div className="mb-4">
-                        <StructuredSummary document={document} />
+            <div className="p-5 md:p-7">
+                <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-4">
+                    <div className="space-y-2 flex-grow">
+                         <div className="flex flex-wrap gap-2 mb-3 items-center">
+                             {document.resourceType && (
+                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 uppercase tracking-wide">
+                                     {document.resourceType}
+                                 </span>
+                             )}
+                             <StrengthOfEvidenceTag level={document.strengthOfEvidence} />
+                         </div>
+                        
+                        <h3 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100 leading-tight group-hover:text-accent transition-colors duration-200 cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
+                            {document.title}
+                        </h3>
+                        
+                        <div className="text-sm text-gray-500 dark:text-gray-400 flex flex-wrap gap-y-1 items-center leading-relaxed">
+                            {document.authors.map((author, idx) => (
+                                <React.Fragment key={idx}>
+                                    <button 
+                                        onClick={(e) => { e.stopPropagation(); onAuthorClick(author); }}
+                                        className="hover:text-accent hover:underline transition-colors font-medium"
+                                    >
+                                        {author}
+                                    </button>
+                                    {idx < document.authors.length - 1 && <span className="mr-1">, </span>}
+                                </React.Fragment>
+                            ))}
+                            <span className="mx-2.5 text-gray-300 dark:text-gray-600">•</span>
+                            <span>{document.year || 'n.d.'}</span>
+                            {document.publicationTitle && (
+                                <>
+                                   <span className="mx-2.5 text-gray-300 dark:text-gray-600">•</span>
+                                   <span className="italic text-gray-600 dark:text-gray-300">{document.publicationTitle}</span>
+                                </>
+                            )}
+                        </div>
                     </div>
                     
-                     <div className="flex items-center gap-4">
-                        <button onClick={onViewPdf} disabled={!document.pdfUrl || document.pdfUrl === '#'} className="text-sm font-medium text-accent hover:text-accent-hover disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline hover:underline">
-                            View PDF
+                    <div className="flex items-center gap-2 flex-shrink-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 self-start md:self-center bg-white dark:bg-gray-900 rounded-full shadow-sm border border-gray-100 dark:border-gray-800 p-1">
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); onToggleSave(); }}
+                            className={`p-2 rounded-full transition-all duration-200 ${isSaved ? 'text-accent bg-accent/10' : 'text-gray-400 hover:text-accent hover:bg-gray-50 dark:hover:bg-gray-800'}`}
+                            title={isSaved ? "Remove from list" : "Save to list"}
+                        >
+                            <BookmarkIcon className={`h-5 w-5 ${isSaved ? 'fill-current' : ''}`} isSaved={isSaved} />
                         </button>
-                         <span className="text-gray-300 dark:text-gray-600">&#8226;</span>
-                        <button onClick={onFindRelated} className="text-sm font-medium text-accent hover:text-accent-hover hover:underline">
-                            Find Related
-                        </button>
-                        <span className="text-gray-300 dark:text-gray-600">&#8226;</span>
-                         <button onClick={handleCopySummary} className="flex items-center gap-1.5 text-sm font-medium text-accent hover:text-accent-hover hover:underline">
-                           {isCopied ? <CheckCircleIcon className="h-4 w-4 text-green-500" /> : <ClipboardIcon className="h-4 w-4" />}
-                           {isCopied ? 'Copied!' : 'Copy Summary'}
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); onCite(); }}
+                            className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 dark:hover:text-gray-200 rounded-full transition-all duration-200"
+                            title="Cite"
+                        >
+                            <CiteIcon className="h-5 w-5" />
                         </button>
                     </div>
                 </div>
-            </div>
-        )}
-    </div>
-  );
-};
 
-export const ResultCardSkeleton: React.FC = () => {
-  return (
-    <div className="p-4 border-t border-gray-200 dark:border-gray-800 animate-pulse">
-      <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-    </div>
-  );
-}
+                {/* Main Content Area */}
+                <div className="mt-5">
+                    <div className="text-sm md:text-[15px] text-gray-600 dark:text-gray-300 leading-relaxed">
+                        <span className="inline-block font-semibold text-gray-900 dark:text-gray-100 mr-2 mb-1 bg-gradient-to-r from-gray-100 to-white dark:from-gray-800 dark:to-gray-900 px-2 py-0.5 rounded text-xs uppercase tracking-wide border border-gray-200 dark:border-gray-700">AI Summary</span>
+                        {showFullSummary ? document.simplifiedSummary : summaryPreview}
+                        {document.simplifiedSummary.length > 280 && (
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); setShowFullSummary(!showFullSummary); }}
+                                className="ml-2 text-accent font-medium hover:text-accent-dark hover:underline focus:outline-none text-xs uppercase tracking-wide"
+                            >
+                                {showFullSummary ? "Show less" : "Read more"}
+                            </button>
+                        )}
+                    </div>
+                    
+                    {/* Tags Preview (Risk Factors / Interventions) - Only show a few if collapsed */}
+                    {!isExpanded && (
+                         <div className="mt-5 flex flex-wrap gap-2">
+                             {[...(document.riskFactors || []), ...(document.interventions || [])].slice(0, 4).map((tag, i) => (
+                                 <span key={i} className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-gray-50 text-gray-600 border border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700">
+                                     {tag}
+                                 </span>
+                             ))}
+                             {(document.riskFactors.length + document.interventions.length) > 4 && (
+                                 <span className="text-xs text-gray-400 self-center font-medium">+{document.riskFactors.length + document.interventions.length - 4} more</span>
+                             )}
+                         </div>
+                    )}
+                </div>
+
+                {/* Expanded Details */}
+                {isExpanded && (
+                    <div className="mt-8 pt-6 border-t border-dashed border-gray-200 dark:border-gray-700 animate-fade-in">
+                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                             <div className="space-y-6">
+                                 <SummarySection title="Key Findings">{document.keyFindings}</SummarySection>
+                                 <SummarySection title="Methodology">{document.methods}</SummarySection>
+                                 <SummarySection title="Aim">{document.aim}</SummarySection>
+                             </div>
+                             <div className="space-y-6">
+                                 <SummarySection title="Risk Factors">
+                                     {document.riskFactors.length > 0 ? document.riskFactors.join('; ') : null}
+                                 </SummarySection>
+                                 <SummarySection title="Interventions">
+                                     {document.interventions.length > 0 ? document.interventions.join('; ') : null}
+                                 </SummarySection>
+                                 <SummarySection title="Key Populations">
+                                     {document.keyPopulations.length > 0 ? document.keyPopulations.join('; ') : null}
+                                 </SummarySection>
+                                 <SummarySection title="Implications">{document.implications}</SummarySection>
+                             </div>
+                         </div>
+                         
+                         <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
+                             {document.pdfUrl && (
+                                 <button 
+                                     onClick={(e) => { e.stopPropagation(); onViewPdf(); }}
+                                     className="inline-flex items-center px-5 py-2.5 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-accent hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition-all hover:-translate-y-0.5"
+                                 >
+                                     <DownloadIcon className="-ml-1 mr-2 h-4 w-4" />
+                                     Read Full PDF
+                                 </button>
+                             )}
+                             <button
+                                onClick={(e) => { e.stopPropagation(); onFindRelated(); }}
+                                className="inline-flex items-center px-5 py-2.5 border border-gray-200 dark:border-gray-700 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition-all hover:-translate-y-0.5"
+                             >
+                                 Find Related Evidence
+                             </button>
+                         </div>
+                         
+                         {/* Original Abstract Fallback */}
+                         {document.summary !== document.simplifiedSummary && (
+                             <div className="mt-6 pt-4">
+                                 <details className="group/details">
+                                     <summary className="text-xs font-bold uppercase tracking-wider text-gray-400 cursor-pointer hover:text-accent transition-colors list-none flex items-center gap-2">
+                                         <span className="group-open/details:hidden">Show original abstract</span>
+                                         <span className="hidden group-open/details:inline">Hide original abstract</span>
+                                         <ChevronDownIcon className="h-3 w-3 transition-transform group-open/details:rotate-180" />
+                                     </summary>
+                                     <p className="mt-3 text-sm text-gray-500 dark:text-gray-400 italic leading-relaxed pl-4 border-l-2 border-gray-200 dark:border-gray-700">
+                                         {document.summary}
+                                     </p>
+                                 </details>
+                             </div>
+                         )}
+                    </div>
+                )}
+            </div>
+            
+            {/* Expand Toggle Bar */}
+            <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="w-full py-3 bg-gray-50/50 dark:bg-gray-800/30 hover:bg-gray-100 dark:hover:bg-gray-800/80 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center justify-center gap-2 transition-colors focus:outline-none border-t border-gray-100 dark:border-gray-800 group/toggle"
+            >
+                <span>{isExpanded ? "Close Details" : "View Analysis & Key Findings"}</span>
+                {isExpanded ? (
+                    <ChevronUpIcon className="h-3.5 w-3.5 transition-transform duration-300 group-hover/toggle:-translate-y-0.5" />
+                ) : (
+                    <ChevronDownIcon className="h-3.5 w-3.5 transition-transform duration-300 group-hover/toggle:translate-y-0.5" />
+                )}
+            </button>
+        </article>
+    );
+};

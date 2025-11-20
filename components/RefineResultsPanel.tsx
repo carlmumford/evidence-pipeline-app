@@ -28,21 +28,21 @@ const FilterSection: React.FC<{ title: string; children: React.ReactNode; defaul
     const [isOpen, setIsOpen] = useState(defaultOpen);
   
     return (
-      <div className="py-4">
+      <div className="py-2 border-b border-gray-100 dark:border-gray-800/50 last:border-0">
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="w-full flex justify-between items-center px-4"
+            className="w-full flex justify-between items-center px-5 py-3 hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors rounded-lg group"
             aria-expanded={isOpen}
             aria-controls={`filter-section-${title.replace(/\s+/g, '-')}`}
           >
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{title}</h4>
-              <ChevronDownIcon className={`h-5 w-5 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+              <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 group-hover:text-gray-800 dark:text-gray-400 dark:group-hover:text-gray-200 transition-colors">{title}</h4>
+              <ChevronDownIcon className={`h-4 w-4 text-gray-400 group-hover:text-accent transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
           </button>
         
         {isOpen && (
           <div 
             id={`filter-section-${title.replace(/\s+/g, '-')}`}
-            className="mt-3 px-4"
+            className="px-5 pb-4 pt-1 animate-fade-in"
           >
             {children}
           </div>
@@ -57,19 +57,26 @@ const CheckboxFilterGroup: React.FC<{
   onCheckboxChange: (value: string) => void;
   counts: Record<string, number>;
 }> = ({ items, checkedItems, onCheckboxChange, counts }) => {
-  if (items.length === 0) return <p className="text-sm text-gray-400">No options available</p>;
+  if (items.length === 0) return <p className="text-xs text-gray-400 italic p-1">No options available</p>;
   return (
-    <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
+    <div className="space-y-1.5 max-h-60 overflow-y-auto pr-2 scrollbar-thin">
       {items.map(item => (
-        <label key={item} className="flex items-start space-x-3 cursor-pointer group">
-          <input
-            type="checkbox"
-            checked={checkedItems.includes(item)}
-            onChange={() => onCheckboxChange(item)}
-            className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-accent focus:ring-accent bg-gray-100 dark:bg-gray-800 flex-shrink-0 mt-0.5"
-          />
-          <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white capitalize">
-            {item} <span className="text-gray-400 dark:text-gray-500">({counts[item] || 0})</span>
+        <label key={item} className="flex items-center space-x-3 cursor-pointer group p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800/60 transition-all duration-200">
+          <div className="relative flex items-center h-5">
+            <input
+                type="checkbox"
+                checked={checkedItems.includes(item)}
+                onChange={() => onCheckboxChange(item)}
+                className="peer h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-accent focus:ring-accent focus:ring-offset-0 bg-white dark:bg-gray-800 transition-all"
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+             <span className={`text-sm capitalize block truncate transition-colors ${checkedItems.includes(item) ? 'text-gray-900 dark:text-white font-medium' : 'text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-300'}`}>
+                {item}
+             </span>
+          </div>
+          <span className="text-xs text-gray-400 dark:text-gray-600 tabular-nums bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded-full group-hover:bg-white dark:group-hover:bg-gray-700 transition-colors">
+            {counts[item] || 0}
           </span>
         </label>
       ))}
@@ -86,15 +93,21 @@ const NavButton: React.FC<{
 }> = ({ icon, label, onClick, isActive, badge }) => (
     <button 
         onClick={onClick}
-        className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+        className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group relative overflow-hidden ${
             isActive 
-            ? 'bg-accent-light text-accent dark:bg-accent/10 dark:text-white' 
-            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+            ? 'bg-white dark:bg-gray-800 text-accent shadow-soft ring-1 ring-gray-100 dark:ring-gray-700' 
+            : 'text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200 hover:shadow-sm'
         }`}
     >
-        {icon}
-        <span className="flex-grow text-left">{label}</span>
-        {badge !== undefined && <span className="px-2 py-0.5 text-xs rounded-full bg-gray-200 dark:bg-gray-700">{badge}</span>}
+        <div className={`z-10 ${isActive ? 'text-accent' : 'text-gray-400 group-hover:text-accent transition-colors'}`}>
+            {icon}
+        </div>
+        <span className="flex-grow text-left z-10">{label}</span>
+        {badge !== undefined && (
+            <span className={`z-10 px-2 py-0.5 text-xs font-bold rounded-full ${isActive ? 'bg-accent/10 text-accent' : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'}`}>
+                {badge}
+            </span>
+        )}
     </button>
 );
 
@@ -194,54 +207,76 @@ export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ document
   };
 
   return (
-    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900/50">
-        <div className="p-4 space-y-2 border-b border-gray-200 dark:border-gray-800">
+    <div className="h-full flex flex-col bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-md border-r border-gray-200 dark:border-gray-800">
+        <div className="p-5 space-y-3 border-b border-gray-200 dark:border-gray-800">
             <div className="flex justify-end lg:hidden mb-2">
                 <button 
                     onClick={onClose} 
-                    className="p-1 text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                    className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                     aria-label="Close filters"
                 >
                     <CloseIcon />
                 </button>
             </div>
-            <NavButton icon={<UploadIcon />} label="Upload Evidence" onClick={onOpenUpload} isActive={false} />
-            <NavButton icon={<ListIcon />} label="My List" onClick={() => onSetView('list')} isActive={currentView === 'list'} badge={savedDocCount}/>
-            {currentUser?.role !== 'trial' && (
-                <NavButton icon={<ChartBarIcon />} label="Data & Insights" onClick={() => onSetView('data')} isActive={currentView === 'data'}/>
-            )}
+            <div className="space-y-1.5">
+                <NavButton icon={<UploadIcon />} label="Upload Evidence" onClick={onOpenUpload} isActive={false} />
+                <NavButton icon={<ListIcon />} label="My Saved List" onClick={() => onSetView('list')} isActive={currentView === 'list'} badge={savedDocCount}/>
+                {currentUser?.role !== 'trial' && (
+                    <NavButton icon={<ChartBarIcon />} label="Data & Insights" onClick={() => onSetView('data')} isActive={currentView === 'data'}/>
+                )}
+            </div>
         </div>
         
         {currentUser?.role === 'trial' && (
-             <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+             <div className="px-5 py-3 border-b border-gray-200 dark:border-gray-800 bg-amber-50/50 dark:bg-amber-900/10">
                 <a
                     href="mailto:carl@schooltoprisonpipeline.org"
-                    className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors text-white bg-accent hover:bg-accent-hover"
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold rounded-lg transition-all text-amber-700 bg-amber-100 hover:bg-amber-200 dark:text-amber-400 dark:bg-amber-900/30 dark:hover:bg-amber-900/50"
                 >
                     <ExclamationTriangleIcon className="h-4 w-4" />
-                    Report Bug
+                    Report an Issue
                 </a>
             </div>
         )}
 
-        <div className="flex-grow overflow-y-auto">
-            <div className="flex justify-between items-center p-4">
-                <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">Filters</h3>
+        <div className="flex-grow overflow-y-auto scrollbar-hide">
+            <div className="sticky top-0 z-10 bg-gray-50/95 dark:bg-gray-900/95 backdrop-blur flex justify-between items-center px-5 py-4 border-b border-gray-200 dark:border-gray-800 shadow-sm">
+                <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 tracking-tight">Filter Results</h3>
                 {hasActiveFilters && (
-                    <button onClick={clearFilters} className="text-sm text-accent hover:underline">Clear all</button>
+                    <button onClick={clearFilters} className="text-xs font-semibold text-accent hover:text-accent-dark transition-colors px-2 py-1 rounded hover:bg-accent/5">
+                        Reset All
+                    </button>
                 )}
             </div>
 
-            <div className="divide-y divide-gray-200 dark:divide-gray-800">
+            <div className="divide-y divide-gray-100 dark:divide-gray-800/50">
                 <FilterSection title="Publication Year" defaultOpen={true}>
-                <div className="flex items-center gap-2">
-                    <input type="number" placeholder="From" value={filters.startYear} onChange={e => handleYearChange(e, 'start')} className="w-full input-style" />
-                    <span className="text-gray-400">-</span>
-                    <input type="number" placeholder="To" value={filters.endYear} onChange={e => handleYearChange(e, 'end')} className="w-full input-style" />
-                </div>
+                    <div className="flex items-center gap-3">
+                        <div className="relative flex-1 group">
+                            <input 
+                                type="number" 
+                                placeholder="YYYY" 
+                                value={filters.startYear} 
+                                onChange={e => handleYearChange(e, 'start')} 
+                                className="block w-full pl-3 pr-3 pt-5 pb-2 rounded-lg border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:ring-accent focus:border-accent transition-all shadow-sm group-hover:border-gray-300" 
+                            />
+                            <span className="absolute left-3 top-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wide pointer-events-none">From</span>
+                        </div>
+                        <span className="text-gray-300 dark:text-gray-600 font-light">—</span>
+                        <div className="relative flex-1 group">
+                            <input 
+                                type="number" 
+                                placeholder="YYYY" 
+                                value={filters.endYear} 
+                                onChange={e => handleYearChange(e, 'end')} 
+                                className="block w-full pl-3 pr-3 pt-5 pb-2 rounded-lg border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:ring-accent focus:border-accent transition-all shadow-sm group-hover:border-gray-300" 
+                            />
+                             <span className="absolute left-3 top-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wide pointer-events-none">To</span>
+                        </div>
+                    </div>
                 </FilterSection>
 
-                {options.riskFactors.length > 0 && <FilterSection title="Risk Factor" defaultOpen={true}>
+                {options.riskFactors.length > 0 && <FilterSection title="Risk Factors" defaultOpen={true}>
                 <CheckboxFilterGroup items={options.riskFactors} checkedItems={filters.riskFactors} onCheckboxChange={(val) => handleCheckboxChange('riskFactors', val)} counts={filterCounts.riskFactors || {}} />
                 </FilterSection>}
 
@@ -249,28 +284,31 @@ export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ document
                     <CheckboxFilterGroup items={options.mentalHealthConditions} checkedItems={filters.mentalHealthConditions} onCheckboxChange={(val) => handleCheckboxChange('mentalHealthConditions', val)} counts={filterCounts.mentalHealthConditions || {}}/>
                 </FilterSection>}
 
-                {options.interventions.length > 0 && <FilterSection title="Intervention">
+                {options.interventions.length > 0 && <FilterSection title="Interventions">
                     <CheckboxFilterGroup items={options.interventions} checkedItems={filters.interventions} onCheckboxChange={(val) => handleCheckboxChange('interventions', val)} counts={filterCounts.interventions || {}}/>
                 </FilterSection>}
 
-                {options.keyPopulations.length > 0 && <FilterSection title="Key Population">
+                {options.keyPopulations.length > 0 && <FilterSection title="Key Populations">
                     <CheckboxFilterGroup items={options.keyPopulations} checkedItems={filters.keyPopulations} onCheckboxChange={(val) => handleCheckboxChange('keyPopulations', val)} counts={filterCounts.keyPopulations || {}}/>
                 </FilterSection>}
 
-                {options.keyOrganisations.length > 0 && <FilterSection title="Key Organisation">
-                    <CheckboxFilterGroup items={options.keyOrganisations} checkedItems={filters.keyOrganisations} onCheckboxChange={(val) => handleCheckboxChange('keyOrganisations', val)} counts={filterCounts.keyOrganisations || {}}/>
+                 {options.subjects.length > 0 && <FilterSection title="Subjects">
+                    <CheckboxFilterGroup items={options.subjects} checkedItems={filters.subjects} onCheckboxChange={(val) => handleCheckboxChange('subjects', val)} counts={filterCounts.subjects || {}}/>
                 </FilterSection>}
                 
                 {options.resourceTypes.length > 0 && <FilterSection title="Resource Type">
                     <CheckboxFilterGroup items={options.resourceTypes} checkedItems={filters.resourceTypes} onCheckboxChange={(val) => handleCheckboxChange('resourceTypes', val)} counts={filterCounts.resourceTypes || {}}/>
                 </FilterSection>}
-
-                {options.subjects.length > 0 && <FilterSection title="Subject">
-                    <CheckboxFilterGroup items={options.subjects} checkedItems={filters.subjects} onCheckboxChange={(val) => handleCheckboxChange('subjects', val)} counts={filterCounts.subjects || {}}/>
+                
+                {options.keyOrganisations.length > 0 && <FilterSection title="Key Organisations">
+                    <CheckboxFilterGroup items={options.keyOrganisations} checkedItems={filters.keyOrganisations} onCheckboxChange={(val) => handleCheckboxChange('keyOrganisations', val)} counts={filterCounts.keyOrganisations || {}}/>
                 </FilterSection>}
             </div>
+            
+            <div className="p-8 text-center text-xs text-gray-400 dark:text-gray-600">
+                Evidence Project v1.0
+            </div>
         </div>
-       <style>{`.input-style { display: block; width: 100%; border-radius: 0.375rem; border: 1px solid #d4d4d4; padding: 0.5rem 0.75rem; background-color: #fafafa; } .dark .input-style { background-color: #262626; border-color: #404040; color: #f5f5f5 }`}</style>
     </div>
   );
 };
