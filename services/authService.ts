@@ -14,12 +14,22 @@ export const authService = {
    */
   initialize: (): void => {
     try {
-        const users = localStorage.getItem(USERS_KEY);
-        if (!users) {
-            const defaultUsers: UserStore = {
-                admin: { password: 's2ppadmin', role: 'admin' }
-            };
-            localStorage.setItem(USERS_KEY, JSON.stringify(defaultUsers));
+        const usersStr = localStorage.getItem(USERS_KEY);
+        let userStore: UserStore = {};
+
+        if (usersStr) {
+            try {
+                userStore = JSON.parse(usersStr);
+            } catch (e) {
+                // If parsing fails, reset the store
+                userStore = {};
+            }
+        }
+
+        // Ensure default admin always exists for this demo
+        if (!userStore['admin']) {
+            userStore['admin'] = { password: 's2ppadmin', role: 'admin' };
+            localStorage.setItem(USERS_KEY, JSON.stringify(userStore));
         }
     } catch (error) {
         console.error("Failed to initialize user store in localStorage:", error);
