@@ -23,7 +23,7 @@ export const PasswordUpdate: React.FC = () => {
     const strength = useMemo(() => getPasswordStrength(newPassword), [newPassword]);
     const strengthColors = ['bg-red-500', 'bg-red-500', 'bg-yellow-500', 'bg-lime-500', 'bg-green-500', 'bg-green-500'];
 
-    const handlePasswordChange = (e: React.FormEvent) => {
+    const handlePasswordChange = async (e: React.FormEvent) => {
         e.preventDefault();
         const currentUser = authService.getCurrentUser();
 
@@ -37,7 +37,7 @@ export const PasswordUpdate: React.FC = () => {
             return;
         }
 
-        const result = authService.changePassword(currentUser.username, currentPassword, newPassword);
+        const result = await authService.changePassword(currentUser.username, currentPassword, newPassword);
         if (result.success) {
             addToast({ type: 'success', message: result.message });
             setCurrentPassword('');

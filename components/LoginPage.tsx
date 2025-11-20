@@ -12,21 +12,18 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
 
-    // Simulate network delay
-    setTimeout(() => {
-      const success = authService.login(username, password);
-      if (success) {
-        onLogin();
-      } else {
-        setError('Invalid username or password.');
-        setIsLoading(false);
-      }
-    }, 500);
+    const success = await authService.login(username, password);
+    if (success) {
+      onLogin();
+    } else {
+      setError('Invalid username or password.');
+      setIsLoading(false);
+    }
   };
 
   const inputClasses = "w-full px-4 py-3 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg border border-transparent focus:outline-none focus:ring-2 focus:ring-accent";

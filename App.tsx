@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+import React, { useState, useEffect, Suspense, lazy, useLayoutEffect } from 'react';
 import { authService } from './services/authService';
 import { Header } from './components/Header';
 import { LoadingSpinner } from './constants';
@@ -17,7 +17,7 @@ const App: React.FC = () => {
     return (savedTheme === 'dark' || savedTheme === 'light') ? savedTheme : 'light';
   });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove(theme === 'light' ? 'dark' : 'light');
     root.classList.add(theme);
@@ -28,12 +28,35 @@ const App: React.FC = () => {
     setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
   };
 
-  // A brief delay to prevent UI flash on load
   useEffect(() => {
-    setTimeout(() => {
+    let isActive = true;
+
+    const bootstrap = async () => {
+        try {
+            await authService.initialize();
+            if (!isActive) return;
+            setIsLoggedIn(authService.isLoggedIn());
+        } finally {
+            if (isActive) {
+                setIsInitializing(false);
+            }
+        }
+    };
+
+    bootstrap();
+
+    const handleStorage = (event: StorageEvent) => {
+        if (event.key === 'theme' && (event.newValue === 'light' || event.newValue === 'dark')) {
+            setTheme(event.newValue);
+        }
         setIsLoggedIn(authService.isLoggedIn());
-        setIsInitializing(false);
-    }, 200);
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => {
+        isActive = false;
+        window.removeEventListener('storage', handleStorage);
+    };
   }, []);
 
   const handleLogin = () => {
