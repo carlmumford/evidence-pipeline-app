@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { Document } from '../types';
 import { ResultCard } from './ResultCard';
-import { DownloadIcon, SparklesIcon, LoadingSpinner, TrashIcon } from '../constants';
+import { SparklesIcon, LoadingSpinner, TrashIcon } from '../constants';
 import { analyzeSavedCollection } from '../services/geminiService';
 
 interface SavedListProps {
