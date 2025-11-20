@@ -39,8 +39,9 @@ const AdminPanel: React.FC = () => {
     fetchAdminData();
   }, [fetchAdminData]);
 
-  const handleUsersChange = useCallback(() => {
-      setUsers(authService.getUsers());
+  const handleUsersChange = useCallback(async () => {
+      const latestUsers = await authService.getUsers();
+      setUsers(latestUsers);
   }, []);
 
   if (isLoading) {

@@ -45,7 +45,7 @@ const MainApp: React.FC = () => {
     keyOrganisations: [],
     mentalHealthConditions: [],
   });
-  const [sortBy, setSortBy] = useState<'relevance' | 'newest' | 'oldest'>('relevance');
+  const [sortBy, setSortBy] = useState<'relevance' | 'newest' | 'oldest'>('newest');
 
   // AI Suggestions State
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
@@ -60,48 +60,71 @@ const MainApp: React.FC = () => {
 
   // STEP 1: Fetch critical data (documents) immediately to unblock UI.
   useEffect(() => {
+    let isMounted = true;
     const fetchDocs = async () => {
       try {
         setIsLoading(true);
         setError(null);
         const docs = await getDocuments();
+        if (!isMounted) return;
         setAllDocuments(docs);
       } catch (err) {
+        if (!isMounted) return;
         setError('Failed to load documents. Please try refreshing the page.');
         console.error(err);
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+            setIsLoading(false);
+        }
       }
     };
     fetchDocs();
+
+    return () => {
+        isMounted = false;
+    };
   }, []);
   
   // STEP 2: Once documents are loaded, run non-blocking AI normalization in the background.
   useEffect(() => {
     if (allDocuments.length === 0) return;
 
+    let isCancelled = false;
+
     const normalizeTermsInBackground = async () => {
         const categoriesToNormalize: Record<string, string[]> = {
             resourceTypes: [], subjects: [], interventions: [], keyPopulations: [],
             riskFactors: [], keyOrganisations: [], mentalHealthConditions: [],
         };
-        
-        const tempUniqueValues: Record<string, Set<string>> = {};
 
-        allDocuments.forEach(doc => {
-            Object.keys(categoriesToNormalize).forEach(key => {
-                if (!tempUniqueValues[key]) tempUniqueValues[key] = new Set();
-                const value = doc[key as keyof Document];
-                const values = Array.isArray(value) ? value : (typeof value === 'string' ? [value] : []);
-                values.forEach(v => v && tempUniqueValues[key].add(v));
+        const tempUniqueValues: Record<string, Set<string>> = Object.keys(categoriesToNormalize).reduce((acc, key) => {
+            acc[key] = new Set<string>();
+            return acc;
+        }, {} as Record<string, Set<string>>);
+
+        const documentsCopy = [...allDocuments];
+        const CHUNK_SIZE = 50;
+        const yieldToBrowser = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
+        for (let i = 0; i < documentsCopy.length; i += CHUNK_SIZE) {
+            if (isCancelled) return;
+            const slice = documentsCopy.slice(i, i + CHUNK_SIZE);
+            slice.forEach(doc => {
+                Object.keys(categoriesToNormalize).forEach(key => {
+                    const value = doc[key as keyof Document];
+                    const values = Array.isArray(value) ? value : (typeof value === 'string' ? [value] : []);
+                    values.forEach(v => v && tempUniqueValues[key].add(v));
+                });
             });
-        });
-        
+            await yieldToBrowser();
+        }
+
         Object.keys(tempUniqueValues).forEach(key => {
             categoriesToNormalize[key] = Array.from(tempUniqueValues[key]);
         });
-        
+
         const mappings = await normalizeFilterTerms(categoriesToNormalize);
+        if (isCancelled) return;
         setTermMappings(mappings);
 
         // After getting mappings, translate any currently active filters to their canonical form.
@@ -110,7 +133,7 @@ const MainApp: React.FC = () => {
             Object.keys(mappings).forEach(category => {
                 const categoryMapping = mappings[category as keyof typeof mappings];
                 const oldFilterValues = currentFilters[category as keyof Filters] as string[];
-                
+
                 if (Array.isArray(oldFilterValues) && oldFilterValues.length > 0 && categoryMapping) {
                     const newCanonicalValues = new Set(
                         oldFilterValues
@@ -125,6 +148,10 @@ const MainApp: React.FC = () => {
     };
 
     normalizeTermsInBackground();
+
+    return () => {
+        isCancelled = true;
+    };
   }, [allDocuments]);
 
   // Debounced AI suggestions fetch
@@ -152,6 +179,12 @@ const MainApp: React.FC = () => {
 
     return () => clearTimeout(handler);
   }, [searchQuery, allDocuments]);
+
+  useEffect(() => {
+    if (!searchQuery.trim() && sortBy === 'relevance') {
+        setSortBy('newest');
+    }
+  }, [searchQuery, sortBy]);
 
   const fuse = useMemo(() => {
     const options = {

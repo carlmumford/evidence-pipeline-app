@@ -7,7 +7,7 @@ import { useToast } from '../../contexts/ToastContext';
 
 interface UserManagementProps {
   initialUsers: User[];
-  onUsersChange: () => void;
+  onUsersChange: () => Promise<void>;
 }
 
 export const UserManagement: React.FC<UserManagementProps> = ({ initialUsers, onUsersChange }) => {
@@ -23,9 +23,9 @@ export const UserManagement: React.FC<UserManagementProps> = ({ initialUsers, on
         );
     }, [initialUsers, searchQuery]);
 
-    const handleAddUser = (e: React.FormEvent) => {
+    const handleAddUser = async (e: React.FormEvent) => {
         e.preventDefault();
-        const result = authService.addUser({
+        const result = await authService.addUser({
             username: newUsername,
             password: newUserPassword,
             role: newUserRole
@@ -33,7 +33,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ initialUsers, on
 
         if (result.success) {
             addToast({ type: 'success', message: result.message });
-            onUsersChange(); // Notify parent to refetch users
+            await onUsersChange(); // Notify parent to refetch users
             setNewUsername('');
             setNewUserPassword('');
             setNewUserRole('editor');
@@ -42,12 +42,12 @@ export const UserManagement: React.FC<UserManagementProps> = ({ initialUsers, on
         }
     };
   
-    const handleDeleteUser = (username: string) => {
+    const handleDeleteUser = async (username: string) => {
         // Here you would open a confirmation dialog
-        const result = authService.deleteUser(username);
+        const result = await authService.deleteUser(username);
         if (result.success) {
             addToast({ type: 'success', message: 'User deleted successfully.' });
-            onUsersChange();
+            await onUsersChange();
         } else {
             addToast({ type: 'error', message: result.message });
         }
