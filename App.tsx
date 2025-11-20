@@ -29,8 +29,21 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    setIsLoggedIn(authService.isLoggedIn());
-    setIsInitializing(false);
+    let isActive = true;
+
+    const bootstrap = async () => {
+        try {
+            await authService.initialize();
+            if (!isActive) return;
+            setIsLoggedIn(authService.isLoggedIn());
+        } finally {
+            if (isActive) {
+                setIsInitializing(false);
+            }
+        }
+    };
+
+    bootstrap();
 
     const handleStorage = (event: StorageEvent) => {
         if (event.key === 'theme' && (event.newValue === 'light' || event.newValue === 'dark')) {
@@ -40,7 +53,10 @@ const App: React.FC = () => {
     };
 
     window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
+    return () => {
+        isActive = false;
+        window.removeEventListener('storage', handleStorage);
+    };
   }, []);
 
   const handleLogin = () => {
