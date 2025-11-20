@@ -12,10 +12,17 @@ export const getSearchSuggestions = async (query: string, existingDocuments: Doc
     const prompt = `
         You are an AI research assistant for the 'School to Prison Pipeline Evidence Project'.
         A user is searching for "${query}".
-        Based on this query and the context of existing document titles in our database, suggest 3 to 5 related, more specific, or alternative search terms that could help them find relevant information.
-        The existing document titles are: ${documentTitles}.
-        Do not suggest terms that are too similar to the original query. Provide insightful and diverse suggestions.
-        The suggestions should be in British English.
+        
+        GOAL: Help the user refine their search with high-quality, academic, or policy-relevant terms.
+
+        GUIDELINES:
+        1. **Refine & Expand**: Acknowledge the user's intent. If they search for a broad term (e.g., "suspension"), suggest specific angles like "disproportionate suspension rates" or "exclusionary discipline impacts".
+        2. **Pipeline Context**: If the query relates to a specific stage (School Environment, Discipline, Justice System, Incarceration), suggest terms that link this stage to the pipeline progression or adjacent stages.
+        3. **Diversity**: Suggest a mix of risk factors, interventions, and specific populations based on the context of our existing library.
+        
+        Context from our database titles: ${documentTitles}.
+        
+        Do not suggest terms that are too similar to the original query. Provide insightful suggestions in British English.
         Return the suggestions as a JSON array of strings.
     `;
 
@@ -75,7 +82,7 @@ export const extractInfoFromDocument = async (fileData: { mimeType: string; data
         9.  **Population**: A brief description of the study's participants or sample.
         10. **Sample Size**: The total number of participants or units in the study (e.g., "N=250 students", "5 schools").
         11. **Methods**: A brief summary of the research methodology used.
-        12. **Key Findings**: 2-3 bullet points of the most important results. Return as a single string with points separated by a semicolon ';'.
+        12. **Key Findings**: 2-3 bullet points of the most important results. Explicitly link risk factors to outcomes or interventions where the text supports it. Return as a single string with points separated by a semicolon ';'.
         13. **Implications**: A concise sentence on the practical implications or takeaways from the study.
         14. **Subjects**: A single string of 3-5 general key subjects or keywords, separated by commas.
         15. **Risk Factors**: A single string of 3-5 key risk factors mentioned (e.g., poverty, neurodiversity, exclusion rates, zero tolerance policies), separated by commas.
@@ -160,14 +167,15 @@ export const extractInfoFromDocument = async (fileData: { mimeType: string; data
 
 export const simplifySummary = async (summary: string): Promise<string> => {
     const prompt = `
-        You are an AI assistant skilled at making complex information accessible.
+        You are an AI assistant skilled at making complex research accessible.
         The following text is an abstract or summary from a research paper about the school-to-prison pipeline.
-        Please rewrite it in simple, clear, layman's terms.
-        The rewritten summary should:
-        - Be a single paragraph.
-        - Avoid jargon and complex statistics.
-        - Capture the main point of the original text.
-        - Use British English spelling.
+        Please rewrite it in simple, clear terms.
+
+        REQUIREMENTS:
+        1. **Structure**: Use a clear, accessible paragraph.
+        2. **Content**: Explicitly mention the study's methodology (e.g., "Using interviews with..."), the specific population (e.g., "students in..."), and location if available in the text.
+        3. **Goal**: Capture the main point and any key quality indicators (e.g., "This systematic review finds...").
+        4. **Tone**: Professional but easy to read. Use British English spelling.
 
         Original Summary:
         "${summary}"
@@ -307,5 +315,41 @@ export const normalizeFilterTerms = async (
             });
         }
         return fallbackMapping;
+    }
+};
+
+export const analyzeSavedCollection = async (documents: Document[]): Promise<string> => {
+    if (documents.length === 0) return "No documents to analyze.";
+
+    // Create a context string from the documents
+    const context = documents.map(d => 
+        `Title: ${d.title}\nSummary: ${d.simplifiedSummary}\nRisk Factors: ${d.riskFactors.join(', ')}\nInterventions: ${d.interventions.join(', ')}`
+    ).join('\n---\n');
+
+    const prompt = `
+        You are the research lead for the School to Prison Pipeline Evidence Project.
+        Analyze the following collection of saved documents from a user's reading list:
+
+        ${context}
+
+        Provide a structured insight report (in clear text or Markdown) covering:
+        1. **Identified Patterns**: What common themes, risk factors, or specific interventions appear consistently across these studies?
+        2. **Missing Perspectives**: Are there key pipeline stages (e.g., early years vs. juvenile justice), populations, or geographic regions that are missing or under-represented in this list?
+        3. **Suggested Directions**: Based on this specific collection, what topics or search terms should the user explore next to round out their evidence base?
+
+        Be concise (approx. 150-200 words), helpful, and evidence-focused. Use British English.
+    `;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+        });
+        
+        return response.text?.trim() || "Could not generate analysis.";
+
+    } catch (error) {
+        console.error("Error analyzing saved collection with Gemini API:", error);
+        return "Sorry, I couldn't analyze your collection at this time.";
     }
 };
