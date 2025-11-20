@@ -1,3 +1,4 @@
+
 // In a real-world application, never store passwords or manage sessions this way.
 // This is a simplified client-side implementation for demonstration purposes.
 // Use a secure backend with a dedicated authentication provider (e.g., Firebase Auth, OAuth).
@@ -26,11 +27,11 @@ export const authService = {
             }
         }
 
-        // Ensure default admin always exists for this demo
-        if (!userStore['admin']) {
-            userStore['admin'] = { password: 's2ppadmin', role: 'admin' };
-            localStorage.setItem(USERS_KEY, JSON.stringify(userStore));
-        }
+        // Ensure default admin always exists and has the correct password for this demo
+        // We overwrite it here to fix login issues if the local storage state is stale or modified
+        userStore['admin'] = { password: 's2ppadmin', role: 'admin' };
+        
+        localStorage.setItem(USERS_KEY, JSON.stringify(userStore));
     } catch (error) {
         console.error("Failed to initialize user store in localStorage:", error);
     }
