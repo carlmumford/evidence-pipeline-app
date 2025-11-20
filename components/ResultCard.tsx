@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { Document } from '../types';
-import { BookmarkIcon, CiteIcon, DownloadIcon, ChevronDownIcon, ChevronUpIcon, MapPinIcon, BeakerIcon, UsersIcon, CheckCircleIcon, ExclamationTriangleIcon, SparklesIcon } from '../constants';
+import { BookmarkIcon, CiteIcon, DownloadIcon, ChevronDownIcon, ChevronUpIcon, MapPinIcon, BeakerIcon, UsersIcon, CheckCircleIcon, SparklesIcon } from '../constants';
 
 const StrengthOfEvidenceTag: React.FC<{ level?: string }> = ({ level }) => {
     if (!level) return null;
