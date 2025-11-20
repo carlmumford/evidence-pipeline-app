@@ -13,7 +13,7 @@ import { CitationModal } from './CitationModal';
 import { PDFViewerModal } from './PDFViewerModal';
 import { SavedList } from './SavedList';
 import { DataPage } from './DataPage';
-import { FilterIcon } from '../constants';
+import { FilterIcon, CloseIcon, SparklesIcon } from '../constants';
 import { FilterPills } from './FilterPills';
 
 
@@ -21,6 +21,7 @@ const MainApp: React.FC = () => {
   // Data state
   const [allDocuments, setAllDocuments] = useState<Document[]>([]);
   const [filteredDocuments, setFilteredDocuments] = useState<Document[]>([]);
+  const [searchResults, setSearchResults] = useState<Document[]>([]); // New state for search-only results (pre-filter)
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [termMappings, setTermMappings] = useState<Record<string, Record<string, string>> | null>(null);
@@ -31,6 +32,7 @@ const MainApp: React.FC = () => {
   const [citationDoc, setCitationDoc] = useState<Document | null>(null);
   const [pdfDoc, setPdfDoc] = useState<Document | null>(null);
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
+  const [showTour, setShowTour] = useState(() => !localStorage.getItem('tour_completed'));
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
@@ -186,6 +188,10 @@ const MainApp: React.FC = () => {
         results = [...allDocuments];
     }
     
+    // Store the results of the search *before* filters are applied.
+    // This allows the RefineResultsPanel to show accurate counts for the current search.
+    setSearchResults(results);
+    
     const hasActiveFilters = 
         filters.startYear ||
         filters.endYear ||
@@ -293,6 +299,11 @@ const MainApp: React.FC = () => {
     });
   };
   
+  const closeTour = () => {
+      setShowTour(false);
+      localStorage.setItem('tour_completed', 'true');
+  }
+
   // Memoized values for performance
   const filterOptions = useMemo(() => {
     const getRawUniqueValues = (key: keyof Document) => {
@@ -438,7 +449,7 @@ const MainApp: React.FC = () => {
   };
 
   return (
-    <div className="lg:flex">
+    <div className="lg:flex relative">
       {/* Mobile filter panel overlay */}
       <div 
         className={`fixed inset-0 bg-black/60 z-30 lg:hidden ${isFilterPanelOpen ? 'block' : 'hidden'}`}
@@ -447,7 +458,7 @@ const MainApp: React.FC = () => {
       />
       <aside className={`fixed top-0 left-0 w-full max-w-sm h-full z-40 transform transition-transform duration-300 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] lg:translate-x-0 lg:max-w-none lg:w-72 xl:w-80 flex-shrink-0 border-r border-gray-200 dark:border-gray-800 ${isFilterPanelOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <RefineResultsPanel 
-            documents={allDocuments}
+            documents={searchResults} // Pass search results (pre-filter) for accurate facet counts
             options={filterOptions}
             filters={filters}
             onFilterChange={setFilters}
@@ -479,6 +490,32 @@ const MainApp: React.FC = () => {
         onClose={() => setPdfDoc(null)}
         document={pdfDoc}
       />
+
+      {/* Simple Onboarding Tour */}
+      {showTour && (
+        <div className="fixed bottom-6 right-6 z-50 max-w-sm bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-accent p-5 animate-fade-in-up">
+            <div className="flex items-start gap-3">
+                <div className="bg-accent/10 p-2 rounded-full">
+                    <SparklesIcon className="h-6 w-6 text-accent" />
+                </div>
+                <div>
+                    <h4 className="font-bold text-gray-900 dark:text-white">Welcome to the Evidence Project</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                        Search effectively using keywords, refine results with the side panel, and save key documents for AI analysis.
+                    </p>
+                    <div className="mt-4 flex justify-end">
+                        <button 
+                            onClick={closeTour}
+                            className="text-sm font-semibold text-accent hover:underline"
+                        >
+                            Got it
+                        </button>
+                    </div>
+                </div>
+                <button onClick={closeTour} className="text-gray-400 hover:text-gray-600"><CloseIcon /></button>
+            </div>
+        </div>
+      )}
     </div>
   );
 };

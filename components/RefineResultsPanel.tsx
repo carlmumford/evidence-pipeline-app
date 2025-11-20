@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import type { Document, Filters } from '../types';
-import { UploadIcon, ListIcon, ChartBarIcon, ChevronDownIcon, CloseIcon, ExclamationTriangleIcon } from '../constants';
+import { UploadIcon, ListIcon, ChartBarIcon, ChevronDownIcon, CloseIcon, ExclamationTriangleIcon, SearchIcon } from '../constants';
 import { authService } from '../services/authService';
 
 interface RefineResultsPanelProps {
-  documents: Document[];
+  documents: Document[]; // documents passed here should be search-filtered if possible for accurate counts
   options: {
     resourceTypes: string[];
     subjects: string[];
@@ -24,7 +24,7 @@ interface RefineResultsPanelProps {
   termMappings: Record<string, Record<string, string>> | null;
 }
 
-const FilterSection: React.FC<{ title: string; children: React.ReactNode; defaultOpen?: boolean }> = ({ title, children, defaultOpen = false }) => {
+const FilterSection: React.FC<{ title: string; children: React.ReactNode; defaultOpen?: boolean; activeCount?: number }> = ({ title, children, defaultOpen = false, activeCount = 0 }) => {
     const [isOpen, setIsOpen] = useState(defaultOpen);
   
     return (
@@ -35,7 +35,12 @@ const FilterSection: React.FC<{ title: string; children: React.ReactNode; defaul
             aria-expanded={isOpen}
             aria-controls={`filter-section-${title.replace(/\s+/g, '-')}`}
           >
-              <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 group-hover:text-gray-800 dark:text-gray-400 dark:group-hover:text-gray-200 transition-colors">{title}</h4>
+              <div className="flex items-center gap-2">
+                  <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 group-hover:text-gray-800 dark:text-gray-400 dark:group-hover:text-gray-200 transition-colors">{title}</h4>
+                  {activeCount > 0 && (
+                      <span className="bg-accent text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{activeCount}</span>
+                  )}
+              </div>
               <ChevronDownIcon className={`h-4 w-4 text-gray-400 group-hover:text-accent transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
           </button>
         
@@ -57,29 +62,49 @@ const CheckboxFilterGroup: React.FC<{
   onCheckboxChange: (value: string) => void;
   counts: Record<string, number>;
 }> = ({ items, checkedItems, onCheckboxChange, counts }) => {
+  const [search, setSearch] = useState('');
+  
+  const filteredItems = items.filter(item => item.toLowerCase().includes(search.toLowerCase()));
+
   if (items.length === 0) return <p className="text-xs text-gray-400 italic p-1">No options available</p>;
+
   return (
-    <div className="space-y-1.5 max-h-60 overflow-y-auto pr-2 scrollbar-thin">
-      {items.map(item => (
-        <label key={item} className="flex items-center space-x-3 cursor-pointer group p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800/60 transition-all duration-200">
-          <div className="relative flex items-center h-5">
-            <input
-                type="checkbox"
-                checked={checkedItems.includes(item)}
-                onChange={() => onCheckboxChange(item)}
-                className="peer h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-accent focus:ring-accent focus:ring-offset-0 bg-white dark:bg-gray-800 transition-all"
-            />
-          </div>
-          <div className="flex-1 min-w-0">
-             <span className={`text-sm capitalize block truncate transition-colors ${checkedItems.includes(item) ? 'text-gray-900 dark:text-white font-medium' : 'text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-300'}`}>
-                {item}
-             </span>
-          </div>
-          <span className="text-xs text-gray-400 dark:text-gray-600 tabular-nums bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded-full group-hover:bg-white dark:group-hover:bg-gray-700 transition-colors">
-            {counts[item] || 0}
-          </span>
-        </label>
-      ))}
+    <div className="space-y-2">
+       {items.length > 5 && (
+           <div className="relative">
+               <SearchIcon className="absolute left-2 top-2.5 h-3.5 w-3.5 text-gray-400"/>
+               <input 
+                    type="text" 
+                    placeholder="Search..." 
+                    value={search} 
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-full pl-7 pr-2 py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-800 focus:ring-1 focus:ring-accent focus:border-accent"
+               />
+           </div>
+       )}
+        <div className="space-y-1.5 max-h-60 overflow-y-auto pr-2 scrollbar-thin">
+        {filteredItems.map(item => (
+            <label key={item} className="flex items-center space-x-3 cursor-pointer group p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800/60 transition-all duration-200">
+            <div className="relative flex items-center h-5">
+                <input
+                    type="checkbox"
+                    checked={checkedItems.includes(item)}
+                    onChange={() => onCheckboxChange(item)}
+                    className="peer h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-accent focus:ring-accent focus:ring-offset-0 bg-white dark:bg-gray-800 transition-all"
+                />
+            </div>
+            <div className="flex-1 min-w-0">
+                <span className={`text-sm capitalize block truncate transition-colors ${checkedItems.includes(item) ? 'text-gray-900 dark:text-white font-medium' : 'text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-300'}`}>
+                    {item}
+                </span>
+            </div>
+            <span className="text-xs text-gray-400 dark:text-gray-600 tabular-nums bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded-full group-hover:bg-white dark:group-hover:bg-gray-700 transition-colors">
+                {counts[item] || 0}
+            </span>
+            </label>
+        ))}
+        {filteredItems.length === 0 && <p className="text-xs text-gray-400 italic">No matches found.</p>}
+        </div>
     </div>
   );
 };
@@ -250,7 +275,7 @@ export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ document
             </div>
 
             <div className="divide-y divide-gray-100 dark:divide-gray-800/50">
-                <FilterSection title="Publication Year" defaultOpen={true}>
+                <FilterSection title="Publication Year" defaultOpen={true} activeCount={(filters.startYear || filters.endYear) ? 1 : 0}>
                     <div className="flex items-center gap-3">
                         <div className="relative flex-1 group">
                             <input 
@@ -276,37 +301,37 @@ export const RefineResultsPanel: React.FC<RefineResultsPanelProps> = ({ document
                     </div>
                 </FilterSection>
 
-                {options.riskFactors.length > 0 && <FilterSection title="Risk Factors" defaultOpen={true}>
+                {options.riskFactors.length > 0 && <FilterSection title="Risk Factors" defaultOpen={true} activeCount={filters.riskFactors.length}>
                 <CheckboxFilterGroup items={options.riskFactors} checkedItems={filters.riskFactors} onCheckboxChange={(val) => handleCheckboxChange('riskFactors', val)} counts={filterCounts.riskFactors || {}} />
                 </FilterSection>}
 
-                {options.mentalHealthConditions.length > 0 && <FilterSection title="Mental Health / Neurodiversity">
+                {options.mentalHealthConditions.length > 0 && <FilterSection title="Mental Health" activeCount={filters.mentalHealthConditions.length}>
                     <CheckboxFilterGroup items={options.mentalHealthConditions} checkedItems={filters.mentalHealthConditions} onCheckboxChange={(val) => handleCheckboxChange('mentalHealthConditions', val)} counts={filterCounts.mentalHealthConditions || {}}/>
                 </FilterSection>}
 
-                {options.interventions.length > 0 && <FilterSection title="Interventions">
+                {options.interventions.length > 0 && <FilterSection title="Interventions" activeCount={filters.interventions.length}>
                     <CheckboxFilterGroup items={options.interventions} checkedItems={filters.interventions} onCheckboxChange={(val) => handleCheckboxChange('interventions', val)} counts={filterCounts.interventions || {}}/>
                 </FilterSection>}
 
-                {options.keyPopulations.length > 0 && <FilterSection title="Key Populations">
+                {options.keyPopulations.length > 0 && <FilterSection title="Key Populations" activeCount={filters.keyPopulations.length}>
                     <CheckboxFilterGroup items={options.keyPopulations} checkedItems={filters.keyPopulations} onCheckboxChange={(val) => handleCheckboxChange('keyPopulations', val)} counts={filterCounts.keyPopulations || {}}/>
                 </FilterSection>}
 
-                 {options.subjects.length > 0 && <FilterSection title="Subjects">
+                 {options.subjects.length > 0 && <FilterSection title="Subjects" activeCount={filters.subjects.length}>
                     <CheckboxFilterGroup items={options.subjects} checkedItems={filters.subjects} onCheckboxChange={(val) => handleCheckboxChange('subjects', val)} counts={filterCounts.subjects || {}}/>
                 </FilterSection>}
                 
-                {options.resourceTypes.length > 0 && <FilterSection title="Resource Type">
+                {options.resourceTypes.length > 0 && <FilterSection title="Resource Type" activeCount={filters.resourceTypes.length}>
                     <CheckboxFilterGroup items={options.resourceTypes} checkedItems={filters.resourceTypes} onCheckboxChange={(val) => handleCheckboxChange('resourceTypes', val)} counts={filterCounts.resourceTypes || {}}/>
                 </FilterSection>}
                 
-                {options.keyOrganisations.length > 0 && <FilterSection title="Key Organisations">
+                {options.keyOrganisations.length > 0 && <FilterSection title="Key Organisations" activeCount={filters.keyOrganisations.length}>
                     <CheckboxFilterGroup items={options.keyOrganisations} checkedItems={filters.keyOrganisations} onCheckboxChange={(val) => handleCheckboxChange('keyOrganisations', val)} counts={filterCounts.keyOrganisations || {}}/>
                 </FilterSection>}
             </div>
             
             <div className="p-8 text-center text-xs text-gray-400 dark:text-gray-600">
-                Evidence Project v1.0
+                Evidence Project v1.1
             </div>
         </div>
     </div>

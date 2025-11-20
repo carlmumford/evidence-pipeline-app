@@ -10,9 +10,9 @@ interface YearData {
   count: number;
 }
 
-const LineChart: React.FC<{ data: YearData[]; color: string; title: string }> = ({ data, color, title }) => {
+const LineChart: React.FC<{ data: YearData[]; color: string; title: string; description?: string }> = ({ data, color, title, description }) => {
     if (data.length < 2) {
-        return <div className="text-center p-4 text-gray-500">Not enough data to display trend for {title}.</div>;
+        return <div className="text-center p-8 text-gray-500 bg-gray-50 dark:bg-gray-800/50 rounded-lg">Not enough data to display trend for {title}.</div>;
     }
     
     const sortedData = useMemo(() => data.sort((a, b) => a.year - b.year), [data]);
@@ -22,8 +22,8 @@ const LineChart: React.FC<{ data: YearData[]; color: string; title: string }> = 
     const maxCount = Math.max(...sortedData.map(d => d.count), 1);
 
     const width = 500;
-    const height = 200;
-    const padding = 30;
+    const height = 250;
+    const padding = 40;
 
     const points = sortedData.map(d => {
         const x = ((d.year - minYear) / (maxYear - minYear)) * (width - padding * 2) + padding;
@@ -32,23 +32,55 @@ const LineChart: React.FC<{ data: YearData[]; color: string; title: string }> = 
     }).join(' ');
     
     return (
-        <div>
-            <h4 className="text-lg font-semibold text-center text-gray-700 dark:text-gray-300 mb-2">{title}</h4>
-            <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={title}>
-                <line x1={padding} y1={height - padding} x2={width-padding} y2={height - padding} stroke="currentColor" className="text-gray-300 dark:text-gray-700" />
-                <line x1={padding} y1={padding} x2={padding} y2={height - padding} stroke="currentColor" className="text-gray-300 dark:text-gray-700"/>
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <h4 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-1">{title}</h4>
+            {description && <p className="text-xs text-gray-500 mb-4">{description}</p>}
+            <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={title} className="w-full h-auto">
+                {/* Axes */}
+                <line x1={padding} y1={height - padding} x2={width-padding} y2={height - padding} stroke="currentColor" className="text-gray-300 dark:text-gray-600" />
+                <line x1={padding} y1={padding} x2={padding} y2={height - padding} stroke="currentColor" className="text-gray-300 dark:text-gray-600"/>
                 
-                <polyline fill="none" stroke={color} strokeWidth="2" points={points} />
+                {/* Data Line */}
+                <polyline fill="none" stroke={color} strokeWidth="3" points={points} strokeLinecap="round" strokeLinejoin="round" />
                 
+                {/* Data Points */}
                 {sortedData.map((d, i) => (
-                    <circle key={i} cx={((d.year - minYear) / (maxYear - minYear)) * (width - padding * 2) + padding} cy={height - ((d.count / maxCount) * (height - padding * 2)) - padding} r="3" fill={color}>
-                         <title>{`${d.year}: ${d.count} publication(s)`}</title>
-                    </circle>
+                    <g key={i} className="group">
+                        <circle 
+                            cx={((d.year - minYear) / (maxYear - minYear)) * (width - padding * 2) + padding} 
+                            cy={height - ((d.count / maxCount) * (height - padding * 2)) - padding} 
+                            r="4" 
+                            fill={color}
+                            className="transition-all duration-200 group-hover:r-6"
+                        />
+                        {/* Tooltip */}
+                        <rect 
+                            x={((d.year - minYear) / (maxYear - minYear)) * (width - padding * 2) + padding - 25}
+                            y={height - ((d.count / maxCount) * (height - padding * 2)) - padding - 35}
+                            width="50"
+                            height="25"
+                            rx="4"
+                            fill="#1f2937"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                        />
+                        <text 
+                            x={((d.year - minYear) / (maxYear - minYear)) * (width - padding * 2) + padding}
+                            y={height - ((d.count / maxCount) * (height - padding * 2)) - padding - 18}
+                            textAnchor="middle"
+                            fill="white"
+                            fontSize="10"
+                            fontWeight="bold"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                        >
+                            {d.count}
+                        </text>
+                    </g>
                 ))}
 
-                <text x={padding} y={height - padding + 15} fontSize="10" fill="currentColor" className="text-gray-500">{minYear}</text>
-                <text x={width - padding} y={height - padding + 15} fontSize="10" textAnchor="end" fill="currentColor" className="text-gray-500">{maxYear}</text>
-                <text x={padding - 5} y={padding} fontSize="10" textAnchor="end" fill="currentColor" className="text-gray-500">{maxCount}</text>
+                {/* Labels */}
+                <text x={padding} y={height - padding + 20} fontSize="12" fill="currentColor" className="text-gray-500">{minYear}</text>
+                <text x={width - padding} y={height - padding + 20} fontSize="12" textAnchor="end" fill="currentColor" className="text-gray-500">{maxYear}</text>
+                <text x={padding - 10} y={padding} fontSize="12" textAnchor="end" fill="currentColor" className="text-gray-500">{maxCount}</text>
             </svg>
         </div>
     )
@@ -58,43 +90,41 @@ export const TrendCharts: React.FC<TrendChartsProps> = ({ documents }) => {
     const publicationsByYear = useMemo(() => {
         const counts: { [year: number]: number } = {};
         documents.forEach(doc => {
-            if (doc.year && doc.year > 1900) { // Basic data validation
+            if (doc.year && doc.year > 1980) { // Filter out outliers or very old data
                 counts[doc.year] = (counts[doc.year] || 0) + 1;
             }
         });
         return Object.entries(counts).map(([year, count]) => ({ year: parseInt(year), count }));
     }, [documents]);
 
-    const topicTrends = useMemo(() => {
-        const topics = {
-            "Racial Disparity": ['racial disparity', 'students of color'],
-            "Disability": ['disability', 'students with disabilities']
-        };
-        const trendData: { [topic: string]: YearData[] } = {};
-
-        Object.entries(topics).forEach(([topicName, keywords]) => {
-            const counts: { [year: number]: number } = {};
-            documents.forEach(doc => {
-                if (doc.year && doc.year > 1900) {
-                    const docContent = `${doc.subjects.join(' ')} ${doc.keyPopulations.join(' ')}`.toLowerCase();
-                    if (keywords.some(kw => docContent.includes(kw))) {
-                        counts[doc.year] = (counts[doc.year] || 0) + 1;
-                    }
+    const exclusionTrends = useMemo(() => {
+        const counts: { [year: number]: number } = {};
+        const keywords = ['exclusion', 'suspension', 'expulsion', 'zero tolerance'];
+        documents.forEach(doc => {
+             if (doc.year && doc.year > 1980) {
+                const content = `${doc.title} ${doc.subjects.join(' ')} ${doc.riskFactors.join(' ')}`.toLowerCase();
+                if (keywords.some(k => content.includes(k))) {
+                    counts[doc.year] = (counts[doc.year] || 0) + 1;
                 }
-            });
-            trendData[topicName] = Object.entries(counts).map(([year, count]) => ({ year: parseInt(year), count }));
+             }
         });
-
-        return trendData;
+        return Object.entries(counts).map(([year, count]) => ({ year: parseInt(year), count }));
     }, [documents]);
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-gray-200 dark:border-gray-700">
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <LineChart data={publicationsByYear} color="#42A5F5" title="Publications by Year" />
-                <LineChart data={topicTrends["Racial Disparity"]} color="#EF5350" title="Focus on Racial Disparity" />
-                <LineChart data={topicTrends["Disability"]} color="#66BB6A" title="Focus on Disability" />
-             </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <LineChart 
+                data={publicationsByYear} 
+                color="#3b82f6" 
+                title="Research Activity Over Time" 
+                description="Number of publications in the database per year."
+            />
+            <LineChart 
+                data={exclusionTrends} 
+                color="#ef4444" 
+                title="Focus on Exclusionary Discipline" 
+                description="Trends in research mentioning suspension, expulsion, or zero tolerance."
+            />
         </div>
     );
 };

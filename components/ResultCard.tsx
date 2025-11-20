@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { Document } from '../types';
-import { BookmarkIcon, CiteIcon, DownloadIcon, ChevronDownIcon, ChevronUpIcon } from '../constants';
+import { BookmarkIcon, CiteIcon, DownloadIcon, ChevronDownIcon, ChevronUpIcon, MapPinIcon, BeakerIcon, UsersIcon, CheckCircleIcon } from '../constants';
 
 const StrengthOfEvidenceTag: React.FC<{ level?: string }> = ({ level }) => {
     if (!level) return null;
@@ -74,6 +74,8 @@ interface ResultCardProps {
     onFindRelated: () => void;
     onViewPdf: () => void;
     onAuthorClick: (author: string) => void;
+    selected?: boolean;
+    onSelect?: () => void;
 }
 
 export const ResultCard: React.FC<ResultCardProps> = ({ 
@@ -83,7 +85,9 @@ export const ResultCard: React.FC<ResultCardProps> = ({
     onCite, 
     onFindRelated, 
     onViewPdf, 
-    onAuthorClick 
+    onAuthorClick,
+    selected,
+    onSelect
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [showFullSummary, setShowFullSummary] = useState(false);
@@ -92,16 +96,29 @@ export const ResultCard: React.FC<ResultCardProps> = ({
         ? document.simplifiedSummary.substring(0, 280) + "..." 
         : document.simplifiedSummary;
 
+    const isPeerReviewed = document.resourceType?.toLowerCase().includes('journal');
+
     return (
         <article 
-            className={`group relative bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 mb-4 overflow-hidden transition-all duration-300 hover:shadow-card-hover hover:-translate-y-1 hover:border-gray-200 dark:hover:border-gray-700 ${isExpanded ? 'shadow-md ring-1 ring-gray-200 dark:ring-gray-700' : 'shadow-sm'}`}
+            className={`group relative bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 mb-4 overflow-hidden transition-all duration-300 hover:shadow-card-hover hover:-translate-y-1 hover:border-gray-200 dark:hover:border-gray-700 ${isExpanded ? 'shadow-md ring-1 ring-gray-200 dark:ring-gray-700' : 'shadow-sm'} ${selected ? 'ring-2 ring-accent border-accent dark:border-accent' : ''}`}
         >
             <div className="p-5 md:p-7">
                 <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-4">
+                    {onSelect && (
+                        <div className="flex-shrink-0 pt-1.5 pr-2">
+                             <input 
+                                type="checkbox" 
+                                checked={selected} 
+                                onChange={onSelect}
+                                className="h-5 w-5 rounded border-gray-300 text-accent focus:ring-accent"
+                             />
+                        </div>
+                    )}
                     <div className="space-y-2 flex-grow">
                          <div className="flex flex-wrap gap-2 mb-3 items-center">
                              {document.resourceType && (
-                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 uppercase tracking-wide">
+                                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 uppercase tracking-wide">
+                                     {isPeerReviewed && <CheckCircleIcon className="h-3 w-3 text-accent"/>}
                                      {document.resourceType}
                                  </span>
                              )}
@@ -133,6 +150,29 @@ export const ResultCard: React.FC<ResultCardProps> = ({
                                 </>
                             )}
                         </div>
+                        
+                        {/* New Metadata Row */}
+                        <div className="flex flex-wrap gap-4 mt-3 text-xs text-gray-500 dark:text-gray-400">
+                            {document.location && (
+                                <div className="flex items-center gap-1">
+                                    <MapPinIcon className="h-3.5 w-3.5" />
+                                    <span>{document.location}</span>
+                                </div>
+                            )}
+                            {document.methods && (
+                                <div className="flex items-center gap-1">
+                                    <BeakerIcon className="h-3.5 w-3.5" />
+                                    <span className="truncate max-w-[150px]" title={document.methods}>{document.methods}</span>
+                                </div>
+                            )}
+                             {document.sampleSize && (
+                                <div className="flex items-center gap-1">
+                                    <UsersIcon className="h-3.5 w-3.5" />
+                                    <span>{document.sampleSize}</span>
+                                </div>
+                            )}
+                        </div>
+
                     </div>
                     
                     <div className="flex items-center gap-2 flex-shrink-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 self-start md:self-center bg-white dark:bg-gray-900 rounded-full shadow-sm border border-gray-100 dark:border-gray-800 p-1">
@@ -172,7 +212,11 @@ export const ResultCard: React.FC<ResultCardProps> = ({
                     {!isExpanded && (
                          <div className="mt-5 flex flex-wrap gap-2">
                              {[...(document.riskFactors || []), ...(document.interventions || [])].slice(0, 4).map((tag, i) => (
-                                 <span key={i} className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-gray-50 text-gray-600 border border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700">
+                                 <span 
+                                    key={i} 
+                                    className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-gray-50 text-gray-600 border border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 cursor-help transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
+                                    title={`Filter by ${tag}`}
+                                 >
                                      {tag}
                                  </span>
                              ))}

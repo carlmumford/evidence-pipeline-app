@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { Document } from '../types';
 import { ResultCard } from './ResultCard';
-import { DownloadIcon, SparklesIcon, LoadingSpinner } from '../constants';
+import { DownloadIcon, SparklesIcon, LoadingSpinner, TrashIcon } from '../constants';
 import { analyzeSavedCollection } from '../services/geminiService';
 
 interface SavedListProps {
@@ -17,39 +17,104 @@ interface SavedListProps {
 export const SavedList: React.FC<SavedListProps> = ({ savedDocuments, onToggleSave, onCite, onReturn, onFindRelated, onViewPdf, onAuthorClick }) => {
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [selectedDocs, setSelectedDocs] = useState<Set<string>>(new Set());
 
-  const handleExportToCSV = () => {
-    if (savedDocuments.length === 0) return;
+  const toggleSelectDoc = (id: string) => {
+      const newSelected = new Set(selectedDocs);
+      if (newSelected.has(id)) {
+          newSelected.delete(id);
+      } else {
+          newSelected.add(id);
+      }
+      setSelectedDocs(newSelected);
+  };
 
-    const headers = ["Title", "Authors", "Year", "Summary", "Subjects", "Risk Factors", "Interventions", "Key Populations", "URL"];
-    
-    const rows = savedDocuments.map(doc => {
-      const escapeCsvField = (field: any) => {
-        const str = String(field || '').replace(/"/g, '""');
-        return `"${str}"`;
-      };
-      
-      return [
-        escapeCsvField(doc.title),
-        escapeCsvField(doc.authors.join(', ')),
-        doc.year || 'N/A',
-        escapeCsvField(doc.summary),
-        escapeCsvField(doc.subjects.join(', ')),
-        escapeCsvField(doc.riskFactors.join(', ')),
-        escapeCsvField(doc.interventions.join(', ')),
-        escapeCsvField(doc.keyPopulations.join(', ')),
-        escapeCsvField(doc.pdfUrl)
-      ].join(',');
-    });
+  const toggleSelectAll = () => {
+      if (selectedDocs.size === savedDocuments.length) {
+          setSelectedDocs(new Set());
+      } else {
+          setSelectedDocs(new Set(savedDocuments.map(d => d.id)));
+      }
+  };
 
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows].join('\n');
-    const encodedUri = encodeURI(csvContent);
+  const handleExport = (format: 'csv' | 'ris' | 'bibtex') => {
+    const docsToExport = selectedDocs.size > 0 
+        ? savedDocuments.filter(d => selectedDocs.has(d.id))
+        : savedDocuments;
+
+    if (docsToExport.length === 0) return;
+
+    let content = '';
+    let mimeType = 'text/plain';
+    let extension = 'txt';
+
+    if (format === 'csv') {
+        const headers = ["Title", "Authors", "Year", "Summary", "Subjects", "Risk Factors", "Interventions", "Key Populations", "URL"];
+        const rows = docsToExport.map(doc => {
+        const escapeCsvField = (field: any) => {
+            const str = String(field || '').replace(/"/g, '""');
+            return `"${str}"`;
+        };
+        return [
+            escapeCsvField(doc.title),
+            escapeCsvField(doc.authors.join(', ')),
+            doc.year || 'N/A',
+            escapeCsvField(doc.summary),
+            escapeCsvField(doc.subjects.join(', ')),
+            escapeCsvField(doc.riskFactors.join(', ')),
+            escapeCsvField(doc.interventions.join(', ')),
+            escapeCsvField(doc.keyPopulations.join(', ')),
+            escapeCsvField(doc.pdfUrl)
+        ].join(',');
+        });
+        content = [headers.join(','), ...rows].join('\n');
+        mimeType = 'text/csv';
+        extension = 'csv';
+    } else if (format === 'ris') {
+        content = docsToExport.map(doc => {
+            const lines = ['TY  - JOUR'];
+            doc.authors.forEach(author => lines.push(`AU  - ${author}`));
+            lines.push(`PY  - ${doc.year || ''}`);
+            lines.push(`TI  - ${doc.title}`);
+            if (doc.publicationTitle) lines.push(`JO  - ${doc.publicationTitle}`);
+            if (doc.summary) lines.push(`AB  - ${doc.summary}`);
+            lines.push('ER  - ');
+            return lines.join('\n');
+        }).join('\n\n');
+        mimeType = 'application/x-research-info-systems';
+        extension = 'ris';
+    } else if (format === 'bibtex') {
+        content = docsToExport.map(doc => {
+            const lastName = doc.authors[0]?.split(' ').pop() || 'Unknown';
+            const year = doc.year || 'nodate';
+            const firstWord = doc.title.split(' ')[0]?.replace(/[^a-zA-Z0-9]/g, '') || 'Untitled';
+            const key = `${lastName}${year}${firstWord}`;
+            return `@article{${key},\n  author = {${doc.authors.join(' and ')}},\n  title = {${doc.title}},\n  year = {${doc.year || 'n.d.'}},\n  journal = {${doc.publicationTitle || 'N/A'}}\n}`;
+        }).join('\n\n');
+        mimeType = 'application/x-bibtex';
+        extension = 'bib';
+    }
+
+    const blob = new Blob([content], { type: `${mimeType};charset=utf-8;` });
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "evidence_project_export.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `evidence_export.${extension}`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+  };
+
+  const handleBulkDelete = () => {
+      if (confirm(`Are you sure you want to remove ${selectedDocs.size} items from your list?`)) {
+          // Iterate and remove. In a real app, pass a bulk handler to props.
+          const docsToRemove = savedDocuments.filter(d => selectedDocs.has(d.id));
+          docsToRemove.forEach(d => onToggleSave(d));
+          setSelectedDocs(new Set());
+      }
   };
   
   const handleAnalyzeList = async () => {
@@ -81,24 +146,46 @@ export const SavedList: React.FC<SavedListProps> = ({ savedDocuments, onToggleSa
         </div>
       </div>
 
-      <div className="mb-6 flex flex-wrap gap-3">
+      <div className="mb-6 flex flex-wrap items-center gap-3 bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+            <div className="flex items-center gap-2 mr-4 border-r border-gray-200 dark:border-gray-700 pr-4">
+                <input 
+                    type="checkbox" 
+                    checked={savedDocuments.length > 0 && selectedDocs.size === savedDocuments.length}
+                    onChange={toggleSelectAll}
+                    disabled={savedDocuments.length === 0}
+                    className="h-4 w-4 rounded border-gray-300 text-accent focus:ring-accent"
+                    id="select-all"
+                />
+                <label htmlFor="select-all" className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer select-none">Select All</label>
+            </div>
+
             <button 
                 onClick={handleAnalyzeList}
                 disabled={savedDocuments.length === 0 || isAnalyzing}
-                className="flex items-center gap-2 px-4 py-2.5 text-sm bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-3 py-2 text-sm bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-md shadow-sm hover:shadow hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-                {isAnalyzing ? <LoadingSpinner className="text-white" /> : <SparklesIcon className="h-5 w-5 text-yellow-300" />}
-                {isAnalyzing ? "Analyzing Collection..." : "Analyze Collection with AI"}
+                {isAnalyzing ? <LoadingSpinner className="text-white h-4 w-4" /> : <SparklesIcon className="h-4 w-4 text-yellow-300" />}
+                {isAnalyzing ? "Analyzing..." : "Analyze List"}
             </button>
 
-            <button 
-                onClick={handleExportToCSV}
-                disabled={savedDocuments.length === 0}
-                className="flex items-center gap-2 px-4 py-2.5 text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 font-semibold rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <DownloadIcon />
-              Download CSV
-            </button>
+            <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 hidden sm:block"></div>
+
+            <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider hidden sm:inline">Export:</span>
+                <button onClick={() => handleExport('csv')} disabled={savedDocuments.length === 0} className="text-sm text-gray-600 dark:text-gray-300 hover:text-accent font-medium px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">CSV</button>
+                <button onClick={() => handleExport('ris')} disabled={savedDocuments.length === 0} className="text-sm text-gray-600 dark:text-gray-300 hover:text-accent font-medium px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">RIS</button>
+                <button onClick={() => handleExport('bibtex')} disabled={savedDocuments.length === 0} className="text-sm text-gray-600 dark:text-gray-300 hover:text-accent font-medium px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">BibTeX</button>
+            </div>
+
+             {selectedDocs.size > 0 && (
+                <button 
+                    onClick={handleBulkDelete}
+                    className="ml-auto flex items-center gap-1 px-3 py-2 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-300 border border-red-100 dark:border-red-800 rounded-md hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                >
+                    <TrashIcon className="h-4 w-4"/>
+                    <span>Delete ({selectedDocs.size})</span>
+                </button>
+            )}
       </div>
 
       {analysis && (
@@ -125,6 +212,8 @@ export const SavedList: React.FC<SavedListProps> = ({ savedDocuments, onToggleSa
               onFindRelated={() => onFindRelated(doc)}
               onViewPdf={() => onViewPdf(doc)}
               onAuthorClick={onAuthorClick}
+              selected={selectedDocs.has(doc.id)}
+              onSelect={() => toggleSelectDoc(doc.id)}
             />
           ))}
         </div>
