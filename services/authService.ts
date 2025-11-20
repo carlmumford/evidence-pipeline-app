@@ -6,6 +6,15 @@ import type { User } from '../types';
 const USERS_KEY = 'app_users';
 const SESSION_KEY = 'current_user';
 
+type StoredUser = {
+    passwordHash: string;
+    salt: string;
+    role: User['role'];
+    createdAt: number;
+    version: number;
+};
+
+const CURRENT_VERSION = 1;
 const encoder = new TextEncoder();
 
 const toBase64 = (buffer: ArrayBuffer): string => {
@@ -32,7 +41,7 @@ const hashPassword = async (password: string, salt: string): Promise<string> => 
 
 const normalizeUsername = (username: string): string => username.trim().toLowerCase();
 
-const readUserStore = (): Record<string, { passwordHash: string; salt: string; role: User['role']; createdAt: number }> => {
+const readUserStore = (): Record<string, StoredUser> => {
     try {
         const stored = localStorage.getItem(USERS_KEY);
         if (!stored) return {};
@@ -51,13 +60,25 @@ const persistUserStore = (store: ReturnType<typeof readUserStore>) => {
     }
 };
 
+const isValidUserRecord = (user: StoredUser | undefined): user is StoredUser => {
+    return Boolean(
+        user &&
+        typeof user.passwordHash === 'string' &&
+        typeof user.salt === 'string' &&
+        typeof user.role === 'string' &&
+        typeof user.createdAt === 'number' &&
+        typeof user.version === 'number' &&
+        user.version >= CURRENT_VERSION,
+    );
+};
+
 const initializeUserStore = async (): Promise<void> => {
     const existingUsers = readUserStore();
     const normalizedAdmin = normalizeUsername('admin');
     const adminUser = existingUsers[normalizedAdmin];
 
-    // Seed the default admin user if missing or incomplete, while preserving any other users.
-    if (adminUser && adminUser.passwordHash && adminUser.salt && adminUser.role) {
+    // Seed the default admin user if missing, incomplete, or using an outdated schema while preserving any other users.
+    if (isValidUserRecord(adminUser)) {
         return;
     }
 
@@ -66,7 +87,7 @@ const initializeUserStore = async (): Promise<void> => {
         const passwordHash = await hashPassword('s2ppadmin', salt);
         persistUserStore({
             ...existingUsers,
-            [normalizedAdmin]: { passwordHash, salt, role: 'admin' as const, createdAt: Date.now() },
+            [normalizedAdmin]: { passwordHash, salt, role: 'admin' as const, createdAt: Date.now(), version: CURRENT_VERSION },
         });
     } catch (error) {
         console.error('Failed to initialize user store in localStorage:', error);
@@ -96,10 +117,12 @@ export const authService = {
   getUsers: async (): Promise<User[]> => {
       await ensureInitialized();
       const userStore = readUserStore();
-      return Object.entries(userStore).map(([username, data]) => ({
-          username,
-          role: data.role
-      }));
+      return Object.entries(userStore)
+          .filter(([, data]) => isValidUserRecord(data))
+          .map(([username, data]) => ({
+              username,
+              role: data.role
+          }));
   },
 
   /**
@@ -124,7 +147,7 @@ export const authService = {
           const salt = generateSalt();
           const passwordHash = await hashPassword(user.password, salt);
 
-          storedUsers[normalizedUsername] = { passwordHash, salt, role: user.role, createdAt: Date.now() };
+          storedUsers[normalizedUsername] = { passwordHash, salt, role: user.role, createdAt: Date.now(), version: CURRENT_VERSION };
           persistUserStore(storedUsers);
           return { success: true, message: 'User added successfully.' };
       } catch (error) {
@@ -175,7 +198,7 @@ export const authService = {
         const normalizedUsername = normalizeUsername(username);
         const user = userStore[normalizedUsername];
 
-        if (!user) return false;
+        if (!isValidUserRecord(user)) return false;
 
         const passwordHash = await hashPassword(password, user.salt);
         if (user.passwordHash === passwordHash) {
@@ -238,7 +261,7 @@ export const authService = {
       const userStore = readUserStore();
       const user = userStore[normalizedUsername];
 
-      if (!user) {
+      if (!isValidUserRecord(user)) {
         return { success: false, message: 'User not found.' };
       }
 
@@ -253,7 +276,7 @@ export const authService = {
       const newSalt = generateSalt();
       const newHash = await hashPassword(newPassword, newSalt);
 
-      userStore[normalizedUsername] = { ...user, salt: newSalt, passwordHash: newHash };
+      userStore[normalizedUsername] = { ...user, salt: newSalt, passwordHash: newHash, version: CURRENT_VERSION };
       persistUserStore(userStore);
       return { success: true, message: 'Password changed successfully.' };
     } catch (error) {
